@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elmi və Həndəsi Kalkulyator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+
+    <header class="app-header">
+        <div class="header-left">
+            <span class="logo">🧮</span>
+            <h1>Elmi Kalkulyator</h1>
+        </div>
+        <button id="themeToggle" class="theme-btn" title="Tema dəyişdir">
+            <span id="themeIcon">☀️</span>
+        </button>
+    </header>
+
+    <div class="app-layout">
+        <!-- Tab Navigation -->
+        <nav class="tab-navigation" id="tabNav">
+            <button class="tab-btn active" data-tab="calculator">
+                <span class="tab-icon">🔢</span>
+                <span class="tab-label">Kalkulyator</span>
+            </button>
+            <button class="tab-btn" data-tab="geometry">
+                <span class="tab-icon">📐</span>
+                <span class="tab-label">Həndəsə</span>
+            </button>
+            <button class="tab-btn" data-tab="algebra">
+                <span class="tab-icon">✖️</span>
+                <span class="tab-label">Cəbr</span>
+            </button>
+            <button class="tab-btn" data-tab="analysis">
+                <span class="tab-icon">📈</span>
+                <span class="tab-label">Analiz</span>
+            </button>
+            <button class="tab-btn" data-tab="statistics">
+                <span class="tab-icon">🎲</span>
+                <span class="tab-label">Statistika</span>
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- ==================== CALCULATOR ==================== -->
+            <section id="sec-calculator" class="tab-section active">
+                <div class="calc-container">
+                    <div class="calc-display">
+                        <div class="calc-expression" id="calcExpression">&nbsp;</div>
+                        <div class="calc-result" id="calcResult">0</div>
+                        <div class="calc-mode-bar">
+                            <button id="angleModeBtn" class="mode-btn" title="Bucaq vahidi">DEG</button>
+                        </div>
+                    </div>
+                    <div class="calc-buttons" id="calcButtons">
+                        <!-- Row 1: Scientific -->
+                        <button class="btn btn-func" data-action="sin">sin</button>
+                        <button class="btn btn-func" data-action="cos">cos</button>
+                        <button class="btn btn-func" data-action="tan">tan</button>
+                        <button class="btn btn-func" data-action="cot">cot</button>
+                        <button class="btn btn-func" data-action="pow">xⁿ</button>
+                        <!-- Row 2 -->
+                        <button class="btn btn-func" data-action="ln">ln</button>
+                        <button class="btn btn-func" data-action="log">log</button>
+                        <button class="btn btn-func" data-action="sqrt">√</button>
+                        <button class="btn btn-func" data-action="square">x²</button>
+                        <button class="btn btn-func" data-action="factorial">n!</button>
+                        <!-- Row 3 -->
+                        <button class="btn btn-func" data-action="pi">π</button>
+                        <button class="btn btn-func" data-action="e">e</button>
+                        <button class="btn btn-func" data-action="openParen">(</button>
+                        <button class="btn btn-func" data-action="closeParen">)</button>
+                        <button class="btn btn-func" data-action="negate">±</button>
+                        <!-- Row 4: 7 8 9 ÷ ⌫ -->
+                        <button class="btn btn-num" data-action="num" data-value="7">7</button>
+                        <button class="btn btn-num" data-action="num" data-value="8">8</button>
+                        <button class="btn btn-num" data-action="num" data-value="9">9</button>
+                        <button class="btn btn-op" data-action="op" data-value="/">÷</button>
+                        <button class="btn btn-del" data-action="backspace">⌫</button>
+                        <!-- Row 5: 4 5 6 × C -->
+                        <button class="btn btn-num" data-action="num" data-value="4">4</button>
+                        <button class="btn btn-num" data-action="num" data-value="5">5</button>
+                        <button class="btn btn-num" data-action="num" data-value="6">6</button>
+                        <button class="btn btn-op" data-action="op" data-value="*">×</button>
+                        <button class="btn btn-del" data-action="clear">C</button>
+                        <!-- Row 6: 1 2 3 - AC -->
+                        <button class="btn btn-num" data-action="num" data-value="1">1</button>
+                        <button class="btn btn-num" data-action="num" data-value="2">2</button>
+                        <button class="btn btn-num" data-action="num" data-value="3">3</button>
+                        <button class="btn btn-op" data-action="op" data-value="-">−</button>
+                        <button class="btn btn-del" data-action="allClear">AC</button>
+                        <!-- Row 7: 0 . = + % -->
+                        <button class="btn btn-num" data-action="num" data-value="0">0</button>
+                        <button class="btn btn-num" data-action="decimal">.</button>
+                        <button class="btn btn-equals" data-action="equals">=</button>
+                        <button class="btn btn-op" data-action="op" data-value="+">+</button>
+                        <button class="btn btn-func" data-action="percent">%</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== GEOMETRY ==================== -->
+            <section id="sec-geometry" class="tab-section">
+                <h2 class="section-title">📐 Həndəsi Hesablamalar</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label for="shapeSelect">Fiquru seçin:</label>
+                        <select id="shapeSelect">
+                            <option value="">— Fiqur seçin —</option>
+                            <optgroup label="Müstəvi Fiqurlar">
+                                <option value="circle">Dairə</option>
+                                <option value="square">Kvadrat</option>
+                                <option value="rectangle">Düzbucaqlı</option>
+                                <option value="triangle">Üçbucaq</option>
+                                <option value="trapezoid">Trapesiya</option>
+                            </optgroup>
+                            <optgroup label="Fəza Fiqurları">
+                                <option value="cube">Kub</option>
+                                <option value="cylinder">Silindr</option>
+                                <option value="sphere">Kürə</option>
+                                <option value="cone">Konus</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div id="shapeInputMode" class="form-group" style="display:none;"></div>
+                    <div id="shapeInputs" class="input-row"></div>
+                    <button id="geoCalcBtn" class="primary-btn" style="display:none;" onclick="calculateGeometry()">Hesabla</button>
+                    <div id="geoResults" class="result-box"></div>
+                </div>
+            </section>
+
+            <!-- ==================== ALGEBRA ==================== -->
+            <section id="sec-algebra" class="tab-section">
+                <h2 class="section-title">✖️ Cəbr və Tənliklər</h2>
+                <div class="sub-tabs" id="algebraSubTabs">
+                    <button class="sub-tab active" data-subtab="quadratic">Kvadrat tənlik</button>
+                    <button class="sub-tab" data-subtab="linear2">2 məchullu</button>
+                    <button class="sub-tab" data-subtab="linear3">3 məchullu</button>
+                    <button class="sub-tab" data-subtab="percentage">Faiz</button>
+                    <button class="sub-tab" data-subtab="sequence">Silsilə</button>
+                </div>
+
+                <!-- Quadratic -->
+                <div id="sub-quadratic" class="sub-content active card">
+                    <h3>ax² + bx + c = 0</h3>
+                    <div class="input-row">
+                        <div class="input-group"><label>a =</label><input type="number" id="qa" step="any"></div>
+                        <div class="input-group"><label>b =</label><input type="number" id="qb" step="any"></div>
+                        <div class="input-group"><label>c =</label><input type="number" id="qc" step="any"></div>
+                    </div>
+                    <button class="primary-btn" onclick="solveQuadratic()">Həll et</button>
+                    <div id="quadraticResult" class="result-box"></div>
+                </div>
+
+                <!-- Linear 2 -->
+                <div id="sub-linear2" class="sub-content card">
+                    <h3>Xətti tənliklər sistemi (2 məchullu)</h3>
+                    <div class="system-eq">
+                        <div class="eq-row">
+                            <input type="number" id="l2a1" step="any" class="sm-input"><span>x +</span>
+                            <input type="number" id="l2b1" step="any" class="sm-input"><span>y =</span>
+                            <input type="number" id="l2c1" step="any" class="sm-input">
+                        </div>
+                        <div class="eq-row">
+                            <input type="number" id="l2a2" step="any" class="sm-input"><span>x +</span>
+                            <input type="number" id="l2b2" step="any" class="sm-input"><span>y =</span>
+                            <input type="number" id="l2c2" step="any" class="sm-input">
+                        </div>
+                    </div>
+                    <button class="primary-btn" onclick="solveLinear2()">Həll et</button>
+                    <div id="linear2Result" class="result-box"></div>
+                </div>
+
+                <!-- Linear 3 -->
+                <div id="sub-linear3" class="sub-content card">
+                    <h3>Xətti tənliklər sistemi (3 məchullu)</h3>
+                    <div class="system-eq">
+                        <div class="eq-row">
+                            <input type="number" id="l3a1" step="any" class="sm-input"><span>x +</span>
+                            <input type="number" id="l3b1" step="any" class="sm-input"><span>y +</span>
+                            <input type="number" id="l3c1" step="any" class="sm-input"><span>z =</span>
+                            <input type="number" id="l3d1" step="any" class="sm-input">
+                        </div>
+                        <div class="eq-row">
+                            <input type="number" id="l3a2" step="any" class="sm-input"><span>x +</span>
+                            <input type="number" id="l3b2" step="any" class="sm-input"><span>y +</span>
+                            <input type="number" id="l3c2" step="any" class="sm-input"><span>z =</span>
+                            <input type="number" id="l3d2" step="any" class="sm-input">
+                        </div>
+                        <div class="eq-row">
+                            <input type="number" id="l3a3" step="any" class="sm-input"><span>x +</span>
+                            <input type="number" id="l3b3" step="any" class="sm-input"><span>y +</span>
+                            <input type="number" id="l3c3" step="any" class="sm-input"><span>z =</span>
+                            <input type="number" id="l3d3" step="any" class="sm-input">
+                        </div>
+                    </div>
+                    <button class="primary-btn" onclick="solveLinear3()">Həll et</button>
+                    <div id="linear3Result" class="result-box"></div>
+                </div>
+
+                <!-- Percentage -->
+                <div id="sub-percentage" class="sub-content card">
+                    <h3>Faiz Hesablamaları</h3>
+                    <div class="form-group">
+                        <select id="pctType" onchange="updatePctInputs()">
+                            <option value="findPercent">Ədədin faizini tap</option>
+                            <option value="whatPercent">Bir ədəd digərinin neçə faizidir?</option>
+                            <option value="findWhole">X ədədin Y%-dirsə, ədədi tap</option>
+                            <option value="increase">Faizlə artır</option>
+                            <option value="decrease">Faizlə azalt</option>
+                        </select>
+                    </div>
+                    <div id="pctInputs" class="input-row"></div>
+                    <button class="primary-btn" onclick="calcPercentage()">Hesabla</button>
+                    <div id="percentResult" class="result-box"></div>
+                </div>
+
+                <!-- Sequence -->
+                <div id="sub-sequence" class="sub-content card">
+                    <h3>Ədədi Silsilələr</h3>
+                    <div class="radio-group">
+                        <label class="radio-label"><input type="radio" name="seqType" value="arithmetic" checked onchange="updateSeqLabel()"> Ədədi silsilə</label>
+                        <label class="radio-label"><input type="radio" name="seqType" value="geometric" onchange="updateSeqLabel()"> Həndəsi silsilə</label>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group"><label>a₁ =</label><input type="number" id="seqA1" step="any"></div>
+                        <div class="input-group"><label id="seqDLabel">d =</label><input type="number" id="seqD" step="any"></div>
+                        <div class="input-group"><label>n =</label><input type="number" id="seqN" min="1" step="1"></div>
+                    </div>
+                    <button class="primary-btn" onclick="calcSequence()">Hesabla</button>
+                    <div id="sequenceResult" class="result-box"></div>
+                </div>
+            </section>
+
+            <!-- ==================== ANALYSIS ==================== -->
+            <section id="sec-analysis" class="tab-section">
+                <h2 class="section-title">📈 Riyazi Analiz</h2>
+                <div class="sub-tabs" id="analysisSubTabs">
+                    <button class="sub-tab active" data-subtab="derivative">Törəmə</button>
+                    <button class="sub-tab" data-subtab="integral">İnteqral</button>
+                    <button class="sub-tab" data-subtab="graph">Qrafik</button>
+                </div>
+
+                <div id="sub-derivative" class="sub-content active card">
+                    <h3>Törəmə Hesablama</h3>
+                    <div class="input-row">
+                        <div class="input-group full-width">
+                            <label>f(x) =</label>
+                            <input type="text" id="derivFunc" placeholder="Məsələn: x^2 + 3*x + 1">
+                        </div>
+                    </div>
+                    <button class="primary-btn" onclick="calcDerivative()">Törəməni tap</button>
+                    <div id="derivativeResult" class="result-box"></div>
+                </div>
+
+                <div id="sub-integral" class="sub-content card">
+                    <h3>Müəyyən İnteqral</h3>
+                    <div class="input-row">
+                        <div class="input-group full-width">
+                            <label>f(x) =</label>
+                            <input type="text" id="intFunc" placeholder="Məsələn: x^2">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group"><label>a (alt hədd) =</label><input type="number" id="intA" step="any" value="0"></div>
+                        <div class="input-group"><label>b (üst hədd) =</label><input type="number" id="intB" step="any" value="1"></div>
+                    </div>
+                    <button class="primary-btn" onclick="calcIntegral()">İnteqralı hesabla</button>
+                    <div id="integralResult" class="result-box"></div>
+                </div>
+
+                <div id="sub-graph" class="sub-content card">
+                    <h3>Funksiya Qrafiki</h3>
+                    <div class="input-row">
+                        <div class="input-group full-width">
+                            <label>y =</label>
+                            <input type="text" id="graphFunc" placeholder="Məsələn: x^2 - 4" value="x^2 - 4">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group"><label>x min =</label><input type="number" id="graphXMin" value="-10" step="any"></div>
+                        <div class="input-group"><label>x max =</label><input type="number" id="graphXMax" value="10" step="any"></div>
+                    </div>
+                    <button class="primary-btn" onclick="plotFunction()">Qrafiki çək</button>
+                    <div class="graph-wrapper">
+                        <canvas id="graphCanvas"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== STATISTICS ==================== -->
+            <section id="sec-statistics" class="tab-section">
+                <h2 class="section-title">🎲 Ehtimal, Statistika və Matrislər</h2>
+                <div class="sub-tabs" id="statsSubTabs">
+                    <button class="sub-tab active" data-subtab="stats">Statistika</button>
+                    <button class="sub-tab" data-subtab="probability">Ehtimal</button>
+                    <button class="sub-tab" data-subtab="matrix">Matrislər</button>
+                </div>
+
+                <div id="sub-stats" class="sub-content active card">
+                    <h3>Statistik Göstəricilər</h3>
+                    <div class="input-row">
+                        <div class="input-group full-width">
+                            <label>Ədədləri vergüllə ayırın:</label>
+                            <input type="text" id="statData" placeholder="Məsələn: 5, 10, 15, 20, 25">
+                        </div>
+                    </div>
+                    <button class="primary-btn" onclick="calcStatistics()">Hesabla</button>
+                    <div id="statsResult" class="result-box"></div>
+                </div>
+
+                <div id="sub-probability" class="sub-content card">
+                    <h3>Permutasiya və Kombinasiya</h3>
+                    <div class="input-row">
+                        <div class="input-group"><label>n =</label><input type="number" id="probN" min="0" step="1"></div>
+                        <div class="input-group"><label>r =</label><input type="number" id="probR" min="0" step="1"></div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="primary-btn" onclick="calcPermutation()">P(n, r)</button>
+                        <button class="primary-btn" onclick="calcCombination()">C(n, r)</button>
+                    </div>
+                    <div id="probResult" class="result-box"></div>
+                </div>
+
+                <div id="sub-matrix" class="sub-content card">
+                    <h3>Matris Əməliyyatları</h3>
+                    <div class="matrix-controls">
+                        <div class="form-group">
+                            <label>Ölçü:</label>
+                            <select id="matrixSize" onchange="buildMatrixInputs()">
+                                <option value="2">2 × 2</option>
+                                <option value="3">3 × 3</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Əməliyyat:</label>
+                            <select id="matrixOp" onchange="onMatrixOpChange()">
+                                <option value="add">Toplama (A + B)</option>
+                                <option value="subtract">Çıxma (A − B)</option>
+                                <option value="multiply">Vurma (A × B)</option>
+                                <option value="detA">Determinant |A|</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="matrix-inputs-container">
+                        <div class="matrix-block">
+                            <h4>Matris A</h4>
+                            <div id="matrixA" class="matrix-grid"></div>
+                        </div>
+                        <div class="matrix-block" id="matrixBBlock">
+                            <h4>Matris B</h4>
+                            <div id="matrixB" class="matrix-grid"></div>
+                        </div>
+                    </div>
+                    <button class="primary-btn" onclick="calcMatrix()">Hesabla</button>
+                    <div id="matrixResult" class="result-box"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- History Panel -->
+        <aside class="history-panel" id="historyPanel">
+            <div class="history-header">
+                <h3>📜 Tarixçə</h3>
+                <button id="clearHistoryBtn" class="icon-btn" title="Təmizlə" onclick="clearHistory()">🗑️</button>
+            </div>
+            <div id="historyList" class="history-list">
+                <p class="history-empty">Hələ hesablama yoxdur</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Mobile history toggle -->
+    <button id="historyToggle" class="history-toggle-btn" title="Tarixçə" onclick="toggleHistory()">📜</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
