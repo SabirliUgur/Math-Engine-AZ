@@ -420,6 +420,11 @@ select:focus, input:focus {
     align-items: center;
     margin-bottom: .75rem;
 }
+.history-actions {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
 .history-header h3 { font-size: 1rem; font-weight: 600; }
 
 .history-list { display: flex; flex-direction: column; gap: .4rem; }

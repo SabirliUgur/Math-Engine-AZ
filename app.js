@@ -1,7 +1,7 @@
 /* ============================================================
-   ELMI KALKULYATOR — APP.JS
-   Bütün riyazi hesablamalar lokal olaraq icra olunur.
-   math.js kitabxanası yalnız ifadə analizi və törəmə üçün istifadə olunur.
+   ELMI KALKULYATOR — APP.JS (v1.5.0)
+   Bütün riyazi hesablamalar lokal olaraq MathCore mühərriki ilə icra olunur.
+   Heç bir eval() və ya new Function() istifadə olunmur.
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,7 +13,18 @@ document.addEventListener('DOMContentLoaded', () => {
     initMatrix();
     loadHistory();
     initTheme();
+    initInputFocusTracking();
 });
+
+/* Track last focused input for Tarixçə / Ans injection */
+let lastFocusedInput = null;
+function initInputFocusTracking() {
+    document.addEventListener('focusin', (e) => {
+        if (e.target && e.target.matches('input[type="text"], input[type="number"]')) {
+            lastFocusedInput = e.target;
+        }
+    });
+}
 
 /* ==========================================================
    1. THEME
@@ -67,38 +78,64 @@ function initSubTabs() {
 }
 
 /* ==========================================================
-   3. HISTORY
+   3. PERSISTENT HISTORY & ANS MEMORY
    ========================================================== */
 let historyData = [];
 
 function loadHistory() {
-    try {
-        historyData = JSON.parse(localStorage.getItem('calcHistory') || '[]');
-    } catch { historyData = []; }
+    if (window.MathCore && MathCore.HistoryStore) {
+        historyData = MathCore.HistoryStore.getAll();
+    } else {
+        try {
+            historyData = JSON.parse(localStorage.getItem('math_engine_az_history_v1') || '[]');
+        } catch { historyData = []; }
+    }
     renderHistory();
 }
 
 function addToHistory(type, expression, result) {
-    historyData.unshift({ type, expression, result, time: new Date().toLocaleTimeString('az') });
-    if (historyData.length > 100) historyData.pop();
-    localStorage.setItem('calcHistory', JSON.stringify(historyData));
+    if (window.MathCore && MathCore.HistoryStore) {
+        MathCore.HistoryStore.add(type, expression, result);
+        historyData = MathCore.HistoryStore.getAll();
+    } else {
+        historyData.unshift({
+            id: Date.now(),
+            type,
+            expression,
+            result: String(result),
+            time: new Date().toLocaleTimeString('az')
+        });
+        if (historyData.length > 100) historyData.pop();
+        localStorage.setItem('math_engine_az_history_v1', JSON.stringify(historyData));
+    }
     renderHistory();
 }
 
 function clearHistory() {
+    if (window.MathCore && MathCore.HistoryStore) {
+        MathCore.HistoryStore.clear();
+    } else {
+        localStorage.removeItem('math_engine_az_history_v1');
+    }
     historyData = [];
-    localStorage.removeItem('calcHistory');
     renderHistory();
+}
+
+function exportHistory() {
+    if (window.MathCore && MathCore.HistoryStore) {
+        MathCore.HistoryStore.exportJSON();
+    }
 }
 
 function renderHistory() {
     const list = document.getElementById('historyList');
+    if (!list) return;
     if (historyData.length === 0) {
         list.innerHTML = '<p class="history-empty">Hələ hesablama yoxdur</p>';
         return;
     }
     list.innerHTML = historyData.map((h, i) => `
-        <div class="history-item" onclick="useHistoryItem(${i})" title="${h.expression}">
+        <div class="history-item" onclick="useHistoryItem(${i})" title="Klikləyin: Nəticəni daxil edin (${escHtml(String(h.result))})">
             <div class="h-type">${h.type} · ${h.time}</div>
             <div class="h-expr">${escHtml(h.expression)}</div>
             <div class="h-result">= ${escHtml(String(h.result))}</div>
@@ -109,14 +146,36 @@ function renderHistory() {
 function useHistoryItem(index) {
     const item = historyData[index];
     if (!item) return;
-    if (item.type === 'Kalkulyator') {
-        // Switch to calculator tab
-        document.querySelector('[data-tab="calculator"]').click();
-        calcState.expression = item.expression;
-        calcState.result = String(item.result);
-        document.getElementById('calcExpression').textContent = calcState.expression;
-        document.getElementById('calcResult').textContent = calcState.result;
+
+    const valToInsert = item.result;
+
+    // If an input is currently active/focused elsewhere, insert value there
+    if (lastFocusedInput && document.body.contains(lastFocusedInput) && lastFocusedInput.id !== 'calcExpression') {
+        lastFocusedInput.value = valToInsert;
+        lastFocusedInput.dispatchEvent(new Event('input', { bubbles: true }));
+        lastFocusedInput.dispatchEvent(new Event('change', { bubbles: true }));
+        lastFocusedInput.focus();
+        return;
     }
+
+    // Default to Calculator tab
+    const calcTab = document.querySelector('[data-tab="calculator"]');
+    if (calcTab) calcTab.click();
+
+    if (calcState.justCalculated || !calcState.expression.trim()) {
+        calcState.expression = String(valToInsert);
+        calcState.justCalculated = false;
+    } else {
+        calcState.expression += String(valToInsert);
+    }
+    calcState.result = String(valToInsert);
+
+    if (window.MathCore && MathCore.HistoryStore) {
+        MathCore.HistoryStore.setAns(parseFloat(valToInsert) || 0);
+    }
+
+    document.getElementById('calcExpression').textContent = formatExprDisplay(calcState.expression);
+    document.getElementById('calcResult').textContent = calcState.result;
 }
 
 function toggleHistory() {
@@ -124,7 +183,7 @@ function toggleHistory() {
 }
 
 function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /* ==========================================================
@@ -148,6 +207,15 @@ function initCalculator() {
     document.getElementById('angleModeBtn').addEventListener('click', () => {
         calcState.angleMode = calcState.angleMode === 'DEG' ? 'RAD' : 'DEG';
         document.getElementById('angleModeBtn').textContent = calcState.angleMode;
+        // Re-evaluate live preview if applicable
+        if (calcState.expression.trim()) {
+            try {
+                const preview = evalMathExpr(calcState.expression);
+                if (preview !== null && isFinite(preview)) {
+                    document.getElementById('calcResult').textContent = formatNumber(preview);
+                }
+            } catch {}
+        }
     });
 
     // Keyboard support
@@ -165,6 +233,8 @@ function initCalculator() {
         else if (key === '/') { e.preventDefault(); handleCalcButton('op', '/'); }
         else if (key === '(') handleCalcButton('openParen');
         else if (key === ')') handleCalcButton('closeParen');
+        else if (key === '^') handleCalcButton('pow');
+        else if (key === '!') handleCalcButton('factorial');
         else if (key === 'Enter' || key === '=') handleCalcButton('equals');
         else if (key === 'Backspace') handleCalcButton('backspace');
         else if (key === 'Escape') handleCalcButton('allClear');
@@ -200,8 +270,8 @@ function handleCalcButton(action, value) {
         case 'cos': appendFunc('cos('); break;
         case 'tan': appendFunc('tan('); break;
         case 'cot': appendFunc('cot('); break;
-        case 'ln':  appendFunc('log('); break;   // math.js uses log for natural log
-        case 'log': appendFunc('log10('); break;
+        case 'ln':  appendFunc('ln('); break;
+        case 'log': appendFunc('log('); break;
         case 'sqrt': appendFunc('sqrt('); break;
         case 'square':
             calcState.expression += '^2';
@@ -221,11 +291,11 @@ function handleCalcButton(action, value) {
             calcState.expression += 'e';
             break;
         case 'percent':
-            calcState.expression += '/100';
+            calcState.expression += '%';
             break;
         case 'negate':
             if (calcState.expression) {
-                if (calcState.expression.startsWith('-(')) {
+                if (calcState.expression.startsWith('-(') && calcState.expression.endsWith(')')) {
                     calcState.expression = calcState.expression.slice(2, -1);
                 } else {
                     calcState.expression = '-(' + calcState.expression + ')';
@@ -235,17 +305,12 @@ function handleCalcButton(action, value) {
         case 'backspace':
             calcState.expression = calcState.expression.trimEnd();
             if (calcState.expression.endsWith(' ')) {
-                // Remove operator + spaces
                 calcState.expression = calcState.expression.slice(0, -3);
             } else {
                 calcState.expression = calcState.expression.slice(0, -1);
             }
             break;
         case 'clear':
-            calcState.expression = '';
-            calcState.result = '0';
-            calcState.justCalculated = false;
-            break;
         case 'allClear':
             calcState.expression = '';
             calcState.result = '0';
@@ -253,7 +318,7 @@ function handleCalcButton(action, value) {
             break;
         case 'equals':
             evaluateCalc();
-            break;
+            return;
     }
 
     exprEl.textContent = formatExprDisplay(calcState.expression) || '\u00A0';
@@ -268,7 +333,6 @@ function handleCalcButton(action, value) {
             }
         } catch {}
     }
-    resEl.textContent = calcState.result;
 }
 
 function appendFunc(fn) {
@@ -280,58 +344,47 @@ function evaluateCalc() {
     if (!calcState.expression.trim()) return;
     try {
         const result = evalMathExpr(calcState.expression);
-        if (result === null || result === undefined) throw new Error('Hesablana bilmədi');
-        const display = typeof result === 'object' ? math.format(result, { precision: 10 }) : formatNumber(result);
+        if (result === null || result === undefined || isNaN(result)) {
+            throw new Error('Hesablana bilmədi');
+        }
+        const display = formatNumber(result);
         addToHistory('Kalkulyator', calcState.expression, display);
+        if (window.MathCore && MathCore.HistoryStore) {
+            MathCore.HistoryStore.setAns(result);
+        }
         calcState.result = display;
         calcState.justCalculated = true;
     } catch (err) {
-        calcState.result = 'Xəta';
+        calcState.result = err.message || 'Xəta';
     }
     document.getElementById('calcResult').textContent = calcState.result;
+    document.getElementById('calcExpression').textContent = formatExprDisplay(calcState.expression) || '\u00A0';
 }
 
 function evalMathExpr(expr) {
-    if (typeof math === 'undefined') {
-        // Fallback: basic eval (limited)
-        let e = expr.replace(/π/g, Math.PI).replace(/pi/g, Math.PI);
-        return Function('"use strict"; return (' + e + ')')();
-    }
-    // If DEG mode, wrap trig functions to convert
-    let processedExpr = expr;
-    if (calcState.angleMode === 'DEG') {
-        // Replace trig functions so their argument is converted from degrees to radians
-        processedExpr = processedExpr.replace(/\b(sin|cos|tan|cot)\s*\(/g, (match, fn) => {
-            return `__${fn}DEG(`;
+    if (window.MathCore && typeof MathCore.evaluate === 'function') {
+        return MathCore.evaluate(expr, {
+            angleMode: calcState.angleMode,
+            ans: MathCore.HistoryStore.getAns()
         });
     }
-
-    const scope = {};
-    // Define degree-mode trig functions
-    if (calcState.angleMode === 'DEG') {
-        scope.__sinDEG = (x) => Math.sin(x * Math.PI / 180);
-        scope.__cosDEG = (x) => Math.cos(x * Math.PI / 180);
-        scope.__tanDEG = (x) => Math.tan(x * Math.PI / 180);
-        scope.__cotDEG = (x) => 1 / Math.tan(x * Math.PI / 180);
-    }
-
-    // Handle cot for RAD mode
-    if (calcState.angleMode === 'RAD') {
-        processedExpr = processedExpr.replace(/\bcot\s*\(/g, '__cotRAD(');
-        scope.__cotRAD = (x) => 1 / Math.tan(x);
-    }
-
-    return math.evaluate(processedExpr, scope);
+    throw new Error('MathCore mühərriki tapılmadı');
 }
 
 function formatNumber(n) {
-    if (typeof n !== 'number') return String(n);
+    if (typeof n !== 'number') {
+        const p = parseFloat(n);
+        if (isNaN(p)) return String(n);
+        n = p;
+    }
+    if (window.MathCore && typeof MathCore.cleanPrecision === 'function') {
+        n = MathCore.cleanPrecision(n);
+    }
     if (!isFinite(n)) return n > 0 ? '∞' : '-∞';
     if (Number.isInteger(n) && Math.abs(n) < 1e15) return n.toString();
-    // Up to 10 significant digits, remove trailing zeros
+
     let s = n.toPrecision(10);
     if (s.includes('.')) s = s.replace(/\.?0+$/, '');
-    // If result is in scientific notation and large, keep it
     if (Math.abs(n) > 1e15 || (Math.abs(n) < 1e-6 && n !== 0)) {
         return n.toExponential(6);
     }
@@ -346,7 +399,6 @@ function formatExprDisplay(expr) {
         .replace(/sqrt/g, '√')
         .replace(/log10/g, 'log₁₀');
 }
-
 
 /* ==========================================================
    5. GEOMETRY
@@ -491,87 +543,88 @@ function calculateGeometry() {
         return;
     }
 
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
     let results = [];
     const π = Math.PI;
 
     switch (currentShape) {
         case 'circle': {
             const r = vals.r;
-            results.push({ label: 'Sahə', formula: 'S = π · r²', value: π * r * r });
-            results.push({ label: 'Çevrə', formula: 'C = 2 · π · r', value: 2 * π * r });
+            results.push({ label: 'Sahə', formula: 'S = π · r²', value: clean(π * r * r) });
+            results.push({ label: 'Çevrə', formula: 'C = 2 · π · r', value: clean(2 * π * r) });
             break;
         }
         case 'square': {
             const a = vals.a;
-            results.push({ label: 'Sahə', formula: 'S = a²', value: a * a });
-            results.push({ label: 'Perimetr', formula: 'P = 4 · a', value: 4 * a });
-            results.push({ label: 'Diaqonal', formula: 'd = a · √2', value: a * Math.sqrt(2) });
+            results.push({ label: 'Sahə', formula: 'S = a²', value: clean(a * a) });
+            results.push({ label: 'Perimetr', formula: 'P = 4 · a', value: clean(4 * a) });
+            results.push({ label: 'Diaqonal', formula: 'd = a · √2', value: clean(a * Math.sqrt(2)) });
             break;
         }
         case 'rectangle': {
             const a = vals.a, b = vals.b;
-            results.push({ label: 'Sahə', formula: 'S = a · b', value: a * b });
-            results.push({ label: 'Perimetr', formula: 'P = 2 · (a + b)', value: 2 * (a + b) });
-            results.push({ label: 'Diaqonal', formula: 'd = √(a² + b²)', value: Math.sqrt(a*a + b*b) });
+            results.push({ label: 'Sahə', formula: 'S = a · b', value: clean(a * b) });
+            results.push({ label: 'Perimetr', formula: 'P = 2 · (a + b)', value: clean(2 * (a + b)) });
+            results.push({ label: 'Diaqonal', formula: 'd = √(a² + b²)', value: clean(Math.sqrt(a*a + b*b)) });
             break;
         }
         case 'triangle': {
             if (currentMode === 'bh') {
                 const base = vals.base, h = vals.h;
-                results.push({ label: 'Sahə', formula: 'S = (a · h) / 2', value: (base * h) / 2 });
+                results.push({ label: 'Sahə', formula: 'S = (a · h) / 2', value: clean((base * h) / 2) });
             } else if (currentMode === 'heron') {
                 const a = vals.a, b = vals.b, c = vals.c;
                 if (a + b <= c || a + c <= b || b + c <= a) {
-                    showGeoResult('<span class="error">Bu tərəflərlə üçbucaq qurmaq mümkün deyil.</span>');
+                    showGeoResult('<span class="error">Bu tərəflərlə üçbucaq qurmaq mümkün deyil (üçbucaq bərabərsizliyi ödənmir).</span>');
                     return;
                 }
                 const s = (a + b + c) / 2;
                 const area = Math.sqrt(s * (s-a) * (s-b) * (s-c));
-                results.push({ label: 'Yarımperimetr', formula: 's = (a + b + c) / 2', value: s });
-                results.push({ label: 'Sahə', formula: 'S = √(s·(s−a)·(s−b)·(s−c))', value: area });
-                results.push({ label: 'Perimetr', formula: 'P = a + b + c', value: a + b + c });
+                results.push({ label: 'Yarımperimetr', formula: 's = (a + b + c) / 2', value: clean(s) });
+                results.push({ label: 'Sahə', formula: 'S = √(s·(s−a)·(s−b)·(s−c))', value: clean(area) });
+                results.push({ label: 'Perimetr', formula: 'P = a + b + c', value: clean(a + b + c) });
             } else if (currentMode === 'right') {
                 const a = vals.a, b = vals.b;
                 const hyp = Math.sqrt(a*a + b*b);
-                results.push({ label: 'Sahə', formula: 'S = (a · b) / 2', value: (a * b) / 2 });
-                results.push({ label: 'Hipotenuz', formula: 'c = √(a² + b²)', value: hyp });
-                results.push({ label: 'Perimetr', formula: 'P = a + b + c', value: a + b + hyp });
+                results.push({ label: 'Sahə', formula: 'S = (a · b) / 2', value: clean((a * b) / 2) });
+                results.push({ label: 'Hipotenuz', formula: 'c = √(a² + b²)', value: clean(hyp) });
+                results.push({ label: 'Perimetr', formula: 'P = a + b + c', value: clean(a + b + hyp) });
             }
             break;
         }
         case 'trapezoid': {
             const a = vals.a, b = vals.b, h = vals.h;
-            results.push({ label: 'Sahə', formula: 'S = ((a + b) · h) / 2', value: ((a + b) * h) / 2 });
+            results.push({ label: 'Sahə', formula: 'S = ((a + b) · h) / 2', value: clean(((a + b) * h) / 2) });
             break;
         }
         case 'cube': {
             const a = vals.a;
-            results.push({ label: 'Həcm', formula: 'V = a³', value: a * a * a });
-            results.push({ label: 'Tam səthi', formula: 'S = 6 · a²', value: 6 * a * a });
-            results.push({ label: 'Üz diaqonalı', formula: 'd_üz = a · √2', value: a * Math.sqrt(2) });
-            results.push({ label: 'Fəza diaqonalı', formula: 'd = a · √3', value: a * Math.sqrt(3) });
+            results.push({ label: 'Həcm', formula: 'V = a³', value: clean(a * a * a) });
+            results.push({ label: 'Tam səthi', formula: 'S = 6 · a²', value: clean(6 * a * a) });
+            results.push({ label: 'Üz diaqonalı', formula: 'd_üz = a · √2', value: clean(a * Math.sqrt(2)) });
+            results.push({ label: 'Fəza diaqonalı', formula: 'd = a · √3', value: clean(a * Math.sqrt(3)) });
             break;
         }
         case 'cylinder': {
             const r = vals.r, h = vals.h;
-            results.push({ label: 'Həcm', formula: 'V = π · r² · h', value: π * r * r * h });
-            results.push({ label: 'Yan səthi', formula: 'S_yan = 2 · π · r · h', value: 2 * π * r * h });
-            results.push({ label: 'Tam səthi', formula: 'S = 2 · π · r · (r + h)', value: 2 * π * r * (r + h) });
+            results.push({ label: 'Həcm', formula: 'V = π · r² · h', value: clean(π * r * r * h) });
+            results.push({ label: 'Yan səthi', formula: 'S_yan = 2 · π · r · h', value: clean(2 * π * r * h) });
+            results.push({ label: 'Tam səthi', formula: 'S = 2 · π · r · (r + h)', value: clean(2 * π * r * (r + h)) });
             break;
         }
         case 'sphere': {
             const r = vals.r;
-            results.push({ label: 'Həcm', formula: 'V = (4/3) · π · r³', value: (4/3) * π * r * r * r });
-            results.push({ label: 'Səthi', formula: 'S = 4 · π · r²', value: 4 * π * r * r });
+            results.push({ label: 'Həcm', formula: 'V = (4/3) · π · r³', value: clean((4/3) * π * r * r * r) });
+            results.push({ label: 'Səthi', formula: 'S = 4 · π · r²', value: clean(4 * π * r * r) });
             break;
         }
         case 'cone': {
             const r = vals.r, h = vals.h;
             const l = Math.sqrt(r*r + h*h);
-            results.push({ label: 'Həcm', formula: 'V = (1/3) · π · r² · h', value: (1/3) * π * r * r * h });
-            results.push({ label: 'Çəpər hündürlük', formula: 'l = √(r² + h²)', value: l });
-            results.push({ label: 'Yan səthi', formula: 'S_yan = π · r · l', value: π * r * l });
-            results.push({ label: 'Tam səthi', formula: 'S = π · r · (r + l)', value: π * r * (r + l) });
+            results.push({ label: 'Həcm', formula: 'V = (1/3) · π · r² · h', value: clean((1/3) * π * r * r * h) });
+            results.push({ label: 'Çəpər hündürlük', formula: 'l = √(r² + h²)', value: clean(l) });
+            results.push({ label: 'Yan səthi', formula: 'S_yan = π · r · l', value: clean(π * r * l) });
+            results.push({ label: 'Tam səthi', formula: 'S = π · r · (r + l)', value: clean(π * r * (r + l)) });
             break;
         }
     }
@@ -589,9 +642,8 @@ function showGeoResult(html) {
     document.getElementById('geoResults').innerHTML = html;
 }
 
-
 /* ==========================================================
-   6. ALGEBRA — Quadratic
+   6. ALGEBRA — Quadratic, Linear Systems, Percent, Sequence
    ========================================================== */
 function solveQuadratic() {
     const a = parseFloat(document.getElementById('qa').value);
@@ -608,24 +660,25 @@ function solveQuadratic() {
         return;
     }
 
-    const D = b * b - 4 * a * c;
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
+    const D = clean(b * b - 4 * a * c);
     let html = `<span class="formula">D = b² − 4ac = ${b}² − 4·${a}·${c} = ${formatNumber(D)}</span>`;
 
     if (D > 0) {
-        const x1 = (-b + Math.sqrt(D)) / (2 * a);
-        const x2 = (-b - Math.sqrt(D)) / (2 * a);
+        const x1 = clean((-b + Math.sqrt(D)) / (2 * a));
+        const x2 = clean((-b - Math.sqrt(D)) / (2 * a));
         html += `<div>D &gt; 0 → iki fərqli həqiqi kök var:</div>`;
         html += `<span class="formula">x₁ = (−b + √D) / 2a = ${formatNumber(x1)}</span>`;
         html += `<span class="formula">x₂ = (−b − √D) / 2a = ${formatNumber(x2)}</span>`;
         addToHistory('Cəbr', `${a}x²+${b}x+${c}=0`, `x₁=${formatNumber(x1)}, x₂=${formatNumber(x2)}`);
     } else if (D === 0) {
-        const x = -b / (2 * a);
+        const x = clean(-b / (2 * a));
         html += `<div>D = 0 → bir kök (qoşa kök):</div>`;
         html += `<span class="formula">x = −b / 2a = ${formatNumber(x)}</span>`;
         addToHistory('Cəbr', `${a}x²+${b}x+${c}=0`, `x=${formatNumber(x)}`);
     } else {
-        const real = -b / (2 * a);
-        const imag = Math.sqrt(-D) / (2 * a);
+        const real = clean(-b / (2 * a));
+        const imag = clean(Math.sqrt(-D) / (2 * a));
         html += `<div>D &lt; 0 → kompleks köklər:</div>`;
         html += `<span class="formula">x₁ = ${formatNumber(real)} + ${formatNumber(imag)}i</span>`;
         html += `<span class="formula">x₂ = ${formatNumber(real)} − ${formatNumber(imag)}i</span>`;
@@ -650,17 +703,18 @@ function solveLinear2() {
         return;
     }
 
-    const D = a1*b2 - a2*b1;
-    const Dx = c1*b2 - c2*b1;
-    const Dy = a1*c2 - a2*c1;
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
+    const D = clean(a1*b2 - a2*b1);
+    const Dx = clean(c1*b2 - c2*b1);
+    const Dy = clean(a1*c2 - a2*c1);
 
     let html = `<span class="formula">D = a₁·b₂ − a₂·b₁ = ${formatNumber(D)}</span>`;
 
-    if (D === 0) {
-        html += `<div class="error">D = 0: Sistemin yeganə həlli yoxdur (ya sonsuz həll, ya da həllsiz).</div>`;
+    if (Math.abs(D) < 1e-12) {
+        html += `<div class="error">D = 0: Sistemin yeganə həlli yoxdur (sonsuz sayda həll və ya həll yoxdur).</div>`;
     } else {
-        const x = Dx / D;
-        const y = Dy / D;
+        const x = clean(Dx / D);
+        const y = clean(Dy / D);
         html += `<span class="formula">Dx = c₁·b₂ − c₂·b₁ = ${formatNumber(Dx)}</span>`;
         html += `<span class="formula">Dy = a₁·c₂ − a₂·c₁ = ${formatNumber(Dy)}</span>`;
         html += `<div><span class="label">x = </span><span class="value">${formatNumber(x)}</span></div>`;
@@ -672,9 +726,12 @@ function solveLinear2() {
 
 /* ---------- Linear 3x3 ---------- */
 function det3(m) {
-    return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
-         - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
-         + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
+    return clean(
+        m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+      - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+      + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0])
+    );
 }
 
 function solveLinear3() {
@@ -690,16 +747,19 @@ function solveLinear3() {
         return;
     }
 
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
     const D = det3(a);
     let html = `<span class="formula">D = ${formatNumber(D)}</span>`;
 
-    if (D === 0) {
+    if (Math.abs(D) < 1e-12) {
         html += `<div class="error">D = 0: Sistemin yeganə həlli yoxdur.</div>`;
     } else {
         const Dx = det3([[d[0],a[0][1],a[0][2]],[d[1],a[1][1],a[1][2]],[d[2],a[2][1],a[2][2]]]);
         const Dy = det3([[a[0][0],d[0],a[0][2]],[a[1][0],d[1],a[1][2]],[a[2][0],d[2],a[2][2]]]);
         const Dz = det3([[a[0][0],a[0][1],d[0]],[a[1][0],a[1][1],d[1]],[a[2][0],a[2][1],d[2]]]);
-        const x = Dx/D, y = Dy/D, z = Dz/D;
+        const x = clean(Dx / D);
+        const y = clean(Dy / D);
+        const z = clean(Dz / D);
         html += `<div><span class="label">x = </span><span class="value">${formatNumber(x)}</span></div>`;
         html += `<div><span class="label">y = </span><span class="value">${formatNumber(y)}</span></div>`;
         html += `<div><span class="label">z = </span><span class="value">${formatNumber(z)}</span></div>`;
@@ -736,6 +796,7 @@ function calcPercentage() {
     const type = document.getElementById('pctType').value;
     const out = document.getElementById('percentResult');
     const g = id => { const el = document.getElementById(id); return el ? parseFloat(el.value) : NaN; };
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
 
     let result, formula, label;
 
@@ -743,7 +804,7 @@ function calcPercentage() {
         case 'findPercent': {
             const val = g('pctVal'), pct = g('pctPct');
             if (isNaN(val) || isNaN(pct)) { out.innerHTML = '<span class="error">Qiymətləri daxil edin.</span>'; return; }
-            result = val * pct / 100;
+            result = clean(val * pct / 100);
             formula = `${val} × ${pct}% = ${val} × ${pct}/100`;
             label = `${val}-in ${pct}%-i`;
             break;
@@ -751,7 +812,7 @@ function calcPercentage() {
         case 'whatPercent': {
             const part = g('pctPart'), whole = g('pctWhole');
             if (isNaN(part) || isNaN(whole) || whole === 0) { out.innerHTML = '<span class="error">Qiymətləri daxil edin (tam ≠ 0).</span>'; return; }
-            result = (part / whole) * 100;
+            result = clean((part / whole) * 100);
             formula = `(${part} / ${whole}) × 100`;
             label = `Faiz nisbəti`;
             break;
@@ -759,7 +820,7 @@ function calcPercentage() {
         case 'findWhole': {
             const part = g('pctPart'), pct = g('pctPct');
             if (isNaN(part) || isNaN(pct) || pct === 0) { out.innerHTML = '<span class="error">Qiymətləri daxil edin (faiz ≠ 0).</span>'; return; }
-            result = part * 100 / pct;
+            result = clean(part * 100 / pct);
             formula = `${part} × 100 / ${pct}`;
             label = `Tam ədəd`;
             break;
@@ -767,7 +828,7 @@ function calcPercentage() {
         case 'increase': {
             const val = g('pctVal'), pct = g('pctPct');
             if (isNaN(val) || isNaN(pct)) { out.innerHTML = '<span class="error">Qiymətləri daxil edin.</span>'; return; }
-            result = val * (1 + pct / 100);
+            result = clean(val * (1 + pct / 100));
             formula = `${val} × (1 + ${pct}/100)`;
             label = `${pct}% artımla`;
             break;
@@ -775,7 +836,7 @@ function calcPercentage() {
         case 'decrease': {
             const val = g('pctVal'), pct = g('pctPct');
             if (isNaN(val) || isNaN(pct)) { out.innerHTML = '<span class="error">Qiymətləri daxil edin.</span>'; return; }
-            result = val * (1 - pct / 100);
+            result = clean(val * (1 - pct / 100));
             formula = `${val} × (1 − ${pct}/100)`;
             label = `${pct}% azalma ilə`;
             break;
@@ -799,6 +860,7 @@ function calcSequence() {
     const d = parseFloat(document.getElementById('seqD').value);
     const n = parseInt(document.getElementById('seqN').value);
     const out = document.getElementById('sequenceResult');
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
 
     if (isNaN(a1) || isNaN(d) || isNaN(n) || n < 1) {
         out.innerHTML = '<span class="error">Zəhmət olmasa düzgün qiymətlər daxil edin (n ≥ 1).</span>';
@@ -807,30 +869,29 @@ function calcSequence() {
 
     let html = '';
     if (type === 'arithmetic') {
-        const an = a1 + (n - 1) * d;
-        const Sn = n * (a1 + an) / 2;
+        const an = clean(a1 + (n - 1) * d);
+        const Sn = clean(n * (a1 + an) / 2);
         html += `<span class="formula">aₙ = a₁ + (n−1)·d = ${a1} + ${n-1}·${d} = ${formatNumber(an)}</span>`;
         html += `<span class="formula">Sₙ = n·(a₁ + aₙ)/2 = ${n}·(${a1} + ${formatNumber(an)})/2 = ${formatNumber(Sn)}</span>`;
         html += `<div><span class="label">aₙ = </span><span class="value">${formatNumber(an)}</span></div>`;
         html += `<div><span class="label">Sₙ = </span><span class="value">${formatNumber(Sn)}</span></div>`;
 
-        // Show first few terms
         const terms = [];
-        for (let i = 0; i < Math.min(n, 8); i++) terms.push(formatNumber(a1 + i * d));
+        for (let i = 0; i < Math.min(n, 8); i++) terms.push(formatNumber(clean(a1 + i * d)));
         if (n > 8) terms.push('...');
         html += `<div style="margin-top:.5rem;color:var(--text-sec)">Silsilə: ${terms.join(', ')}</div>`;
         addToHistory('Cəbr', `Ədədi: a₁=${a1}, d=${d}, n=${n}`, `aₙ=${formatNumber(an)}, Sₙ=${formatNumber(Sn)}`);
     } else {
         if (d === 0) { out.innerHTML = '<span class="error">q ≠ 0 olmalıdır.</span>'; return; }
-        const an = a1 * Math.pow(d, n - 1);
-        const Sn = d === 1 ? a1 * n : a1 * (Math.pow(d, n) - 1) / (d - 1);
+        const an = clean(a1 * Math.pow(d, n - 1));
+        const Sn = clean(d === 1 ? a1 * n : a1 * (Math.pow(d, n) - 1) / (d - 1));
         html += `<span class="formula">aₙ = a₁ · qⁿ⁻¹ = ${a1} · ${d}^${n-1} = ${formatNumber(an)}</span>`;
         html += `<span class="formula">Sₙ = a₁·(qⁿ − 1)/(q − 1) = ${formatNumber(Sn)}</span>`;
         html += `<div><span class="label">aₙ = </span><span class="value">${formatNumber(an)}</span></div>`;
         html += `<div><span class="label">Sₙ = </span><span class="value">${formatNumber(Sn)}</span></div>`;
 
         const terms = [];
-        for (let i = 0; i < Math.min(n, 8); i++) terms.push(formatNumber(a1 * Math.pow(d, i)));
+        for (let i = 0; i < Math.min(n, 8); i++) terms.push(formatNumber(clean(a1 * Math.pow(d, i))));
         if (n > 8) terms.push('...');
         html += `<div style="margin-top:.5rem;color:var(--text-sec)">Silsilə: ${terms.join(', ')}</div>`;
         addToHistory('Cəbr', `Həndəsi: a₁=${a1}, q=${d}, n=${n}`, `aₙ=${formatNumber(an)}, Sₙ=${formatNumber(Sn)}`);
@@ -838,9 +899,8 @@ function calcSequence() {
     out.innerHTML = html;
 }
 
-
 /* ==========================================================
-   7. ANALYSIS — Derivative
+   7. ANALYSIS — Derivative, Integral, Graph
    ========================================================== */
 function calcDerivative() {
     const expr = document.getElementById('derivFunc').value.trim();
@@ -848,17 +908,19 @@ function calcDerivative() {
 
     if (!expr) { out.innerHTML = '<span class="error">Funksiya daxil edin.</span>'; return; }
 
-    if (typeof math === 'undefined') {
-        out.innerHTML = '<span class="error">math.js kitabxanası yüklənməyib. İnternet bağlantınızı yoxlayın.</span>';
-        return;
-    }
-
     try {
-        const derivative = math.derivative(expr, 'x');
-        const simplified = derivative.toString();
+        let simplified;
+        if (window.MathCore && typeof MathCore.derivative === 'function') {
+            simplified = MathCore.derivative(expr, 'x');
+        } else if (typeof math !== 'undefined' && math.derivative) {
+            simplified = math.derivative(expr, 'x').toString();
+        } else {
+            throw new Error('Törəmə mühərriki tapılmadı');
+        }
+
         out.innerHTML = `<div><span class="label">f(x) = </span>${escHtml(expr)}</div>
                          <div><span class="label">f′(x) = </span><span class="value">${escHtml(simplified)}</span></div>
-                         <span class="formula">d/dx [${expr}] = ${simplified}</span>`;
+                         <span class="formula">d/dx [${expr}] = ${escHtml(simplified)}</span>`;
         addToHistory('Analiz', `d/dx [${expr}]`, simplified);
     } catch (err) {
         out.innerHTML = `<span class="error">Xəta: ${escHtml(err.message)}</span>`;
@@ -876,27 +938,16 @@ function calcIntegral() {
     if (isNaN(a) || isNaN(b)) { out.innerHTML = '<span class="error">Hədləri daxil edin.</span>'; return; }
 
     try {
-        const n = 1000; // number of intervals (must be even)
-        const h = (b - a) / n;
-
-        const f = x => {
-            if (typeof math !== 'undefined') {
-                return math.evaluate(expr, { x });
-            }
-            return Function('x', '"use strict"; return (' + expr.replace(/\^/g, '**') + ')')(x);
-        };
-
-        // Simpson's 1/3 rule
-        let sum = f(a) + f(b);
-        for (let i = 1; i < n; i++) {
-            const xi = a + i * h;
-            sum += (i % 2 === 0 ? 2 : 4) * f(xi);
+        let result;
+        if (window.MathCore && typeof MathCore.definiteIntegral === 'function') {
+            result = MathCore.definiteIntegral(expr, a, b, 1000);
+        } else {
+            throw new Error('İnteqral mühərriki tapılmadı');
         }
-        const result = (h / 3) * sum;
 
         out.innerHTML = `<div><span class="label">∫ f(x) dx = </span><span class="value">${formatNumber(result)}</span></div>
                          <span class="formula">∫[${a}, ${b}] (${expr}) dx ≈ ${formatNumber(result)}</span>
-                         <div style="color:var(--text-muted);font-size:.82rem;margin-top:.4rem">Simpson qaydası ilə (n=${n})</div>`;
+                         <div style="color:var(--text-muted);font-size:.82rem;margin-top:.4rem">Simpson qaydası ilə (n=1000)</div>`;
         addToHistory('Analiz', `∫[${a},${b}] ${expr} dx`, formatNumber(result));
     } catch (err) {
         out.innerHTML = `<span class="error">Xəta: ${escHtml(err.message)}</span>`;
@@ -912,7 +963,6 @@ function plotFunction() {
 
     if (!expr) return;
 
-    // Set canvas resolution
     const wrapper = canvas.parentElement;
     const dpr = window.devicePixelRatio || 1;
     const w = wrapper.clientWidth;
@@ -927,12 +977,14 @@ function plotFunction() {
 
     const f = x => {
         try {
-            if (typeof math !== 'undefined') return math.evaluate(expr, { x });
-            return Function('x', '"use strict"; return (' + expr.replace(/\^/g, '**') + ')')(x);
+            if (window.MathCore && typeof MathCore.evaluate === 'function') {
+                return MathCore.evaluate(expr, { x, angleMode: 'RAD' });
+            }
+            return NaN;
         } catch { return NaN; }
     };
 
-    // Sample the function to find y range
+    // Sample the function across pixels to find y range
     const samples = [];
     const step = (xMax - xMin) / w;
     for (let px = 0; px <= w; px++) {
@@ -945,12 +997,10 @@ function plotFunction() {
 
     let yMin = Math.min(...samples);
     let yMax = Math.max(...samples);
-    // Add some padding
     const yPad = (yMax - yMin) * 0.1 || 1;
     yMin -= yPad;
     yMax += yPad;
 
-    // Get theme colors from CSS variables
     const style = getComputedStyle(document.body);
     const bgColor = style.getPropertyValue('--bg-card').trim() || '#1a1a36';
     const gridColor = style.getPropertyValue('--graph-grid').trim() || '#2a2a4e';
@@ -958,21 +1008,18 @@ function plotFunction() {
     const lineColor = style.getPropertyValue('--graph-line').trim() || '#6366f1';
     const textColor = style.getPropertyValue('--text-sec').trim() || '#94a3b8';
 
-    // Clear
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, w, h);
 
-    // Helper: data coords to canvas
     const toCanvasX = x => ((x - xMin) / (xMax - xMin)) * w;
     const toCanvasY = y => h - ((y - yMin) / (yMax - yMin)) * h;
 
-    // Grid
+    // Grid lines
     ctx.strokeStyle = gridColor;
     ctx.lineWidth = 0.5;
     ctx.font = '11px sans-serif';
     ctx.fillStyle = textColor;
 
-    // X grid
     const xStep = niceStep(xMax - xMin, 8);
     for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
         const px = toCanvasX(x);
@@ -980,7 +1027,6 @@ function plotFunction() {
         ctx.fillText(formatAxis(x), px + 3, h - 5);
     }
 
-    // Y grid
     const yStep = niceStep(yMax - yMin, 6);
     for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
         const py = toCanvasY(y);
@@ -991,18 +1037,16 @@ function plotFunction() {
     // Axes
     ctx.strokeStyle = axisColor;
     ctx.lineWidth = 1.5;
-    // X axis (y=0)
     if (yMin <= 0 && yMax >= 0) {
         const py = toCanvasY(0);
         ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke();
     }
-    // Y axis (x=0)
     if (xMin <= 0 && xMax >= 0) {
         const px = toCanvasX(0);
         ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
     }
 
-    // Plot function
+    // Curve
     ctx.strokeStyle = lineColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
@@ -1047,13 +1091,13 @@ function formatAxis(n) {
     return parseFloat(n.toPrecision(4)).toString();
 }
 
-
 /* ==========================================================
-   8. STATISTICS
+   8. STATISTICS & PROBABILITY
    ========================================================== */
 function calcStatistics() {
     const raw = document.getElementById('statData').value.trim();
     const out = document.getElementById('statsResult');
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
 
     if (!raw) { out.innerHTML = '<span class="error">Ədədlər daxil edin.</span>'; return; }
 
@@ -1061,12 +1105,12 @@ function calcStatistics() {
     if (data.length === 0) { out.innerHTML = '<span class="error">Düzgün ədədlər tapılmadı.</span>'; return; }
 
     const n = data.length;
-    const sum = data.reduce((a, b) => a + b, 0);
-    const mean = sum / n;
+    const sum = clean(data.reduce((a, b) => a + b, 0));
+    const mean = clean(sum / n);
 
     // Median
     const sorted = [...data].sort((a, b) => a - b);
-    const median = n % 2 === 1 ? sorted[Math.floor(n/2)] : (sorted[n/2 - 1] + sorted[n/2]) / 2;
+    const median = clean(n % 2 === 1 ? sorted[Math.floor(n/2)] : (sorted[n/2 - 1] + sorted[n/2]) / 2);
 
     // Mode
     const freq = {};
@@ -1075,12 +1119,10 @@ function calcStatistics() {
     const modes = Object.keys(freq).filter(k => freq[k] === maxFreq).map(Number);
     const modeStr = maxFreq === 1 ? 'yoxdur (bütün ədədlər fərqlidir)' : modes.join(', ');
 
-    // Std deviation (population)
-    const variance = data.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
-    const stdDev = Math.sqrt(variance);
-
-    // Range
-    const range = sorted[n-1] - sorted[0];
+    // Variance & Std deviation
+    const variance = clean(data.reduce((s, v) => s + (v - mean) ** 2, 0) / n);
+    const stdDev = clean(Math.sqrt(variance));
+    const range = clean(sorted[n-1] - sorted[0]);
 
     let html = `
         <div><span class="label">Ədəd sayı (n):</span> <span class="value">${n}</span></div>
@@ -1111,6 +1153,7 @@ function calcPermutation() {
     const n = parseInt(document.getElementById('probN').value);
     const r = parseInt(document.getElementById('probR').value);
     const out = document.getElementById('probResult');
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
 
     if (isNaN(n) || isNaN(r) || n < 0 || r < 0) {
         out.innerHTML = '<span class="error">n və r müsbət tam ədəd olmalıdır.</span>'; return;
@@ -1119,7 +1162,7 @@ function calcPermutation() {
         out.innerHTML = '<span class="error">r ≤ n olmalıdır.</span>'; return;
     }
 
-    const result = factorial(n) / factorial(n - r);
+    const result = clean(factorial(n) / factorial(n - r));
     out.innerHTML = `<div><span class="label">P(${n}, ${r}) = </span><span class="value">${formatNumber(result)}</span></div>
                      <span class="formula">P(n, r) = n! / (n−r)! = ${n}! / ${n-r}! = ${formatNumber(result)}</span>`;
     addToHistory('Statistika', `P(${n},${r})`, formatNumber(result));
@@ -1129,6 +1172,7 @@ function calcCombination() {
     const n = parseInt(document.getElementById('probN').value);
     const r = parseInt(document.getElementById('probR').value);
     const out = document.getElementById('probResult');
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
 
     if (isNaN(n) || isNaN(r) || n < 0 || r < 0) {
         out.innerHTML = '<span class="error">n və r müsbət tam ədəd olmalıdır.</span>'; return;
@@ -1137,12 +1181,11 @@ function calcCombination() {
         out.innerHTML = '<span class="error">r ≤ n olmalıdır.</span>'; return;
     }
 
-    const result = factorial(n) / (factorial(r) * factorial(n - r));
+    const result = clean(factorial(n) / (factorial(r) * factorial(n - r)));
     out.innerHTML = `<div><span class="label">C(${n}, ${r}) = </span><span class="value">${formatNumber(result)}</span></div>
                      <span class="formula">C(n, r) = n! / (r! · (n−r)!) = ${n}! / (${r}! · ${n-r}!) = ${formatNumber(result)}</span>`;
     addToHistory('Statistika', `C(${n},${r})`, formatNumber(result));
 }
-
 
 /* ==========================================================
    9. MATRICES
@@ -1201,11 +1244,12 @@ function calcMatrix() {
     const op = document.getElementById('matrixOp').value;
     const A = getMatrix('matrixA', size);
     const out = document.getElementById('matrixResult');
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
 
     let html = '';
 
     if (op === 'detA') {
-        const d = size === 2 ? det2(A) : det3(A);
+        const d = clean(size === 2 ? det2(A) : det3(A));
         html = `<div><span class="label">|A| = </span><span class="value">${formatNumber(d)}</span></div>`;
         if (size === 2) {
             html += `<span class="formula">|A| = a₁₁·a₂₂ − a₁₂·a₂₁ = ${A[0][0]}·${A[1][1]} − ${A[0][1]}·${A[1][0]}</span>`;
@@ -1233,34 +1277,40 @@ function calcMatrix() {
     out.innerHTML = html;
 }
 
-function det2(m) { return m[0][0]*m[1][1] - m[0][1]*m[1][0]; }
+function det2(m) {
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
+    return clean(m[0][0]*m[1][1] - m[0][1]*m[1][0]);
+}
 
 function matAdd(A, B, n) {
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
     const R = [];
     for (let i = 0; i < n; i++) {
         R.push([]);
-        for (let j = 0; j < n; j++) R[i].push(A[i][j] + B[i][j]);
+        for (let j = 0; j < n; j++) R[i].push(clean(A[i][j] + B[i][j]));
     }
     return R;
 }
 
 function matSubtract(A, B, n) {
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
     const R = [];
     for (let i = 0; i < n; i++) {
         R.push([]);
-        for (let j = 0; j < n; j++) R[i].push(A[i][j] - B[i][j]);
+        for (let j = 0; j < n; j++) R[i].push(clean(A[i][j] - B[i][j]));
     }
     return R;
 }
 
 function matMultiply(A, B, n) {
+    const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
     const R = [];
     for (let i = 0; i < n; i++) {
         R.push([]);
         for (let j = 0; j < n; j++) {
             let sum = 0;
             for (let k = 0; k < n; k++) sum += A[i][k] * B[k][j];
-            R[i].push(sum);
+            R[i].push(clean(sum));
         }
     }
     return R;

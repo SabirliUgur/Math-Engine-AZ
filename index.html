@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elmi və Həndəsi Kalkulyator</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="Müasir, sürətli və çoxfunksiyalı veb-əsaslı Elmi və Həndəsi Kalkulyator — Azərbaycan dilində">
+    <title>Math-Engine-AZ — Elmi və Həndəsi Kalkulyator</title>
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-theme">
@@ -368,7 +372,10 @@
         <aside class="history-panel" id="historyPanel">
             <div class="history-header">
                 <h3>📜 Tarixçə</h3>
-                <button id="clearHistoryBtn" class="icon-btn" title="Təmizlə" onclick="clearHistory()">🗑️</button>
+                <div class="history-actions">
+                    <button id="exportHistoryBtn" class="icon-btn" title="İxrac et (.json)" onclick="exportHistory()">📥</button>
+                    <button id="clearHistoryBtn" class="icon-btn" title="Təmizlə" onclick="clearHistory()">🗑️</button>
+                </div>
             </div>
             <div id="historyList" class="history-list">
                 <p class="history-empty">Hələ hesablama yoxdur</p>
@@ -379,7 +386,21 @@
     <!-- Mobile history toggle -->
     <button id="historyToggle" class="history-toggle-btn" title="Tarixçə" onclick="toggleHistory()">📜</button>
 
+    <script src="js/math-core.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js"></script>
     <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                    .then(function (reg) {
+                        console.log('[SW] Service Worker qeydiyyatı uğurludur:', reg.scope);
+                    })
+                    .catch(function (err) {
+                        console.warn('[SW] Service Worker xətası:', err);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
