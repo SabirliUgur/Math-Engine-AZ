@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 
     <!-- Core Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2.0.0">
 </head>
 <body>
 
@@ -534,19 +534,30 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/math-core.js"></script>
+    <script src="js/math-core.js?v=2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=2.0.0"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
                 navigator.serviceWorker.register('./sw.js', { scope: './' })
                     .then(function (reg) {
                         console.log('[SW] Service Worker qeydiyyatı uğurludur:', reg.scope);
+                        // Hər səhifə açılışında serverdən yeni versiyanı dərhal yoxla
+                        reg.update();
                     })
                     .catch(function (err) {
                         console.warn('[SW] Service Worker xətası:', err);
                     });
+            });
+
+            // Yeni Service Worker aktivləşdikdə səhifəni avtomatik yenilə
+            let isRefreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', function () {
+                if (!isRefreshing) {
+                    isRefreshing = true;
+                    window.location.reload();
+                }
             });
         }
     </script>
