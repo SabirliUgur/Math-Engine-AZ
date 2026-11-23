@@ -3,398 +3,537 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#6366f1">
-    <meta name="description" content="Müasir, sürətli və çoxfunksiyalı veb-əsaslı Elmi və Həndəsi Kalkulyator — Azərbaycan dilində">
-    <title>Math-Engine-AZ — Elmi və Həndəsi Kalkulyator</title>
+    <meta name="theme-color" content="#4F46E5">
+    <meta name="description" content="Math Engine AZ — Müasir, yüksək dəqiqlikli və ikitərəfli elmi riyazi mühərrik">
+    <title>Math Engine AZ</title>
+    
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json">
+
+    <!-- Fonts: Inter & JetBrains Mono + Material Symbols -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+    <!-- Core Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-theme">
+<body>
 
-    <header class="app-header">
-        <div class="header-left">
-            <span class="logo">🧮</span>
-            <h1>Elmi Kalkulyator</h1>
-        </div>
-        <button id="themeToggle" class="theme-btn" title="Tema dəyişdir">
-            <span id="themeIcon">☀️</span>
-        </button>
-    </header>
+    <div class="app-container">
+        <!-- Backdrop for mobile drawer -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <div class="app-layout">
-        <!-- Tab Navigation -->
-        <nav class="tab-navigation" id="tabNav">
-            <button class="tab-btn active" data-tab="calculator">
-                <span class="tab-icon">🔢</span>
-                <span class="tab-label">Kalkulyator</span>
-            </button>
-            <button class="tab-btn" data-tab="geometry">
-                <span class="tab-icon">📐</span>
-                <span class="tab-label">Həndəsə</span>
-            </button>
-            <button class="tab-btn" data-tab="algebra">
-                <span class="tab-icon">✖️</span>
-                <span class="tab-label">Cəbr</span>
-            </button>
-            <button class="tab-btn" data-tab="analysis">
-                <span class="tab-icon">📈</span>
-                <span class="tab-label">Analiz</span>
-            </button>
-            <button class="tab-btn" data-tab="statistics">
-                <span class="tab-icon">🎲</span>
-                <span class="tab-label">Statistika</span>
-            </button>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="main-content">
-
-            <!-- ==================== CALCULATOR ==================== -->
-            <section id="sec-calculator" class="tab-section active">
-                <div class="calc-container">
-                    <div class="calc-display">
-                        <div class="calc-expression" id="calcExpression">&nbsp;</div>
-                        <div class="calc-result" id="calcResult">0</div>
-                        <div class="calc-mode-bar">
-                            <button id="angleModeBtn" class="mode-btn" title="Bucaq vahidi">DEG</button>
-                        </div>
+        <!-- ==================== LEFT SIDEBAR (~280px) ==================== -->
+        <aside class="app-sidebar" id="appSidebar">
+            <div class="sidebar-top">
+                <!-- Brand Logo & Title -->
+                <div class="brand-header">
+                    <div class="brand-icon-box">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                            <line x1="8" y1="6" x2="16" y2="6"></line>
+                            <line x1="16" y1="14" x2="16" y2="18"></line>
+                            <path d="M16 10h.01"></path>
+                            <path d="M12 10h.01"></path>
+                            <path d="M8 10h.01"></path>
+                            <path d="M12 14h.01"></path>
+                            <path d="M8 14h.01"></path>
+                            <path d="M12 18h.01"></path>
+                            <path d="M8 18h.01"></path>
+                        </svg>
                     </div>
-                    <div class="calc-buttons" id="calcButtons">
-                        <!-- Row 1: Scientific -->
-                        <button class="btn btn-func" data-action="sin">sin</button>
-                        <button class="btn btn-func" data-action="cos">cos</button>
-                        <button class="btn btn-func" data-action="tan">tan</button>
-                        <button class="btn btn-func" data-action="cot">cot</button>
-                        <button class="btn btn-func" data-action="pow">xⁿ</button>
-                        <!-- Row 2 -->
-                        <button class="btn btn-func" data-action="ln">ln</button>
-                        <button class="btn btn-func" data-action="log">log</button>
-                        <button class="btn btn-func" data-action="sqrt">√</button>
-                        <button class="btn btn-func" data-action="square">x²</button>
-                        <button class="btn btn-func" data-action="factorial">n!</button>
-                        <!-- Row 3 -->
-                        <button class="btn btn-func" data-action="pi">π</button>
-                        <button class="btn btn-func" data-action="e">e</button>
-                        <button class="btn btn-func" data-action="openParen">(</button>
-                        <button class="btn btn-func" data-action="closeParen">)</button>
-                        <button class="btn btn-func" data-action="negate">±</button>
-                        <!-- Row 4: 7 8 9 ÷ ⌫ -->
-                        <button class="btn btn-num" data-action="num" data-value="7">7</button>
-                        <button class="btn btn-num" data-action="num" data-value="8">8</button>
-                        <button class="btn btn-num" data-action="num" data-value="9">9</button>
-                        <button class="btn btn-op" data-action="op" data-value="/">÷</button>
-                        <button class="btn btn-del" data-action="backspace">⌫</button>
-                        <!-- Row 5: 4 5 6 × C -->
-                        <button class="btn btn-num" data-action="num" data-value="4">4</button>
-                        <button class="btn btn-num" data-action="num" data-value="5">5</button>
-                        <button class="btn btn-num" data-action="num" data-value="6">6</button>
-                        <button class="btn btn-op" data-action="op" data-value="*">×</button>
-                        <button class="btn btn-del" data-action="clear">C</button>
-                        <!-- Row 6: 1 2 3 - AC -->
-                        <button class="btn btn-num" data-action="num" data-value="1">1</button>
-                        <button class="btn btn-num" data-action="num" data-value="2">2</button>
-                        <button class="btn btn-num" data-action="num" data-value="3">3</button>
-                        <button class="btn btn-op" data-action="op" data-value="-">−</button>
-                        <button class="btn btn-del" data-action="allClear">AC</button>
-                        <!-- Row 7: 0 . = + % -->
-                        <button class="btn btn-num" data-action="num" data-value="0">0</button>
-                        <button class="btn btn-num" data-action="decimal">.</button>
-                        <button class="btn btn-equals" data-action="equals">=</button>
-                        <button class="btn btn-op" data-action="op" data-value="+">+</button>
-                        <button class="btn btn-func" data-action="percent">%</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ==================== GEOMETRY ==================== -->
-            <section id="sec-geometry" class="tab-section">
-                <h2 class="section-title">📐 Həndəsi Hesablamalar</h2>
-                <div class="card">
-                    <div class="form-group">
-                        <label for="shapeSelect">Fiquru seçin:</label>
-                        <select id="shapeSelect">
-                            <option value="">— Fiqur seçin —</option>
-                            <optgroup label="Müstəvi Fiqurlar">
-                                <option value="circle">Dairə</option>
-                                <option value="square">Kvadrat</option>
-                                <option value="rectangle">Düzbucaqlı</option>
-                                <option value="triangle">Üçbucaq</option>
-                                <option value="trapezoid">Trapesiya</option>
-                            </optgroup>
-                            <optgroup label="Fəza Fiqurları">
-                                <option value="cube">Kub</option>
-                                <option value="cylinder">Silindr</option>
-                                <option value="sphere">Kürə</option>
-                                <option value="cone">Konus</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    <div id="shapeInputMode" class="form-group" style="display:none;"></div>
-                    <div id="geoSymbolBar" class="geo-symbol-bar">
-                        <span class="geo-symbol-label">Simvollar:</span>
-                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('√')">√</button>
-                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('π')">π</button>
-                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('/')">/</button>
-                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('^')">^</button>
-                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('(')">(</button>
-                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol(')')">)</button>
-                    </div>
-                    <div id="shapeInputs" class="input-row"></div>
-                    <button id="geoCalcBtn" class="primary-btn" style="display:none;" onclick="calculateGeometry()">Hesabla</button>
-                    <div id="geoResults" class="result-box"></div>
-                </div>
-            </section>
-
-            <!-- ==================== ALGEBRA ==================== -->
-            <section id="sec-algebra" class="tab-section">
-                <h2 class="section-title">✖️ Cəbr və Tənliklər</h2>
-                <div class="sub-tabs" id="algebraSubTabs">
-                    <button class="sub-tab active" data-subtab="quadratic">Kvadrat tənlik</button>
-                    <button class="sub-tab" data-subtab="linear2">2 məchullu</button>
-                    <button class="sub-tab" data-subtab="linear3">3 məchullu</button>
-                    <button class="sub-tab" data-subtab="percentage">Faiz</button>
-                    <button class="sub-tab" data-subtab="sequence">Silsilə</button>
+                    <span class="brand-title">Math Engine AZ</span>
                 </div>
 
-                <!-- Quadratic -->
-                <div id="sub-quadratic" class="sub-content active card">
-                    <h3>ax² + bx + c = 0</h3>
-                    <div class="input-row">
-                        <div class="input-group"><label>a =</label><input type="number" id="qa" step="any"></div>
-                        <div class="input-group"><label>b =</label><input type="number" id="qb" step="any"></div>
-                        <div class="input-group"><label>c =</label><input type="number" id="qc" step="any"></div>
-                    </div>
-                    <button class="primary-btn" onclick="solveQuadratic()">Həll et</button>
-                    <div id="quadraticResult" class="result-box"></div>
-                </div>
-
-                <!-- Linear 2 -->
-                <div id="sub-linear2" class="sub-content card">
-                    <h3>Xətti tənliklər sistemi (2 məchullu)</h3>
-                    <div class="system-eq">
-                        <div class="eq-row">
-                            <input type="number" id="l2a1" step="any" class="sm-input"><span>x +</span>
-                            <input type="number" id="l2b1" step="any" class="sm-input"><span>y =</span>
-                            <input type="number" id="l2c1" step="any" class="sm-input">
-                        </div>
-                        <div class="eq-row">
-                            <input type="number" id="l2a2" step="any" class="sm-input"><span>x +</span>
-                            <input type="number" id="l2b2" step="any" class="sm-input"><span>y =</span>
-                            <input type="number" id="l2c2" step="any" class="sm-input">
-                        </div>
-                    </div>
-                    <button class="primary-btn" onclick="solveLinear2()">Həll et</button>
-                    <div id="linear2Result" class="result-box"></div>
-                </div>
-
-                <!-- Linear 3 -->
-                <div id="sub-linear3" class="sub-content card">
-                    <h3>Xətti tənliklər sistemi (3 məchullu)</h3>
-                    <div class="system-eq">
-                        <div class="eq-row">
-                            <input type="number" id="l3a1" step="any" class="sm-input"><span>x +</span>
-                            <input type="number" id="l3b1" step="any" class="sm-input"><span>y +</span>
-                            <input type="number" id="l3c1" step="any" class="sm-input"><span>z =</span>
-                            <input type="number" id="l3d1" step="any" class="sm-input">
-                        </div>
-                        <div class="eq-row">
-                            <input type="number" id="l3a2" step="any" class="sm-input"><span>x +</span>
-                            <input type="number" id="l3b2" step="any" class="sm-input"><span>y +</span>
-                            <input type="number" id="l3c2" step="any" class="sm-input"><span>z =</span>
-                            <input type="number" id="l3d2" step="any" class="sm-input">
-                        </div>
-                        <div class="eq-row">
-                            <input type="number" id="l3a3" step="any" class="sm-input"><span>x +</span>
-                            <input type="number" id="l3b3" step="any" class="sm-input"><span>y +</span>
-                            <input type="number" id="l3c3" step="any" class="sm-input"><span>z =</span>
-                            <input type="number" id="l3d3" step="any" class="sm-input">
-                        </div>
-                    </div>
-                    <button class="primary-btn" onclick="solveLinear3()">Həll et</button>
-                    <div id="linear3Result" class="result-box"></div>
-                </div>
-
-                <!-- Percentage -->
-                <div id="sub-percentage" class="sub-content card">
-                    <h3>Faiz Hesablamaları</h3>
-                    <div class="form-group">
-                        <select id="pctType" onchange="updatePctInputs()">
-                            <option value="findPercent">Ədədin faizini tap</option>
-                            <option value="whatPercent">Bir ədəd digərinin neçə faizidir?</option>
-                            <option value="findWhole">X ədədin Y%-dirsə, ədədi tap</option>
-                            <option value="increase">Faizlə artır</option>
-                            <option value="decrease">Faizlə azalt</option>
-                        </select>
-                    </div>
-                    <div id="pctInputs" class="input-row"></div>
-                    <button class="primary-btn" onclick="calcPercentage()">Hesabla</button>
-                    <div id="percentResult" class="result-box"></div>
-                </div>
-
-                <!-- Sequence -->
-                <div id="sub-sequence" class="sub-content card">
-                    <h3>Ədədi Silsilələr</h3>
-                    <div class="radio-group">
-                        <label class="radio-label"><input type="radio" name="seqType" value="arithmetic" checked onchange="updateSeqLabel()"> Ədədi silsilə</label>
-                        <label class="radio-label"><input type="radio" name="seqType" value="geometric" onchange="updateSeqLabel()"> Həndəsi silsilə</label>
-                    </div>
-                    <div class="input-row">
-                        <div class="input-group"><label>a₁ =</label><input type="number" id="seqA1" step="any"></div>
-                        <div class="input-group"><label id="seqDLabel">d =</label><input type="number" id="seqD" step="any"></div>
-                        <div class="input-group"><label>n =</label><input type="number" id="seqN" min="1" step="1"></div>
-                    </div>
-                    <button class="primary-btn" onclick="calcSequence()">Hesabla</button>
-                    <div id="sequenceResult" class="result-box"></div>
-                </div>
-            </section>
-
-            <!-- ==================== ANALYSIS ==================== -->
-            <section id="sec-analysis" class="tab-section">
-                <h2 class="section-title">📈 Riyazi Analiz</h2>
-                <div class="sub-tabs" id="analysisSubTabs">
-                    <button class="sub-tab active" data-subtab="derivative">Törəmə</button>
-                    <button class="sub-tab" data-subtab="integral">İnteqral</button>
-                    <button class="sub-tab" data-subtab="graph">Qrafik</button>
-                </div>
-
-                <div id="sub-derivative" class="sub-content active card">
-                    <h3>Törəmə Hesablama</h3>
-                    <div class="input-row">
-                        <div class="input-group full-width">
-                            <label>f(x) =</label>
-                            <input type="text" id="derivFunc" placeholder="Məsələn: x^2 + 3*x + 1">
-                        </div>
-                    </div>
-                    <button class="primary-btn" onclick="calcDerivative()">Törəməni tap</button>
-                    <div id="derivativeResult" class="result-box"></div>
-                </div>
-
-                <div id="sub-integral" class="sub-content card">
-                    <h3>Müəyyən İnteqral</h3>
-                    <div class="input-row">
-                        <div class="input-group full-width">
-                            <label>f(x) =</label>
-                            <input type="text" id="intFunc" placeholder="Məsələn: x^2">
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div class="input-group"><label>a (alt hədd) =</label><input type="number" id="intA" step="any" value="0"></div>
-                        <div class="input-group"><label>b (üst hədd) =</label><input type="number" id="intB" step="any" value="1"></div>
-                    </div>
-                    <button class="primary-btn" onclick="calcIntegral()">İnteqralı hesabla</button>
-                    <div id="integralResult" class="result-box"></div>
-                </div>
-
-                <div id="sub-graph" class="sub-content card">
-                    <h3>Funksiya Qrafiki</h3>
-                    <div class="input-row">
-                        <div class="input-group full-width">
-                            <label>y =</label>
-                            <input type="text" id="graphFunc" placeholder="Məsələn: x^2 - 4" value="x^2 - 4">
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div class="input-group"><label>x min =</label><input type="number" id="graphXMin" value="-10" step="any"></div>
-                        <div class="input-group"><label>x max =</label><input type="number" id="graphXMax" value="10" step="any"></div>
-                    </div>
-                    <button class="primary-btn" onclick="plotFunction()">Qrafiki çək</button>
-                    <div class="graph-wrapper">
-                        <canvas id="graphCanvas"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ==================== STATISTICS ==================== -->
-            <section id="sec-statistics" class="tab-section">
-                <h2 class="section-title">🎲 Ehtimal, Statistika və Matrislər</h2>
-                <div class="sub-tabs" id="statsSubTabs">
-                    <button class="sub-tab active" data-subtab="stats">Statistika</button>
-                    <button class="sub-tab" data-subtab="probability">Ehtimal</button>
-                    <button class="sub-tab" data-subtab="matrix">Matrislər</button>
-                </div>
-
-                <div id="sub-stats" class="sub-content active card">
-                    <h3>Statistik Göstəricilər</h3>
-                    <div class="input-row">
-                        <div class="input-group full-width">
-                            <label>Ədədləri vergüllə ayırın:</label>
-                            <input type="text" id="statData" placeholder="Məsələn: 5, 10, 15, 20, 25">
-                        </div>
-                    </div>
-                    <button class="primary-btn" onclick="calcStatistics()">Hesabla</button>
-                    <div id="statsResult" class="result-box"></div>
-                </div>
-
-                <div id="sub-probability" class="sub-content card">
-                    <h3>Permutasiya və Kombinasiya</h3>
-                    <div class="input-row">
-                        <div class="input-group"><label>n =</label><input type="number" id="probN" min="0" step="1"></div>
-                        <div class="input-group"><label>r =</label><input type="number" id="probR" min="0" step="1"></div>
-                    </div>
-                    <div class="btn-row">
-                        <button class="primary-btn" onclick="calcPermutation()">P(n, r)</button>
-                        <button class="primary-btn" onclick="calcCombination()">C(n, r)</button>
-                    </div>
-                    <div id="probResult" class="result-box"></div>
-                </div>
-
-                <div id="sub-matrix" class="sub-content card">
-                    <h3>Matris Əməliyyatları</h3>
-                    <div class="matrix-controls">
-                        <div class="form-group">
-                            <label>Ölçü:</label>
-                            <select id="matrixSize" onchange="buildMatrixInputs()">
-                                <option value="2">2 × 2</option>
-                                <option value="3">3 × 3</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Əməliyyat:</label>
-                            <select id="matrixOp" onchange="onMatrixOpChange()">
-                                <option value="add">Toplama (A + B)</option>
-                                <option value="subtract">Çıxma (A − B)</option>
-                                <option value="multiply">Vurma (A × B)</option>
-                                <option value="detA">Determinant |A|</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="matrix-inputs-container">
-                        <div class="matrix-block">
-                            <h4>Matris A</h4>
-                            <div id="matrixA" class="matrix-grid"></div>
-                        </div>
-                        <div class="matrix-block" id="matrixBBlock">
-                            <h4>Matris B</h4>
-                            <div id="matrixB" class="matrix-grid"></div>
-                        </div>
-                    </div>
-                    <button class="primary-btn" onclick="calcMatrix()">Hesabla</button>
-                    <div id="matrixResult" class="result-box"></div>
-                </div>
-            </section>
-
-        </main>
-
-        <!-- History Panel -->
-        <aside class="history-panel" id="historyPanel">
-            <div class="history-header">
-                <h3>📜 Tarixçə</h3>
-                <div class="history-actions">
-                    <button id="exportHistoryBtn" class="icon-btn" title="İxrac et (.json)" onclick="exportHistory()">📥</button>
-                    <button id="clearHistoryBtn" class="icon-btn" title="Təmizlə" onclick="clearHistory()">🗑️</button>
-                </div>
+                <!-- Navigation Tabs -->
+                <nav class="sidebar-nav" id="tabNav">
+                    <button class="tab-btn active" data-tab="calculator" type="button">
+                        <span class="material-symbols-outlined text-[20px]">calculate</span>
+                        <span>Kalkulyator</span>
+                    </button>
+                    <button class="tab-btn" data-tab="geometry" type="button">
+                        <span class="material-symbols-outlined text-[20px]">category</span>
+                        <span>Həndəsə</span>
+                    </button>
+                    <button class="tab-btn" data-tab="algebra" type="button">
+                        <span class="material-symbols-outlined text-[20px]">functions</span>
+                        <span>Cəbr</span>
+                    </button>
+                    <button class="tab-btn" data-tab="analysis" type="button">
+                        <span class="material-symbols-outlined text-[20px]">show_chart</span>
+                        <span>Analiz</span>
+                    </button>
+                    <button class="tab-btn" data-tab="statistics" type="button">
+                        <span class="material-symbols-outlined text-[20px]">bar_chart</span>
+                        <span>Statistika</span>
+                    </button>
+                </nav>
             </div>
-            <div id="historyList" class="history-list">
-                <p class="history-empty">Hələ hesablama yoxdur</p>
+
+            <!-- Integrated Scrollable History at Bottom -->
+            <div class="sidebar-history">
+                <div class="history-section-header">
+                    <span class="history-section-title">Tarixçə</span>
+                    <div class="history-header-actions">
+                        <button id="exportHistoryBtn" class="history-action-btn" title="İxrac et (.json)" onclick="exportHistory()" type="button">
+                            <span class="material-symbols-outlined text-[18px]">download</span>
+                        </button>
+                        <button id="clearHistoryBtn" class="history-action-btn btn-clear" title="Təmizlə" onclick="clearHistory()" type="button">
+                            <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="historyList" class="history-scroll-list">
+                    <p class="history-empty-msg">Hələ hesablama yoxdur</p>
+                </div>
             </div>
         </aside>
+
+        <!-- ==================== MAIN WORKSPACE ==================== -->
+        <div class="main-workspace">
+            <!-- Top Bar: Mobile Menu + Theme Toggle -->
+            <header class="workspace-top-bar">
+                <button id="sidebarToggle" class="mobile-sidebar-toggle" title="Menyu" type="button">
+                    <span class="material-symbols-outlined text-[22px]">menu</span>
+                </button>
+                
+                <button id="themeToggle" class="theme-pill-btn" title="Tema dəyişdir" type="button">
+                    <span class="material-symbols-outlined text-[18px]" id="themeIcon">dark_mode</span>
+                    <span id="themeLabel">Qaranlıq</span>
+                </button>
+            </header>
+
+            <!-- Split Workspace 12-Column Grid -->
+            <main class="split-workspace-grid">
+                
+                <!-- LEFT COLUMN: Interactive Card (Active Tab Section) -->
+                <div class="left-panel-col">
+                    
+                    <!-- TAB 1: CALCULATOR -->
+                    <section id="sec-calculator" class="tab-section active">
+                        <div class="workspace-card">
+                            <div class="card-header-flex">
+                                <div class="segmented-mode-pill">
+                                    <button id="mode-besit" class="mode-pill-btn" type="button">Bəsit</button>
+                                    <button id="mode-elmi" class="mode-pill-btn active" type="button">Elmi</button>
+                                </div>
+                                <span class="card-engine-tag">F(X) · ENGINE</span>
+                            </div>
+
+                            <!-- Display Screen -->
+                            <div class="calc-display-chassis">
+                                <div class="calc-display-controls">
+                                    <button id="angleModeBtn" class="angle-badge-btn" title="Bucaq vahidi: DEG / RAD" type="button">
+                                        DEG
+                                    </button>
+                                    <button id="copy-btn" class="copy-result-btn" title="Nəticəni kopyala" type="button">
+                                        <span class="material-symbols-outlined text-[18px]" id="copy-icon">content_copy</span>
+                                    </button>
+                                </div>
+                                <div class="calc-readout-wrap">
+                                    <div class="calc-expression-text" id="calcExpression">&nbsp;</div>
+                                    <div class="calc-result-text" id="calcResult">0</div>
+                                </div>
+                            </div>
+
+                            <!-- 5-Column Keypad -->
+                            <div class="calc-keypad-grid" id="calcButtons">
+                                <!-- Row 1: Scientific functions + DEL -->
+                                <button class="calc-key key-sci" data-sci="true" data-action="sin" type="button">sin</button>
+                                <button class="calc-key key-sci" data-sci="true" data-action="cos" type="button">cos</button>
+                                <button class="calc-key key-sci" data-sci="true" data-action="tan" type="button">tan</button>
+                                <button class="calc-key key-sci" data-sci="true" data-action="cot" type="button">cot</button>
+                                <button class="calc-key key-del" data-action="backspace" type="button">DEL</button>
+
+                                <!-- Row 2: ln, log, sqrt, x², AC -->
+                                <button class="calc-key key-sci" data-sci="true" data-action="ln" type="button">ln</button>
+                                <button class="calc-key key-sci" data-sci="true" data-action="log" type="button">log</button>
+                                <button class="calc-key key-sci" data-sci="true" data-action="sqrt" type="button">√</button>
+                                <button class="calc-key key-sci" data-sci="true" data-action="square" type="button">x²</button>
+                                <button class="calc-key key-del" data-action="allClear" type="button">AC</button>
+
+                                <!-- Row 3: xⁿ, (, ), %, ÷ -->
+                                <button class="calc-key key-sci" data-sci="true" data-action="pow" type="button">xⁿ</button>
+                                <button class="calc-key key-sci" data-action="openParen" type="button">(</button>
+                                <button class="calc-key key-sci" data-action="closeParen" type="button">)</button>
+                                <button class="calc-key key-sci" data-action="percent" type="button">%</button>
+                                <button class="calc-key key-op" data-action="op" data-value="/" type="button">÷</button>
+
+                                <!-- Row 4: π, 7, 8, 9, × -->
+                                <button class="calc-key key-sci" data-sci="true" data-action="pi" type="button">π</button>
+                                <button class="calc-key key-num" data-action="num" data-value="7" type="button">7</button>
+                                <button class="calc-key key-num" data-action="num" data-value="8" type="button">8</button>
+                                <button class="calc-key key-num" data-action="num" data-value="9" type="button">9</button>
+                                <button class="calc-key key-op" data-action="op" data-value="*" type="button">×</button>
+
+                                <!-- Row 5: e, 4, 5, 6, − -->
+                                <button class="calc-key key-sci" data-sci="true" data-action="e" type="button">e</button>
+                                <button class="calc-key key-num" data-action="num" data-value="4" type="button">4</button>
+                                <button class="calc-key key-num" data-action="num" data-value="5" type="button">5</button>
+                                <button class="calc-key key-num" data-action="num" data-value="6" type="button">6</button>
+                                <button class="calc-key key-op" data-action="op" data-value="-" type="button">−</button>
+
+                                <!-- Row 6: ±, 1, 2, 3, + -->
+                                <button class="calc-key key-sci" data-action="negate" type="button">±</button>
+                                <button class="calc-key key-num" data-action="num" data-value="1" type="button">1</button>
+                                <button class="calc-key key-num" data-action="num" data-value="2" type="button">2</button>
+                                <button class="calc-key key-num" data-action="num" data-value="3" type="button">3</button>
+                                <button class="calc-key key-op" data-action="op" data-value="+" type="button">+</button>
+
+                                <!-- Row 7: n!, 0, ., Ans, = -->
+                                <button class="calc-key key-sci" data-sci="true" data-action="factorial" type="button">n!</button>
+                                <button class="calc-key key-num" data-action="num" data-value="0" type="button">0</button>
+                                <button class="calc-key key-num" data-action="decimal" type="button">.</button>
+                                <button class="calc-key key-sci" data-action="ans" type="button">Ans</button>
+                                <button class="calc-key key-eq" data-action="equals" type="button">=</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 2: GEOMETRY -->
+                    <section id="sec-geometry" class="tab-section">
+                        <div class="workspace-card">
+                            <h2 class="section-heading-title">📐 Həndəsi Hesablamalar</h2>
+                            <div class="form-group">
+                                <label for="shapeSelect">Fiquru seçin:</label>
+                                <select id="shapeSelect">
+                                    <option value="">— Fiqur seçin —</option>
+                                    <optgroup label="Müstəvi Fiqurlar">
+                                        <option value="circle">Dairə</option>
+                                        <option value="square">Kvadrat</option>
+                                        <option value="rectangle">Düzbucaqlı</option>
+                                        <option value="triangle">Üçbucaq</option>
+                                        <option value="trapezoid">Trapesiya</option>
+                                    </optgroup>
+                                    <optgroup label="Fəza Fiqurları">
+                                        <option value="cube">Kub</option>
+                                        <option value="cylinder">Silindr</option>
+                                        <option value="sphere">Kürə</option>
+                                        <option value="cone">Konus</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div id="shapeInputMode" class="form-group" style="display:none;"></div>
+                            
+                            <!-- Quick-Symbol Bar -->
+                            <div id="geoSymbolBar" class="geo-symbol-bar">
+                                <span class="geo-symbol-label">Simvollar:</span>
+                                <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('√')">√</button>
+                                <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('π')">π</button>
+                                <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('/')">/</button>
+                                <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('^')">^</button>
+                                <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('(')">(</button>
+                                <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol(')')">)</button>
+                            </div>
+                            <div id="shapeInputs" class="input-row"></div>
+                            <button id="geoCalcBtn" class="primary-btn" style="display:none;" onclick="calculateGeometry()">Hesabla</button>
+                            <div id="geoResults" class="result-box"></div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 3: ALGEBRA -->
+                    <section id="sec-algebra" class="tab-section">
+                        <div class="workspace-card">
+                            <h2 class="section-heading-title">✖️ Cəbr və Tənliklər</h2>
+                            <div class="sub-tabs" id="algebraSubTabs">
+                                <button class="sub-tab active" data-subtab="quadratic" type="button">Kvadrat tənlik</button>
+                                <button class="sub-tab" data-subtab="linear2" type="button">2 məchullu</button>
+                                <button class="sub-tab" data-subtab="linear3" type="button">3 məchullu</button>
+                                <button class="sub-tab" data-subtab="percentage" type="button">Faiz</button>
+                                <button class="sub-tab" data-subtab="sequence" type="button">Silsilə</button>
+                            </div>
+
+                            <!-- Quadratic -->
+                            <div id="sub-quadratic" class="sub-content active">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">ax² + bx + c = 0</h3>
+                                <div class="input-row">
+                                    <div class="input-group"><label>a =</label><input type="number" id="qa" step="any" placeholder="1"></div>
+                                    <div class="input-group"><label>b =</label><input type="number" id="qb" step="any" placeholder="0"></div>
+                                    <div class="input-group"><label>c =</label><input type="number" id="qc" step="any" placeholder="0"></div>
+                                </div>
+                                <button class="primary-btn" onclick="solveQuadratic()" type="button">Həll et</button>
+                                <div id="quadraticResult" class="result-box"></div>
+                            </div>
+
+                            <!-- Linear 2 -->
+                            <div id="sub-linear2" class="sub-content">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Xətti tənliklər sistemi (2 məchullu)</h3>
+                                <div class="system-eq">
+                                    <div class="eq-row">
+                                        <input type="number" id="l2a1" step="any" class="sm-input"><span>x +</span>
+                                        <input type="number" id="l2b1" step="any" class="sm-input"><span>y =</span>
+                                        <input type="number" id="l2c1" step="any" class="sm-input">
+                                    </div>
+                                    <div class="eq-row">
+                                        <input type="number" id="l2a2" step="any" class="sm-input"><span>x +</span>
+                                        <input type="number" id="l2b2" step="any" class="sm-input"><span>y =</span>
+                                        <input type="number" id="l2c2" step="any" class="sm-input">
+                                    </div>
+                                </div>
+                                <button class="primary-btn" onclick="solveLinear2()" type="button">Həll et</button>
+                                <div id="linear2Result" class="result-box"></div>
+                            </div>
+
+                            <!-- Linear 3 -->
+                            <div id="sub-linear3" class="sub-content">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Xətti tənliklər sistemi (3 məchullu)</h3>
+                                <div class="system-eq">
+                                    <div class="eq-row">
+                                        <input type="number" id="l3a1" step="any" class="sm-input"><span>x +</span>
+                                        <input type="number" id="l3b1" step="any" class="sm-input"><span>y +</span>
+                                        <input type="number" id="l3c1" step="any" class="sm-input"><span>z =</span>
+                                        <input type="number" id="l3d1" step="any" class="sm-input">
+                                    </div>
+                                    <div class="eq-row">
+                                        <input type="number" id="l3a2" step="any" class="sm-input"><span>x +</span>
+                                        <input type="number" id="l3b2" step="any" class="sm-input"><span>y +</span>
+                                        <input type="number" id="l3c2" step="any" class="sm-input"><span>z =</span>
+                                        <input type="number" id="l3d2" step="any" class="sm-input">
+                                    </div>
+                                    <div class="eq-row">
+                                        <input type="number" id="l3a3" step="any" class="sm-input"><span>x +</span>
+                                        <input type="number" id="l3b3" step="any" class="sm-input"><span>y +</span>
+                                        <input type="number" id="l3c3" step="any" class="sm-input"><span>z =</span>
+                                        <input type="number" id="l3d3" step="any" class="sm-input">
+                                    </div>
+                                </div>
+                                <button class="primary-btn" onclick="solveLinear3()" type="button">Həll et</button>
+                                <div id="linear3Result" class="result-box"></div>
+                            </div>
+
+                            <!-- Percentage -->
+                            <div id="sub-percentage" class="sub-content">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Faiz Hesablamaları</h3>
+                                <div class="form-group">
+                                    <select id="pctType" onchange="updatePctInputs()">
+                                        <option value="findPercent">Ədədin faizini tap</option>
+                                        <option value="whatPercent">Bir ədəd digərinin neçə faizidir?</option>
+                                        <option value="findWhole">X ədədin Y%-dirsə, ədədi tap</option>
+                                        <option value="increase">Faizlə artır</option>
+                                        <option value="decrease">Faizlə azalt</option>
+                                    </select>
+                                </div>
+                                <div id="pctInputs" class="input-row"></div>
+                                <button class="primary-btn" onclick="calcPercentage()" type="button">Hesabla</button>
+                                <div id="percentResult" class="result-box"></div>
+                            </div>
+
+                            <!-- Sequence -->
+                            <div id="sub-sequence" class="sub-content">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Ədədi Silsilələr</h3>
+                                <div class="radio-group">
+                                    <label class="radio-label"><input type="radio" name="seqType" value="arithmetic" checked onchange="updateSeqLabel()"> Ədədi silsilə</label>
+                                    <label class="radio-label"><input type="radio" name="seqType" value="geometric" onchange="updateSeqLabel()"> Həndəsi silsilə</label>
+                                </div>
+                                <div class="input-row">
+                                    <div class="input-group"><label>a₁ =</label><input type="number" id="seqA1" step="any"></div>
+                                    <div class="input-group"><label id="seqDLabel">d =</label><input type="number" id="seqD" step="any"></div>
+                                    <div class="input-group"><label>n =</label><input type="number" id="seqN" min="1" step="1"></div>
+                                </div>
+                                <button class="primary-btn" onclick="calcSequence()" type="button">Hesabla</button>
+                                <div id="sequenceResult" class="result-box"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 4: ANALYSIS -->
+                    <section id="sec-analysis" class="tab-section">
+                        <div class="workspace-card">
+                            <h2 class="section-heading-title">📈 Riyazi Analiz</h2>
+                            <div class="sub-tabs" id="analysisSubTabs">
+                                <button class="sub-tab active" data-subtab="derivative" type="button">Törəmə</button>
+                                <button class="sub-tab" data-subtab="integral" type="button">İnteqral</button>
+                                <button class="sub-tab" data-subtab="graph" type="button">Qrafik</button>
+                            </div>
+
+                            <!-- Derivative -->
+                            <div id="sub-derivative" class="sub-content active">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Simvolik Törəmə Hesablama</h3>
+                                <div class="input-row">
+                                    <div class="input-group full-width">
+                                        <label>f(x) =</label>
+                                        <input type="text" id="derivFunc" placeholder="Məsələn: x^2 + 3*x + 1">
+                                    </div>
+                                </div>
+                                <button class="primary-btn" onclick="calcDerivative()" type="button">Törəməni tap</button>
+                                <div id="derivativeResult" class="result-box"></div>
+                            </div>
+
+                            <!-- Integral -->
+                            <div id="sub-integral" class="sub-content">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Müəyyən İnteqral (Simpson Qaydası)</h3>
+                                <div class="input-row">
+                                    <div class="input-group full-width">
+                                        <label>f(x) =</label>
+                                        <input type="text" id="intFunc" placeholder="Məsələn: x^2">
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="input-group"><label>a (alt hədd) =</label><input type="number" id="intA" step="any" value="0"></div>
+                                    <div class="input-group"><label>b (üst hədd) =</label><input type="number" id="intB" step="any" value="1"></div>
+                                </div>
+                                <button class="primary-btn" onclick="calcIntegral()" type="button">İnteqralı hesabla</button>
+                                <div id="integralResult" class="result-box"></div>
+                            </div>
+
+                            <!-- Graph Inputs -->
+                            <div id="sub-graph" class="sub-content">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Funksiya Qrafiki Parametrləri</h3>
+                                <div class="input-row">
+                                    <div class="input-group full-width">
+                                        <label>y =</label>
+                                        <input type="text" id="graphFunc" placeholder="Məsələn: x^2 - 4" value="x^2 - 4">
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="input-group"><label>x min =</label><input type="number" id="graphXMin" value="-10" step="any"></div>
+                                    <div class="input-group"><label>x max =</label><input type="number" id="graphXMax" value="10" step="any"></div>
+                                </div>
+                                <button class="primary-btn" onclick="plotFunction()" type="button">Qrafiki çək</button>
+                                <p class="text-xs text-text-muted mt-2">Qrafik sağ paneldə interaktiv olaraq nümayiş etdirilir.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 5: STATISTICS -->
+                    <section id="sec-statistics" class="tab-section">
+                        <div class="workspace-card">
+                            <h2 class="section-heading-title">🎲 Ehtimal, Statistika və Matrislər</h2>
+                            <div class="sub-tabs" id="statsSubTabs">
+                                <button class="sub-tab active" data-subtab="stats" type="button">Statistika</button>
+                                <button class="sub-tab" data-subtab="probability" type="button">Ehtimal</button>
+                                <button class="sub-tab" data-subtab="matrix" type="button">Matrislər</button>
+                            </div>
+
+                            <!-- Statistics -->
+                            <div id="sub-stats" class="sub-content active">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Statistik Göstəricilər</h3>
+                                <div class="input-row">
+                                    <div class="input-group full-width">
+                                        <label>Ədədləri vergüllə ayırın:</label>
+                                        <input type="text" id="statData" placeholder="Məsələn: 5, 10, 15, 20, 25">
+                                    </div>
+                                </div>
+                                <button class="primary-btn" onclick="calcStatistics()" type="button">Hesabla</button>
+                                <div id="statsResult" class="result-box"></div>
+                            </div>
+
+                            <!-- Probability -->
+                            <div id="sub-probability" class="sub-content">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Permutasiya və Kombinasiya</h3>
+                                <div class="input-row">
+                                    <div class="input-group"><label>n =</label><input type="number" id="probN" min="0" step="1"></div>
+                                    <div class="input-group"><label>r =</label><input type="number" id="probR" min="0" step="1"></div>
+                                </div>
+                                <div class="btn-row">
+                                    <button class="primary-btn" onclick="calcPermutation()" type="button">P(n, r)</button>
+                                    <button class="primary-btn" onclick="calcCombination()" type="button">C(n, r)</button>
+                                </div>
+                                <div id="probResult" class="result-box"></div>
+                            </div>
+
+                            <!-- Matrix -->
+                            <div id="sub-matrix" class="sub-content">
+                                <h3 class="mb-2 text-sm font-semibold text-text-sec">Matris Əməliyyatları</h3>
+                                <div class="matrix-controls">
+                                    <div class="form-group">
+                                        <label>Ölçü:</label>
+                                        <select id="matrixSize" onchange="buildMatrixInputs()">
+                                            <option value="2">2 × 2</option>
+                                            <option value="3">3 × 3</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Əməliyyat:</label>
+                                        <select id="matrixOp" onchange="onMatrixOpChange()">
+                                            <option value="add">Toplama (A + B)</option>
+                                            <option value="subtract">Çıxma (A − B)</option>
+                                            <option value="multiply">Vurma (A × B)</option>
+                                            <option value="detA">Determinant |A|</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="matrix-inputs-container">
+                                    <div class="matrix-block">
+                                        <h4>Matris A</h4>
+                                        <div id="matrixA" class="matrix-grid"></div>
+                                    </div>
+                                    <div class="matrix-block" id="matrixBBlock">
+                                        <h4>Matris B</h4>
+                                        <div id="matrixB" class="matrix-grid"></div>
+                                    </div>
+                                </div>
+                                <button class="primary-btn" onclick="calcMatrix()" type="button">Hesabla</button>
+                                <div id="matrixResult" class="result-box"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+
+                <!-- RIGHT COLUMN: Visualization Card (Vizual Model və Qrafik) -->
+                <div class="right-panel-col">
+                    <section class="workspace-card visual-model-card">
+                        <div class="card-header-flex">
+                            <div class="flex flex-col">
+                                <h2 class="font-bold text-base text-text tracking-tight" id="visual-title">Vizual Model və Qrafik</h2>
+                                <span class="text-xs text-text-muted font-medium" id="visual-subtitle">Koordinat müstəvisi · 2D</span>
+                            </div>
+                            <div class="flex items-center gap-1 p-1 rounded-lg bg-bg-display border border-border">
+                                <button id="zoom-in-btn" class="p-1 rounded text-text-sec hover:bg-border hover:text-text transition-colors" title="Yaxınlaşdır" type="button">
+                                    <span class="material-symbols-outlined text-[18px]">zoom_in</span>
+                                </button>
+                                <button id="zoom-out-btn" class="p-1 rounded text-text-sec hover:bg-border hover:text-text transition-colors" title="Uzaqlaşdır" type="button">
+                                    <span class="material-symbols-outlined text-[18px]">zoom_out</span>
+                                </button>
+                                <button id="zoom-reset-btn" class="p-1 rounded text-text-sec hover:bg-border hover:text-text transition-colors" title="Sıfırla" type="button">
+                                    <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Visualization Viewport Area -->
+                        <div class="visual-viewport" id="visualViewport">
+                            <!-- 1. Coordinate Grid Pattern & Math Preview Curve (Default) -->
+                            <div id="visual-grid-container" class="absolute inset-0 w-full h-full">
+                                <svg id="graph-svg" class="w-full h-full text-border transition-transform duration-200" preserveAspectRatio="xMidYMid meet" viewBox="0 0 400 320">
+                                    <defs>
+                                        <pattern id="coord-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="0.8"></path>
+                                        </pattern>
+                                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                            <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#4F46E5" flood-opacity="0.5"></feDropShadow>
+                                        </filter>
+                                    </defs>
+                                    <rect width="400" height="320" fill="url(#coord-grid)"></rect>
+                                    <line x1="0" y1="160" x2="400" y2="160" stroke="currentColor" stroke-width="1.3" stroke-opacity="0.85"></line>
+                                    <line x1="200" y1="0" x2="200" y2="320" stroke="currentColor" stroke-width="1.3" stroke-opacity="0.85"></line>
+                                    <text x="206" y="174" fill="currentColor" font-size="11" font-family="'JetBrains Mono', monospace" opacity="0.75">0</text>
+                                    <path id="svg-preview-curve" d="M 20 160 Q 65 70, 110 160 T 200 160 T 290 160 T 380 160" fill="none" stroke="#4F46E5" stroke-width="2.5" stroke-linecap="round"></path>
+                                </svg>
+                            </div>
+
+                            <!-- 2. Interactive Function Plotter Canvas (Active during Analiz -> Qrafik) -->
+                            <div id="canvas-container" class="visual-canvas-container hidden">
+                                <canvas id="graphCanvas"></canvas>
+                            </div>
+
+                            <!-- Floating Helper Status Badge -->
+                            <div class="visual-badge-pill" id="visual-badge">
+                                <span id="visual-badge-text">Funksiyanı daxil edin və ya əməliyyatı seçin</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+            </main>
+        </div>
     </div>
 
-    <!-- Mobile history toggle -->
-    <button id="historyToggle" class="history-toggle-btn" title="Tarixçə" onclick="toggleHistory()">📜</button>
-
+    <!-- Scripts -->
     <script src="js/math-core.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js"></script>
     <script src="app.js"></script>

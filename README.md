@@ -1,10 +1,10 @@
-# 🧮 Math-Engine-AZ (v1.7.0 — "Expression Geometry, Percentage Engine & Bug Fixes")
+# 🧮 Math-Engine-AZ (v2.0.0 — "Modern Split-Workspace UI & Dual-Theme Overhaul")
 
-Müasir, yüksək dəqiqlikli, təhlükəsiz və tam oflayn işləyə bilən **Elmi və Həndəsi Kalkulyator Mühərriki**. İstifadəçi interfeysi tam **Azərbaycan dilində** hazırlanmışdır.
+Müasir, bölünmüş iş masalı (split-workspace), yüksək dəqiqlikli, təhlükəsiz və tam oflayn işləyə bilən **Elmi və Həndəsi Kalkulyator Mühərriki**. İstifadəçi interfeysi tam **Azərbaycan dilində** hazırlanmışdır.
 
 [![Canlı Demo](https://img.shields.io/badge/Demo-Canlı%20Sayt-6366f1?style=for-the-badge&logo=githubpages&logoColor=white)](https://sabirliugur.github.io/Math-Engine-AZ/)
 [![Lisenziya](https://img.shields.io/badge/Lisenziya-MIT-green?style=for-the-badge)](LICENSE)
-[![Versiya](https://img.shields.io/badge/Versiya-v1.7.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Versiya](https://img.shields.io/badge/Versiya-v2.0.0-blue?style=for-the-badge)](CHANGELOG.md)
 [![PWA Dəstəyi](https://img.shields.io/badge/PWA-Oflayn%20Dəstəkli-orange?style=for-the-badge)](manifest.json)
 
 ---
@@ -15,35 +15,33 @@ Tətbiqi heç bir quraşdırma tələb olunmadan birbaşa brauzerinizdə istifad
 
 ---
 
-## 🚀 v1.7.0 Yenilikləri və Təkmilləşdirmələr
+## 🚀 v2.0.0 Yenilikləri və Təkmilləşdirmələr
 
-### 1. 📊 Postfiks Faiz (`%`) Mühərriki
-- **Həqiqi Kalkulyator Faizi**: `%` operatoru binar qalıqdan tam hüquqlu postfiks faiz operatoruna çevrilmişdir.
-- **Sərbəst və Vurma/Bölmə Faizi**: `70% = 0.7`, `100 × (70%) = 70`, `100 × 70% = 70`, `200 ÷ 50% = 400`.
-- **Toplama və Çıxma Faizi**: `A + B% = A + (A · B / 100)` (məs: `100 + 20% = 120`), `A - B% = 80`.
-- **Zəncirvari Hesablamalar**: `100 + 20% + 10% = 132`.
+### 1. 🖥️ İki Sütunlu Bölünmüş İş Masası (Split-Workspace Architecture)
+- **Sol Panel (Sidebar, ~280px)**:
+  - Minimalist həndəsi loqo və "Math Engine AZ" brend başlığı.
+  - Şaquli naviqasiya vərəqləri (`Kalkulyator`, `Həndəsə`, `Cəbr`, `Analiz`, `Statistika`) və aktiv pill vurğusu (`#4F46E5`).
+  - Sol panelə inteqrasiya edilmiş, müstəqil sürüşdürülə bilən **Tarixçə** paneli (kompakt **İxrac (.json)** və **Təmizlə** düymələri ilə). Kliklədikdə nəticə birbaşa daxil edilir (`Ans`).
+  - Mobil cihazlar üçün intuitiv sürüşən menyu (drawer) və qaranlıq kölgəlik (backdrop).
+- **Sağ Əsas Sahə (Main Workspace)**:
+  - **Sol Kart**: İnteraktiv daxiletmə və hesablamalar.
+  - **Sağ Kart (`Vizual Model və Qrafik`)**: Həndəsi koordinat toru (`coordinate grid pattern`) fonu, miqyaslama (zoom in, zoom out, reset) idarəediciləri və dinamik vizual vəziyyət göstəricisi.
 
-### 2. ⚡ Mənfi Əsaslı Qüvvət UX (`(-3)^2`)
-- Mənfi ədəd daxil edildikdə və ya `±` ilə işarə dəyişdirildikdə, ardınca `x²` və ya `xⁿ` basıldıqda mənfi əsas avtomatik mötərizəyə alınır: məsələn, `-3` ardınca `x²` vurulduqda ekranda `(-3)^2` formalaşır və düzgün olaraq `9` nəticəsini verir.
-- Riyazi cəbr qaydaları qorunur: `(-3)^2 === 9` və `-3^2 === -9`.
+### 2. 🎛️ Bəsit / Elmi Rejim Keçidi (Segmented Pill Toggle)
+- Kalkulyatorun yuxarısında **Bəsit** və **Elmi** rejimləri arasında sürətli keçid imkanı.
+- `Bəsit` rejim seçildikdə mürəkkəb elmi funksiyalar gizlədilir və 4 sütunlu böyüdülmüş bəsit klaviatura göstərilir.
+- `Elmi` rejim seçildikdə tam 5 sütunlu qabaqcıl klaviatura nümayiş olunur.
 
-### 3. 📐 Həndəsədə Simvolik İfadə Daxiletməsi (`√`, `π`, `/`, `^`)
-- `MathCore` unaykod radikal simvolu `√` birbaşa dəstəkləyir (`√3`, `√(3+1)`, `2√3`, `√3/2`, `2√5`, `π`).
-- Bütün həndəsi daxiletmə sahələri mətn rejiminə keçirilib; istifadəçilər birbaşa `√3`, `2√5`, `π/2` daxil edə bilərlər.
-- Mobil cihazlar üçün bir toxunuşla simvol daxiletmə köməkçi paneli (`√`, `π`, `/`, `^`, `(`, `)`) əlavə edilmişdir.
+### 3. 🌗 Yüksək Kontrastlı İkiqat Tema (Light & Dark)
+- Həm İşıqlı (Light), həm də Qaranlıq (Dark) rejimlərdə mükəmməl rəng kontrastı, dəqiq `#E2E8F0` / `#2D3748` haşiyələr və aydın oxunan düymə yazıları.
+- Yuxarı sağ küncdə Dark/Light keçid düyməsi.
 
-### 4. 📐 Düzbucaqlı Üçbucaq: Katet və Hipotenuz Rejimi
-- **Yeni Hesablama Modu**: Üçbucaq bölməsində `"Düzbucaqlı: Katet və hipotenuz"` seçimi.
-- Katet `a` və hipotenuz `c` üçün avtomatik `c > a` yoxlanışı.
-- Məchul katet `b = √(c² − a²)`, perimetr `P`, sahə `S` və iti bucaqlar `α`, `β` dərəcə ilə hesablanır.
-
-### 5. 📱 Ekranda Dinamik Mətn və Şrift Tənzimləməsi
-- Uzun Azərbaycan xəta bildirişləri (`"Riyazi əməl və ya ədəd çatışmır"`) mobil ekranlarda heç vaxt kəsilmir (`is-error`, `text-long` dinamik sinifləri ilə avtomatik sətrə keçid və şrift kiçilməsi).
-- PWA keş versiyası `'math-engine-az-v1.7.0'` ilə tam oflayn sinxronlaşdırılmışdır.
+### 4. 📈 İnteraktiv Qrafik İnteqrasiyası
+- `Analiz -> Qrafik` seçildikdə, `<canvas>` funksiya qrafiki birbaşa sağ vizual kartda canlandırılır.
 
 ---
 
-## 🧮 Tətbiqin Modulları
+## 🧮 Tətbiqin Əsas Modulları
 
 | Bölmə | Əsas Funksiyalar |
 |---|---|

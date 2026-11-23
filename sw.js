@@ -1,9 +1,9 @@
 /**
- * Service Worker for Math-Engine-AZ v1.7.0 ("Expression Geometry, Percentage Engine & Bug Fixes")
+ * Service Worker for Math-Engine-AZ v2.0.0 ("Modern Split-Workspace UI & Dual-Theme Overhaul")
  * Network-First with Cache Fallback strategy for robust offline capability.
  */
 
-const CACHE_NAME = 'math-engine-az-v1.7.0';
+const CACHE_NAME = 'math-engine-az-v2.0.0';
 
 const PRECACHE_ASSETS = [
     './',

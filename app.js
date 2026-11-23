@@ -1,19 +1,30 @@
 /* ============================================================
-   ELMI KALKULYATOR — APP.JS (v1.7.0)
+   ELMI KALKULYATOR — APP.JS (v2.0.0 — "Modern Split-Workspace UI & Dual-Theme Overhaul")
    Bütün riyazi hesablamalar lokal olaraq MathCore mühərriki ilə icra olunur.
    Heç bir eval() və ya new Function() istifadə olunmur.
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    initSidebarDrawer();
     initTabs();
     initSubTabs();
     initCalculator();
+    initCalculatorModeToggle();
+    initCopyButton();
+    initVisualCardZoom();
     initGeometry();
     initPercentage();
     initMatrix();
     loadHistory();
-    initTheme();
     initInputFocusTracking();
+
+    window.addEventListener('resize', () => {
+        const canvasContainer = document.getElementById('canvas-container');
+        if (canvasContainer && !canvasContainer.classList.contains('hidden')) {
+            plotFunction();
+        }
+    });
 });
 
 /* Track last focused input for Tarixçə / Ans injection */
@@ -27,30 +38,69 @@ function initInputFocusTracking() {
 }
 
 /* ==========================================================
-   1. THEME
+   1. THEME MANAGEMENT (Dual-Theme: Light & Dark)
    ========================================================== */
 function initTheme() {
-    const saved = localStorage.getItem('calcTheme');
-    if (saved === 'light') {
-        document.body.classList.replace('dark-theme', 'light-theme');
-        document.getElementById('themeIcon').textContent = '🌙';
+    const saved = localStorage.getItem('calcTheme') || 'dark';
+    applyTheme(saved === 'dark');
+
+    const toggleBtn = document.getElementById('themeToggle');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark-theme');
+            applyTheme(!isDark);
+        });
     }
-    document.getElementById('themeToggle').addEventListener('click', () => {
-        const isLight = document.body.classList.contains('light-theme');
-        if (isLight) {
-            document.body.classList.replace('light-theme', 'dark-theme');
-            document.getElementById('themeIcon').textContent = '☀️';
-            localStorage.setItem('calcTheme', 'dark');
-        } else {
-            document.body.classList.replace('dark-theme', 'light-theme');
-            document.getElementById('themeIcon').textContent = '🌙';
-            localStorage.setItem('calcTheme', 'light');
-        }
-    });
+}
+
+function applyTheme(isDark) {
+    const icon = document.getElementById('themeIcon');
+    const label = document.getElementById('themeLabel');
+
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+        document.body.classList.remove('light-theme');
+        document.body.classList.add('dark', 'dark-theme');
+        if (icon) icon.textContent = 'light_mode';
+        if (label) label.textContent = 'İşıqlı';
+        localStorage.setItem('calcTheme', 'dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark', 'dark-theme');
+        document.body.classList.add('light-theme');
+        if (icon) icon.textContent = 'dark_mode';
+        if (label) label.textContent = 'Qaranlıq';
+        localStorage.setItem('calcTheme', 'light');
+    }
 }
 
 /* ==========================================================
-   2. TABS
+   2. MOBILE SIDEBAR DRAWER
+   ========================================================== */
+function initSidebarDrawer() {
+    const sidebar = document.getElementById('appSidebar');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    if (!sidebar || !toggleBtn || !backdrop) return;
+
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        backdrop.classList.toggle('open');
+    });
+
+    backdrop.addEventListener('click', closeMobileSidebar);
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('appSidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (sidebar) sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+}
+
+/* ==========================================================
+   3. TABS & VISUAL CARD INTEGRATION
    ========================================================== */
 function initTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -58,7 +108,10 @@ function initTabs() {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById('sec-' + btn.dataset.tab).classList.add('active');
+            const target = document.getElementById('sec-' + btn.dataset.tab);
+            if (target) target.classList.add('active');
+            updateVisualCard(btn.dataset.tab);
+            closeMobileSidebar();
         });
     });
 }
@@ -71,14 +124,186 @@ function initSubTabs() {
                 parent.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
                 parent.querySelectorAll('.sub-content').forEach(c => c.classList.remove('active'));
                 btn.classList.add('active');
-                parent.querySelector('#sub-' + btn.dataset.subtab).classList.add('active');
+                const targetSub = parent.querySelector('#sub-' + btn.dataset.subtab);
+                if (targetSub) targetSub.classList.add('active');
+
+                // If switching to Graph subtab in Analysis, activate canvas
+                if (parent.id === 'sec-analysis') {
+                    updateVisualCard('analysis', btn.dataset.subtab);
+                }
             });
         });
     });
 }
 
+function updateVisualCard(tabId, subtabId) {
+    const visualTitle = document.getElementById('visual-title');
+    const visualSubtitle = document.getElementById('visual-subtitle');
+    const visualBadgeText = document.getElementById('visual-badge-text');
+    const gridContainer = document.getElementById('visual-grid-container');
+    const canvasContainer = document.getElementById('canvas-container');
+
+    if (!visualTitle) return;
+
+    if (tabId === 'analysis' && subtabId === 'graph') {
+        visualTitle.textContent = 'Funksiya Qrafiki';
+        visualSubtitle.textContent = '2D İnteraktiv Qrafik Müstəvisi';
+        if (visualBadgeText) visualBadgeText.textContent = 'f(x) qrafiki aktivdir';
+        if (gridContainer) gridContainer.classList.add('hidden');
+        if (canvasContainer) canvasContainer.classList.remove('hidden');
+        plotFunction();
+    } else {
+        if (gridContainer) gridContainer.classList.remove('hidden');
+        if (canvasContainer) canvasContainer.classList.add('hidden');
+
+        switch (tabId) {
+            case 'calculator':
+                visualTitle.textContent = 'Vizual Model və Qrafik';
+                visualSubtitle.textContent = 'Koordinat müstəvisi · 2D';
+                if (visualBadgeText) visualBadgeText.textContent = 'Funksiyanı daxil edin və ya əməliyyatı seçin';
+                break;
+            case 'geometry':
+                visualTitle.textContent = 'Həndəsi Fiqur Modeli';
+                visualSubtitle.textContent = '2D / 3D Həndəsə Müstəvisi';
+                if (visualBadgeText) visualBadgeText.textContent = 'Seçilmiş fiqurun həndəsi parametrləri';
+                break;
+            case 'algebra':
+                visualTitle.textContent = 'Cəbri Analiz və Köklər';
+                visualSubtitle.textContent = 'Funksiya və Tənliklər Müstəvisi';
+                if (visualBadgeText) visualBadgeText.textContent = 'Tənlik kökləri və asılılıqlar';
+                break;
+            case 'analysis':
+                visualTitle.textContent = 'Riyazi Analiz Müstəvisi';
+                visualSubtitle.textContent = 'Törəmə və İnteqral Dinamikası';
+                if (visualBadgeText) visualBadgeText.textContent = 'Analitik əyrilər və sahələr';
+                break;
+            case 'statistics':
+                visualTitle.textContent = 'Statistik Paylanma Modeli';
+                visualSubtitle.textContent = 'Ehtimal və Paylanma Əyrisi';
+                if (visualBadgeText) visualBadgeText.textContent = 'Statistik paylanma və matrislər';
+                break;
+        }
+    }
+}
+
 /* ==========================================================
-   3. PERSISTENT HISTORY & ANS MEMORY
+   4. BƏSİT / ELMİ KEYPAD SEGMENTED TOGGLE
+   ========================================================== */
+function initCalculatorModeToggle() {
+    const modeElmi = document.getElementById('mode-elmi');
+    const modeBesit = document.getElementById('mode-besit');
+    const keypad = document.getElementById('calcButtons');
+    const sciKeys = document.querySelectorAll('[data-sci="true"]');
+
+    if (!modeElmi || !modeBesit || !keypad) return;
+
+    function setKeypadMode(isElmi) {
+        if (isElmi) {
+            modeElmi.classList.add('active');
+            modeBesit.classList.remove('active');
+            keypad.classList.remove('is-besit');
+            sciKeys.forEach(k => {
+                k.style.display = '';
+            });
+        } else {
+            modeBesit.classList.add('active');
+            modeElmi.classList.remove('active');
+            keypad.classList.add('is-besit');
+            sciKeys.forEach(k => {
+                k.style.display = 'none';
+            });
+        }
+    }
+
+    modeElmi.addEventListener('click', () => setKeypadMode(true));
+    modeBesit.addEventListener('click', () => setKeypadMode(false));
+}
+
+/* ==========================================================
+   5. COPY RESULT ACTION
+   ========================================================== */
+function initCopyButton() {
+    const copyBtn = document.getElementById('copy-btn');
+    if (!copyBtn) return;
+
+    copyBtn.addEventListener('click', () => {
+        const textToCopy = (calcState.result || '0').trim();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showCopySuccess();
+            }).catch(() => {
+                fallbackCopy(textToCopy);
+            });
+        } else {
+            fallbackCopy(textToCopy);
+        }
+    });
+
+    function showCopySuccess() {
+        const icon = document.getElementById('copy-icon');
+        if (icon) {
+            icon.textContent = 'check';
+            setTimeout(() => {
+                icon.textContent = 'content_copy';
+            }, 1500);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showCopySuccess();
+        } catch {}
+        document.body.removeChild(ta);
+    }
+}
+
+/* ==========================================================
+   6. VISUAL CARD ZOOM CONTROLS
+   ========================================================== */
+function initVisualCardZoom() {
+    const graphSvg = document.getElementById('graph-svg');
+    const canvas = document.getElementById('graphCanvas');
+    const zoomIn = document.getElementById('zoom-in-btn');
+    const zoomOut = document.getElementById('zoom-out-btn');
+    const zoomReset = document.getElementById('zoom-reset-btn');
+
+    if (!zoomIn || !zoomOut || !zoomReset) return;
+
+    let zoomLevel = 1;
+
+    zoomIn.addEventListener('click', () => {
+        zoomLevel = Math.min(2.5, zoomLevel + 0.2);
+        applyZoom();
+    });
+
+    zoomOut.addEventListener('click', () => {
+        zoomLevel = Math.max(0.5, zoomLevel - 0.2);
+        applyZoom();
+    });
+
+    zoomReset.addEventListener('click', () => {
+        zoomLevel = 1;
+        applyZoom();
+    });
+
+    function applyZoom() {
+        if (graphSvg) graphSvg.style.transform = `scale(${zoomLevel})`;
+        if (canvas && !canvas.parentElement.classList.contains('hidden')) {
+            canvas.style.transform = `scale(${zoomLevel})`;
+            canvas.style.transformOrigin = 'center center';
+        }
+    }
+}
+
+/* ==========================================================
+   7. PERSISTENT HISTORY & ANS MEMORY
    ========================================================== */
 let historyData = [];
 
@@ -131,15 +356,18 @@ function renderHistory() {
     const list = document.getElementById('historyList');
     if (!list) return;
     if (historyData.length === 0) {
-        list.innerHTML = '<p class="history-empty">Hələ hesablama yoxdur</p>';
+        list.innerHTML = '<p class="history-empty-msg">Hələ hesablama yoxdur</p>';
         return;
     }
     list.innerHTML = historyData.map((h, i) => `
-        <div class="history-item" onclick="useHistoryItem(${i})" title="Klikləyin: Nəticəni daxil edin (${escHtml(String(h.result))})">
-            <div class="h-type">${h.type} · ${h.time}</div>
+        <button class="history-item-btn" type="button" onclick="useHistoryItem(${i})" title="Klikləyin: Nəticəni daxil edin (${escHtml(String(h.result))})">
+            <div class="h-top">
+                <span>${escHtml(h.type)}</span>
+                <span>${escHtml(h.time)}</span>
+            </div>
             <div class="h-expr">${escHtml(h.expression)}</div>
-            <div class="h-result">= ${escHtml(String(h.result))}</div>
-        </div>
+            <div class="h-res">= ${escHtml(String(h.result))}</div>
+        </button>
     `).join('');
 }
 
@@ -179,7 +407,8 @@ function useHistoryItem(index) {
 }
 
 function toggleHistory() {
-    document.getElementById('historyPanel').classList.toggle('open');
+    const p = document.getElementById('historyPanel');
+    if (p) p.classList.toggle('open');
 }
 
 function escHtml(s) {
@@ -198,25 +427,30 @@ const calcState = {
 
 function initCalculator() {
     const btns = document.getElementById('calcButtons');
-    btns.addEventListener('click', e => {
-        const btn = e.target.closest('.btn');
-        if (!btn) return;
-        handleCalcButton(btn.dataset.action, btn.dataset.value);
-    });
+    if (btns) {
+        btns.addEventListener('click', e => {
+            const btn = e.target.closest('.calc-key, .btn');
+            if (!btn) return;
+            handleCalcButton(btn.dataset.action, btn.dataset.value || btn.dataset.val);
+        });
+    }
 
-    document.getElementById('angleModeBtn').addEventListener('click', () => {
-        calcState.angleMode = calcState.angleMode === 'DEG' ? 'RAD' : 'DEG';
-        document.getElementById('angleModeBtn').textContent = calcState.angleMode;
-        // Re-evaluate live preview if applicable
-        if (calcState.expression.trim()) {
-            try {
-                const preview = evalMathExpr(calcState.expression);
-                if (preview !== null && isFinite(preview)) {
-                    document.getElementById('calcResult').textContent = formatNumber(preview);
-                }
-            } catch {}
-        }
-    });
+    const angleBtn = document.getElementById('angleModeBtn');
+    if (angleBtn) {
+        angleBtn.addEventListener('click', () => {
+            calcState.angleMode = calcState.angleMode === 'DEG' ? 'RAD' : 'DEG';
+            angleBtn.textContent = calcState.angleMode;
+            // Re-evaluate live preview if applicable
+            if (calcState.expression.trim()) {
+                try {
+                    const preview = evalMathExpr(calcState.expression);
+                    if (preview !== null && isFinite(preview)) {
+                        document.getElementById('calcResult').textContent = formatNumber(preview);
+                    }
+                } catch {}
+            }
+        });
+    }
 
     // Keyboard support
     document.addEventListener('keydown', e => {
@@ -292,12 +526,17 @@ function handleCalcButton(action, value) {
             if (calcState.justCalculated) { calcState.expression = ''; calcState.justCalculated = false; }
             calcState.expression += 'e';
             break;
+        case 'ans':
+            if (calcState.justCalculated) { calcState.expression = ''; calcState.justCalculated = false; }
+            calcState.expression += 'ans';
+            break;
         case 'percent':
             calcState.expression += '%';
             break;
         case 'negate':
             toggleSign();
             break;
+        case 'del':
         case 'backspace':
             calcState.expression = calcState.expression.trimEnd();
             if (calcState.expression.endsWith(' ')) {
@@ -306,6 +545,7 @@ function handleCalcButton(action, value) {
                 calcState.expression = calcState.expression.slice(0, -1);
             }
             break;
+        case 'ac':
         case 'clear':
         case 'allClear':
             calcState.expression = '';
@@ -1129,17 +1369,21 @@ function calcIntegral() {
 
 /* ---------- Graph ---------- */
 function plotFunction() {
-    const expr = document.getElementById('graphFunc').value.trim();
-    const xMin = parseFloat(document.getElementById('graphXMin').value) || -10;
-    const xMax = parseFloat(document.getElementById('graphXMax').value) || 10;
+    const exprInput = document.getElementById('graphFunc');
+    if (!exprInput) return;
+    const expr = exprInput.value.trim();
+    const xMinEl = document.getElementById('graphXMin');
+    const xMaxEl = document.getElementById('graphXMax');
+    const xMin = xMinEl ? (parseFloat(xMinEl.value) || -10) : -10;
+    const xMax = xMaxEl ? (parseFloat(xMaxEl.value) || 10) : 10;
     const canvas = document.getElementById('graphCanvas');
 
-    if (!expr) return;
+    if (!canvas || !expr) return;
 
     const wrapper = canvas.parentElement;
     const dpr = window.devicePixelRatio || 1;
-    const w = wrapper.clientWidth;
-    const h = Math.min(w * 0.65, 500);
+    const w = (wrapper && wrapper.clientWidth > 50) ? wrapper.clientWidth : 400;
+    const h = (wrapper && wrapper.clientHeight > 50) ? wrapper.clientHeight : Math.min(w * 0.65, 450);
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     canvas.style.width = w + 'px';

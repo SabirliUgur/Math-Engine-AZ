@@ -5,6 +5,36 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [2.0.0] - 2026-11-24 — "Modern Split-Workspace UI & Dual-Theme Overhaul"
+
+### 🎨 Vizual və İnterfeys Yenilikləri (UI/UX Redesign)
+- **İki Sütunlu Bölünmüş İş Masası (Split-Workspace Architecture)**:
+  - Ekranın yuxarı hissəsindəki köhnə tam enli başlıq və abakus emojisi ləğv edildi; müasir iki sütunlu korporativ arxitekturaya keçildi.
+  - **Sol Panel (Sidebar, ~280px)**:
+    - Minimalist həndəsi SVG loqo və "Math Engine AZ" brend başlığı.
+    - Şaquli naviqasiya vərəqləri (`Kalkulyator`, `Həndəsə`, `Cəbr`, `Analiz`, `Statistika`) və aktiv pill vurğusu (`#4F46E5`).
+    - Sol panelə inteqrasiya edilmiş, müstəqil sürüşdürülə bilən (`overflow-y: auto`) **Tarixçə** bölməsi. Başlıqda kompakt **İxrac (.json)** və **Təmizlə** ikon düymələri. Tarixçə qeydinə kliklədikdə nəticə birbaşa aktiv kalkulyatora və ya fokuslanan xanaya (`Ans`) ötürülür.
+    - Mobil ekranlar üçün intuitiv sürüşən menyu (drawer) və kölgəlik (backdrop).
+  - **Sağ Əsas Sahə (Main Workspace)**:
+    - Yuxarı sağ küncdə Dark / Light rejim keçid düyməsi.
+    - İki paralel kart düzülüşü:
+      - **Sol Kart**: İnteraktiv daxiletmə və kalkulyator / tənlik / həndəsə / statistika parametrləri.
+      - **Sağ Kart (`Vizual Model və Qrafik`)**: Həndəsi koordinat toru (`coordinate grid pattern`) fonu, miqyaslama (zoom in, zoom out, reset) idarəediciləri və dinamik vizual vəziyyət göstəricisi.
+- **Bəsit / Elmi Rejim Keçidi (Segmented Pill Toggle)**:
+  - Kalkulyator kartının yuxarısında **Bəsit** və **Elmi** rejimləri arasında bir toxunuşla keçid edən pill düyməsi əlavə edildi.
+  - `Bəsit` rejim seçildikdə mürəkkəb elmi funksiya cərgələri gizlədilir və 4 sütunlu böyüdülmüş bəsit klaviatura göstərilir; `Elmi` rejim seçildikdə tam 5 sütunlu qabaqcıl elmi klaviatura bərpa olunur.
+- **Yüksək Kontrastlı İkiqat Tema (Light & Dark Themes)**:
+  - Həm İşıqlı (Light), həm də Qaranlıq (Dark) rejimlərdə mükəmməl rəng kontrastı, dəqiq `#E2E8F0` / `#2D3748` haşiyələr və aydın oxunan düymə yazıları.
+  - Toxunuş dinamikası: 5 sütunlu kalkulyatorda rəng iyerarxiyası (ədədlər, elmi funksiyalar, əməliyyatlar `#4F46E5`, təmizləmə `#EF4444`).
+- **Analiz Qrafikinin İnteqrasiyası**:
+  - `Analiz -> Qrafik` vərəqi seçildikdə, interaktiv `<canvas>` funksiya qrafiki birbaşa sağ vizual karta köçürülür və dinamik olaraq vizual müstəvidə canlandırılır.
+- **Təhlükəsizlik və Dəqiqlik**:
+  - Bütün riyazi mühərrik (`MathCore`), simvolik kök/faiz/bucaq hesablamaları və davamlı yaddaş toxunulmaz saxlanıldı. Sıfır `eval()` / `new Function()`.
+- **PWA Service Worker Keş**:
+  - Keş versiyası `'math-engine-az-v2.0.0'` səviyyəsinə yüksəldildi.
+
+---
+
 ## [1.7.0] - 2026-11-23 — "Expression Geometry, Percentage Engine & Bug Fixes"
 
 ### 🚀 Təkmilləşdirmələr və Yeniliklər (Added & Improved)
