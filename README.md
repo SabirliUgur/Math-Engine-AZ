@@ -1,10 +1,10 @@
-# 🧮 Math-Engine-AZ (v1.5.0 — "Core Precision & Offline Engine")
+# 🧮 Math-Engine-AZ (v1.7.0 — "Expression Geometry, Percentage Engine & Bug Fixes")
 
 Müasir, yüksək dəqiqlikli, təhlükəsiz və tam oflayn işləyə bilən **Elmi və Həndəsi Kalkulyator Mühərriki**. İstifadəçi interfeysi tam **Azərbaycan dilində** hazırlanmışdır.
 
 [![Canlı Demo](https://img.shields.io/badge/Demo-Canlı%20Sayt-6366f1?style=for-the-badge&logo=githubpages&logoColor=white)](https://sabirliugur.github.io/Math-Engine-AZ/)
 [![Lisenziya](https://img.shields.io/badge/Lisenziya-MIT-green?style=for-the-badge)](LICENSE)
-[![Versiya](https://img.shields.io/badge/Versiya-v1.5.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Versiya](https://img.shields.io/badge/Versiya-v1.7.0-blue?style=for-the-badge)](CHANGELOG.md)
 [![PWA Dəstəyi](https://img.shields.io/badge/PWA-Oflayn%20Dəstəkli-orange?style=for-the-badge)](manifest.json)
 
 ---
@@ -15,28 +15,31 @@ Tətbiqi heç bir quraşdırma tələb olunmadan birbaşa brauzerinizdə istifad
 
 ---
 
-## 🚀 v1.5.0 Yenilikləri və Əsas Xüsusiyyətlər
+## 🚀 v1.7.0 Yenilikləri və Təkmilləşdirmələr
 
-### 1. 🛡️ Təhlükəsiz Riyazi Parser (`MathCore`)
-- **Şantinq-Yard (Shunting-Yard / RPN) Alqoritmi**: `eval()` və `new Function()` metodlarından tamamilə imtina edilmişdir. İfadələrin analizi deterministik və təhlükəsiz leksik mühərriklə icra olunur.
-- **Qeyri-Aşkar Vurma (Implicit Multiplication)**: `2x`, `2(x+1)`, `2sin(x)`, `(x+1)(x-1)`, `2pi`, `5!2` kimi riyazi yazılışlar avtomatik tanınır.
-- **Düzgün Assosiativlik və Unar Mənfi**: `2^3^2 = 512` (sağdan sola qüvvət), `-2^2 = -4`, `(-2)^2 = 4`, `2^-3 = 0.125`.
-- **Trigonometrik Rejimlər**: Dərəcə (`DEG`) və Radian (`RAD`) rejimlərində dəqiq hesablamalar, `tan(90°)` və `cot(0°)` kimi asimptotlarda qoruyucu yoxlamalar.
+### 1. 📊 Postfiks Faiz (`%`) Mühərriki
+- **Həqiqi Kalkulyator Faizi**: `%` operatoru binar qalıqdan tam hüquqlu postfiks faiz operatoruna çevrilmişdir.
+- **Sərbəst və Vurma/Bölmə Faizi**: `70% = 0.7`, `100 × (70%) = 70`, `100 × 70% = 70`, `200 ÷ 50% = 400`.
+- **Toplama və Çıxma Faizi**: `A + B% = A + (A · B / 100)` (məs: `100 + 20% = 120`), `A - B% = 80`.
+- **Zəncirvari Hesablamalar**: `100 + 20% + 10% = 132`.
 
-### 2. 🎯 IEEE-754 Üzən Nöqtə Dəqiqliyi (`MathCore.cleanPrecision`)
-- Kompüter arxitekturasında yaranan xətalar (`0.1 + 0.2 = 0.30000000000000004`) avtomatik təmizlənir (`0.1 + 0.2 === 0.3`).
-- Dövri və asimptotik dəyərlər normallaşdırılır (`sin(π) = 0`, `cos(90°) = 0`).
-- Dəqiqlik təmizləyicisi kalkulyator, həndəsə, cəbr, statistika və matrislər daxil olmaqla bütün tətbiqə tətbiq olunmuşdur.
+### 2. ⚡ Mənfi Əsaslı Qüvvət UX (`(-3)^2`)
+- Mənfi ədəd daxil edildikdə və ya `±` ilə işarə dəyişdirildikdə, ardınca `x²` və ya `xⁿ` basıldıqda mənfi əsas avtomatik mötərizəyə alınır: məsələn, `-3` ardınca `x²` vurulduqda ekranda `(-3)^2` formalaşır və düzgün olaraq `9` nəticəsini verir.
+- Riyazi cəbr qaydaları qorunur: `(-3)^2 === 9` və `-3^2 === -9`.
 
-### 3. 📱 Progressive Web App (PWA) & 100% Oflayn Rejim
-- **Quraşdırıla bilən Tətbiq**: Kompüterdə (Chrome, Edge) və telefonda (Android, iOS) yerli tətbiq kimi quraşdırıla bilir.
-- **Service Worker (`sw.js`)**: *Network-First with Cache Fallback* strategiyası sayəsində internet olan zaman yeniləmələri dərhal alır, internet kəsildikdə isə tam oflayn işləyir.
-- **PWA İkonları**: Yüksək keyfiyyətli `icon-192.png` və `icon-512.png` nişanları ilə təmin olunmuşdur.
+### 3. 📐 Həndəsədə Simvolik İfadə Daxiletməsi (`√`, `π`, `/`, `^`)
+- `MathCore` unaykod radikal simvolu `√` birbaşa dəstəkləyir (`√3`, `√(3+1)`, `2√3`, `√3/2`, `2√5`, `π`).
+- Bütün həndəsi daxiletmə sahələri mətn rejiminə keçirilib; istifadəçilər birbaşa `√3`, `2√5`, `π/2` daxil edə bilərlər.
+- Mobil cihazlar üçün bir toxunuşla simvol daxiletmə köməkçi paneli (`√`, `π`, `/`, `^`, `(`, `)`) əlavə edilmişdir.
 
-### 4. 📜 Davamlı Tarixçə & `Ans` Yaddaşı
-- Son hesablamalar `localStorage` üzərində (`math_engine_az_history_v1`) saxlanılır və səhifə yeniləndikdə itmir (maksimum 100 qeyd).
-- Tarixçədəki istənilən qeydin üzərinə kliklədikdə son nəticə aktiv sahəyə və ya kalkulyatora daxil edilir.
-- Tarixçəni JSON faylı kimi kompüterə ixrac etmək üçün **📥 İxrac** düyməsi əlavə edilmişdir.
+### 4. 📐 Düzbucaqlı Üçbucaq: Katet və Hipotenuz Rejimi
+- **Yeni Hesablama Modu**: Üçbucaq bölməsində `"Düzbucaqlı: Katet və hipotenuz"` seçimi.
+- Katet `a` və hipotenuz `c` üçün avtomatik `c > a` yoxlanışı.
+- Məchul katet `b = √(c² − a²)`, perimetr `P`, sahə `S` və iti bucaqlar `α`, `β` dərəcə ilə hesablanır.
+
+### 5. 📱 Ekranda Dinamik Mətn və Şrift Tənzimləməsi
+- Uzun Azərbaycan xəta bildirişləri (`"Riyazi əməl və ya ədəd çatışmır"`) mobil ekranlarda heç vaxt kəsilmir (`is-error`, `text-long` dinamik sinifləri ilə avtomatik sətrə keçid və şrift kiçilməsi).
+- PWA keş versiyası `'math-engine-az-v1.7.0'` ilə tam oflayn sinxronlaşdırılmışdır.
 
 ---
 

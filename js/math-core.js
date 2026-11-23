@@ -1,5 +1,5 @@
 /**
- * MathCore v1.5.0 ("Core Precision & Offline Engine")
+ * MathCore v1.7.0 ("Expression Geometry, Percentage Engine & Bug Fixes")
  * Deterministic Shunting-Yard (RPN) mathematical parser, IEEE-754 precision cleaner,
  * localized error handler, symbolic differentiation, numerical integration, and persistent history store.
  * Zero external dependencies.
@@ -47,9 +47,9 @@
         if (!isFinite(num)) return num;
         if (Math.abs(num) < 1e-13) return 0;
 
-        // Snap to nearest integer if within 1e-11
+        // Snap to nearest integer if within 1e-9
         const nearestInt = Math.round(num);
-        if (Math.abs(num - nearestInt) < 1e-11) return nearestInt;
+        if (Math.abs(num - nearestInt) < 1e-9) return nearestInt;
 
         // Precision rounding
         const factor = Math.pow(10, digits);
@@ -57,7 +57,7 @@
         const cleaned = parseFloat(rounded.toPrecision(digits));
 
         if (Math.abs(cleaned) < 1e-13) return 0;
-        if (Math.abs(cleaned - Math.round(cleaned)) < 1e-11) return Math.round(cleaned);
+        if (Math.abs(cleaned - Math.round(cleaned)) < 1e-9) return Math.round(cleaned);
         return Object.is(cleaned, -0) ? 0 : cleaned;
     }
 
@@ -94,7 +94,6 @@
         '-': { prec: 1, assoc: 'L', arity: 2 },
         '*': { prec: 2, assoc: 'L', arity: 2 },
         '/': { prec: 2, assoc: 'L', arity: 2 },
-        '%': { prec: 2, assoc: 'L', arity: 2 },
         'neg': { prec: 4, assoc: 'R', arity: 1 }, // Unary minus
         'pos': { prec: 4, assoc: 'R', arity: 1 }, // Unary plus
         '^': { prec: 5, assoc: 'R', arity: 2 },
@@ -117,9 +116,18 @@
             .replace(/π/g, 'pi')
             .trim();
 
+        // Support unicode radical symbol √ (e.g. √3 -> sqrt(3), √(3+1) -> sqrt(3+1), 2√3 -> 2*sqrt(3))
+        str = str.replace(/√\s*\(/g, 'sqrt(');
+        let prevRadicalStr;
+        do {
+            prevRadicalStr = str;
+            str = str.replace(/√\s*([0-9.]+(?:e[+-]?[0-9]+)?|[a-zA-Z_]+)/g, 'sqrt($1)');
+        } while (str !== prevRadicalStr);
+
         if (!str) throw new Error(ERRORS.EMPTY_EXPRESSION);
 
         const rawTokens = [];
+        const parenStack = [];
         let i = 0;
         const len = str.length;
 
@@ -181,21 +189,40 @@
                 continue;
             }
 
-            // Parentheses
+            // Parentheses and paren tracking
             if (ch === '(') {
+                parenStack.push(rawTokens.length);
                 rawTokens.push({ type: TOKEN_TYPES.LPAREN, value: '(' });
                 i++;
                 continue;
             }
             if (ch === ')') {
+                if (parenStack.length > 0) {
+                    const openIdx = parenStack.pop();
+                    const insideTokens = rawTokens.slice(openIdx + 1);
+                    // Check if parentheses directly isolate a percentage expression like (70%) or (-20%)
+                    if (insideTokens.length > 0 && insideTokens[insideTokens.length - 1].value === '%') {
+                        const hasBinaryOp = insideTokens.some(t => t.type === TOKEN_TYPES.OPERATOR);
+                        if (!hasBinaryOp) {
+                            insideTokens[insideTokens.length - 1].isolatedInParens = true;
+                        }
+                    }
+                }
                 rawTokens.push({ type: TOKEN_TYPES.RPAREN, value: ')' });
                 i++;
                 continue;
             }
 
-            // Factorial postfix
-            if (ch === '!') {
-                rawTokens.push({ type: TOKEN_TYPES.POSTFIX_OP, value: '!' });
+            // Factorial & Percentage postfix operators
+            if (ch === '!' || ch === '%') {
+                rawTokens.push({ type: TOKEN_TYPES.POSTFIX_OP, value: ch });
+                i++;
+                continue;
+            }
+
+            // Lone radical symbol √ (as function sqrt)
+            if (ch === '√') {
+                rawTokens.push({ type: TOKEN_TYPES.FUNCTION, value: 'sqrt' });
                 i++;
                 continue;
             }
@@ -207,8 +234,8 @@
                 continue;
             }
 
-            // Operators
-            if ('+-*/%^'.includes(ch)) {
+            // Binary Operators (+, -, *, /, ^)
+            if ('+-*/^'.includes(ch)) {
                 rawTokens.push({ type: TOKEN_TYPES.OPERATOR, value: ch });
                 i++;
                 continue;
@@ -424,21 +451,37 @@
                 continue;
             }
 
-            if (token.type === TOKEN_TYPES.POSTFIX_OP && token.value === '!') {
-                if (stack.length < 1) throw new Error(ERRORS.MISSING_OPERAND);
-                const a = stack.pop();
-                if (a < 0 || !Number.isInteger(Math.round(a)) || Math.abs(a - Math.round(a)) > 1e-10) {
-                    throw new Error(ERRORS.FACTORIAL_INVALID);
+            if (token.type === TOKEN_TYPES.POSTFIX_OP) {
+                if (token.value === '!') {
+                    if (stack.length < 1) throw new Error(ERRORS.MISSING_OPERAND);
+                    const a = stack.pop();
+                    if (a < 0 || !Number.isInteger(Math.round(a)) || Math.abs(a - Math.round(a)) > 1e-10) {
+                        throw new Error(ERRORS.FACTORIAL_INVALID);
+                    }
+                    const n = Math.round(a);
+                    if (n > 170) {
+                        stack.push(Infinity);
+                    } else {
+                        let fact = 1;
+                        for (let f = 2; f <= n; f++) fact *= f;
+                        stack.push(fact);
+                    }
+                    continue;
+                } else if (token.value === '%') {
+                    if (stack.length < 1) throw new Error(ERRORS.MISSING_OPERAND);
+                    const b = stack.pop();
+                    const nextTok = rpn[i + 1];
+                    // Standard calculator additive/subtractive percentage:
+                    // If A + B% or A - B%, evaluate B% as A * (B / 100).
+                    // Only active if not explicitly isolated in parentheses like (70%) and base A exists on stack.
+                    if (!token.isolatedInParens && stack.length >= 1 && nextTok && nextTok.type === TOKEN_TYPES.OPERATOR && (nextTok.value === '+' || nextTok.value === '-')) {
+                        const base = stack[stack.length - 1];
+                        stack.push(base * (b / 100));
+                    } else {
+                        stack.push(b / 100);
+                    }
+                    continue;
                 }
-                const n = Math.round(a);
-                if (n > 170) {
-                    stack.push(Infinity);
-                } else {
-                    let fact = 1;
-                    for (let f = 2; f <= n; f++) fact *= f;
-                    stack.push(fact);
-                }
-                continue;
             }
 
             if (token.type === TOKEN_TYPES.OPERATOR) {
@@ -454,10 +497,6 @@
                     case '/':
                         if (Math.abs(b) < 1e-15) throw new Error(ERRORS.DIV_ZERO);
                         res = a / b;
-                        break;
-                    case '%':
-                        if (Math.abs(b) < 1e-15) throw new Error(ERRORS.DIV_ZERO);
-                        res = a % b;
                         break;
                     case '^':
                         res = Math.pow(a, b);
@@ -606,6 +645,9 @@
             } else if (tok.type === TOKEN_TYPES.UNARY_OP) {
                 const arg = stack.pop();
                 stack.push({ type: 'neg', arg });
+            } else if (tok.type === TOKEN_TYPES.POSTFIX_OP) {
+                const arg = stack.pop();
+                stack.push({ type: 'postfix', op: tok.value, arg });
             } else if (tok.type === TOKEN_TYPES.OPERATOR) {
                 const b = stack.pop();
                 const a = stack.pop();
@@ -736,6 +778,13 @@
                 return { type: 'num', value: 0 };
             }
 
+            case 'postfix': {
+                if (node.op === '%') {
+                    return { type: 'bin', op: '/', left: diffAST(node.arg, varName), right: { type: 'num', value: 100 } };
+                }
+                return { type: 'num', value: 0 };
+            }
+
             default:
                 return { type: 'num', value: 0 };
         }
@@ -810,6 +859,9 @@
         }
         if (node.type === 'func') {
             return node.name + '(' + astToInfix(node.arg, 0) + ')';
+        }
+        if (node.type === 'postfix') {
+            return astToInfix(node.arg, 6) + node.op;
         }
         if (node.type === 'bin') {
             const def = OPERATORS[node.op] || { prec: 1 };

@@ -1,5 +1,5 @@
 /* ============================================================
-   ELMI KALKULYATOR — APP.JS (v1.5.0)
+   ELMI KALKULYATOR — APP.JS (v1.7.0)
    Bütün riyazi hesablamalar lokal olaraq MathCore mühərriki ilə icra olunur.
    Heç bir eval() və ya new Function() istifadə olunmur.
    ============================================================ */
@@ -274,9 +274,11 @@ function handleCalcButton(action, value) {
         case 'log': appendFunc('log('); break;
         case 'sqrt': appendFunc('sqrt('); break;
         case 'square':
+            wrapNegativeBaseIfNeeded();
             calcState.expression += '^2';
             break;
         case 'pow':
+            wrapNegativeBaseIfNeeded();
             calcState.expression += '^';
             break;
         case 'factorial':
@@ -294,13 +296,7 @@ function handleCalcButton(action, value) {
             calcState.expression += '%';
             break;
         case 'negate':
-            if (calcState.expression) {
-                if (calcState.expression.startsWith('-(') && calcState.expression.endsWith(')')) {
-                    calcState.expression = calcState.expression.slice(2, -1);
-                } else {
-                    calcState.expression = '-(' + calcState.expression + ')';
-                }
-            }
+            toggleSign();
             break;
         case 'backspace':
             calcState.expression = calcState.expression.trimEnd();
@@ -321,17 +317,132 @@ function handleCalcButton(action, value) {
             return;
     }
 
-    exprEl.textContent = formatExprDisplay(calcState.expression) || '\u00A0';
     if (action !== 'equals') {
         // Live preview
         try {
             if (calcState.expression.trim()) {
                 const preview = evalMathExpr(calcState.expression);
                 if (preview !== null && isFinite(preview)) {
-                    resEl.textContent = formatNumber(preview);
+                    calcState.result = formatNumber(preview);
+                    updateCalcDisplay(false);
+                    return;
                 }
             }
         } catch {}
+        updateCalcDisplay(false);
+    }
+}
+
+/**
+ * Automatically wrap negative base in parentheses when applying power (^ or ^2)
+ * e.g. -3 followed by x² becomes (-3)^2 which evaluates to 9 instead of -9
+ */
+function wrapNegativeBaseIfNeeded() {
+    if (calcState.justCalculated) {
+        let res = String(calcState.result).trim();
+        calcState.justCalculated = false;
+        if (res.startsWith('-')) {
+            calcState.expression = `(${res})`;
+            return;
+        }
+    }
+
+    let expr = calcState.expression.trimEnd();
+    if (!expr) return;
+    if (/\(-[0-9.]+\)$/.test(expr)) return;
+
+    // Check if expression ends with unary negative number or variable
+    const match = expr.match(/(^|[+*/(,]\s*)-\s*([0-9.]+(?:e[+-]?[0-9]+)?|[a-zA-Z_]+)$/);
+    if (match) {
+        const prefix = match[1] || '';
+        const base = match[2];
+        const beforeMatch = expr.slice(0, expr.length - match[0].length);
+        calcState.expression = beforeMatch + prefix + `(-${base})`;
+    }
+}
+
+/**
+ * Cleanly toggle sign (±) between X and (-X), or -X and X
+ */
+function toggleSign() {
+    if (calcState.justCalculated) {
+        let val = String(calcState.result).trim();
+        calcState.justCalculated = false;
+        if (val.startsWith('-')) {
+            calcState.expression = val.slice(1);
+        } else if (val.startsWith('(-') && val.endsWith(')')) {
+            calcState.expression = val.slice(2, -1);
+        } else if (val !== '0') {
+            calcState.expression = `(-${val})`;
+        }
+        calcState.result = calcState.expression;
+        updateCalcDisplay(false);
+        return;
+    }
+
+    let expr = calcState.expression.trim();
+    if (!expr) {
+        calcState.expression = '(-';
+        return;
+    }
+
+    // If ends with (-number) -> unwrap to number
+    if (/\(-([0-9.]+(?:e[+-]?[0-9]+)?|[a-zA-Z_]+)\)$/.test(expr)) {
+        calcState.expression = expr.replace(/\(-([0-9.]+(?:e[+-]?[0-9]+)?|[a-zA-Z_]+)\)$/, '$1');
+        return;
+    }
+
+    // If entire expression is -(...) -> unwrap to ...
+    if (expr.startsWith('-(') && expr.endsWith(')')) {
+        calcState.expression = expr.slice(2, -1);
+        return;
+    }
+
+    // If expression ends with unary negative: -number -> toggle to number
+    const negMatch = expr.match(/(^|[+*/(,]\s*)-\s*([0-9.]+(?:e[+-]?[0-9]+)?|[a-zA-Z_]+)$/);
+    if (negMatch) {
+        const prefix = negMatch[1] || '';
+        const base = negMatch[2];
+        const beforeMatch = expr.slice(0, expr.length - negMatch[0].length);
+        calcState.expression = beforeMatch + prefix + base;
+        return;
+    }
+
+    // If expression ends with a positive number/identifier:
+    const posMatch = expr.match(/(^|[+*/(,]\s*)([0-9.]+(?:e[+-]?[0-9]+)?|[a-zA-Z_]+)$/);
+    if (posMatch) {
+        const prefix = posMatch[1] || '';
+        const base = posMatch[2];
+        const beforeMatch = expr.slice(0, expr.length - posMatch[0].length);
+        calcState.expression = beforeMatch + prefix + `(-${base})`;
+        return;
+    }
+
+    // Fallback: wrap whole expr
+    calcState.expression = '-(' + expr + ')';
+}
+
+/**
+ * Update Calculator screen with dynamic font size and error styling
+ */
+function updateCalcDisplay(isError = false) {
+    const resEl = document.getElementById('calcResult');
+    const exprEl = document.getElementById('calcExpression');
+    if (!resEl || !exprEl) return;
+
+    exprEl.textContent = formatExprDisplay(calcState.expression) || '\u00A0';
+    resEl.textContent = calcState.result;
+
+    resEl.classList.remove('is-error', 'text-medium', 'text-long');
+    if (isError) {
+        resEl.classList.add('is-error');
+    } else {
+        const len = (calcState.result || '').length;
+        if (len > 18) {
+            resEl.classList.add('text-long');
+        } else if (len > 10) {
+            resEl.classList.add('text-medium');
+        }
     }
 }
 
@@ -354,11 +465,11 @@ function evaluateCalc() {
         }
         calcState.result = display;
         calcState.justCalculated = true;
+        updateCalcDisplay(false);
     } catch (err) {
         calcState.result = err.message || 'Xəta';
+        updateCalcDisplay(true);
     }
-    document.getElementById('calcResult').textContent = calcState.result;
-    document.getElementById('calcExpression').textContent = formatExprDisplay(calcState.expression) || '\u00A0';
 }
 
 function evalMathExpr(expr) {
@@ -427,7 +538,8 @@ const shapes = {
         modes: [
             { id: 'bh', label: 'Əsas və hündürlük', inputs: [{id:'base', label:'Əsas (a)'}, {id:'h', label:'Hündürlük (h)'}] },
             { id: 'heron', label: '3 tərəf (Heron)', inputs: [{id:'a', label:'Tərəf a'}, {id:'b', label:'Tərəf b'}, {id:'c', label:'Tərəf c'}] },
-            { id: 'right', label: 'Düzbucaqlı: 2 katet', inputs: [{id:'a', label:'Katet a'}, {id:'b', label:'Katet b'}] }
+            { id: 'right', label: 'Düzbucaqlı: 2 katet', inputs: [{id:'a', label:'Katet a'}, {id:'b', label:'Katet b'}] },
+            { id: 'right_hyp', label: 'Düzbucaqlı: Katet və hipotenuz', inputs: [{id:'a', label:'Katet (a)'}, {id:'c', label:'Hipotenuz (c)'}] }
         ]
     },
     trapezoid: {
@@ -519,9 +631,33 @@ function renderShapeInputs() {
     document.getElementById('shapeInputs').innerHTML = mode.inputs.map(inp =>
         `<div class="input-group">
             <label>${inp.label}</label>
-            <input type="number" id="geo_${inp.id}" step="any" min="0">
+            <input type="text" inputmode="text" autocomplete="off" id="geo_${inp.id}" placeholder="Məs: 3, √3, 2√5, π/2">
         </div>`
     ).join('');
+
+    // Attach focus listeners so quick-symbol bar targets active input
+    document.querySelectorAll('#shapeInputs input').forEach(input => {
+        input.addEventListener('focus', () => {
+            lastFocusedInput = input;
+        });
+    });
+}
+
+function insertGeoSymbol(sym) {
+    let target = lastFocusedInput;
+    const container = document.getElementById('shapeInputs');
+    if (!target || !container || !container.contains(target)) {
+        target = document.querySelector('#shapeInputs input');
+    }
+    if (!target) return;
+
+    const start = target.selectionStart !== null ? target.selectionStart : target.value.length;
+    const end = target.selectionEnd !== null ? target.selectionEnd : target.value.length;
+    const val = target.value;
+    target.value = val.substring(0, start) + sym + val.substring(end);
+    target.selectionStart = target.selectionEnd = start + sym.length;
+    target.focus();
+    target.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 function calculateGeometry() {
@@ -530,16 +666,36 @@ function calculateGeometry() {
     const mode = shape.modes.find(m => m.id === currentMode);
     const vals = {};
     let valid = true;
+    let errorMsg = '';
 
     mode.inputs.forEach(inp => {
         const el = document.getElementById('geo_' + inp.id);
-        const v = parseFloat(el.value);
-        if (isNaN(v) || v <= 0) valid = false;
+        const rawVal = el ? el.value.trim() : '';
+        if (!rawVal) {
+            valid = false;
+            errorMsg = 'Zəhmət olmasa bütün xanaları doldurun.';
+            return;
+        }
+        let v;
+        try {
+            v = (window.MathCore && typeof MathCore.evaluate === 'function')
+                ? MathCore.evaluate(rawVal, { angleMode: 'DEG' })
+                : parseFloat(rawVal);
+        } catch (e) {
+            valid = false;
+            errorMsg = 'Xəta (' + inp.label + '): ' + (e.message || 'Düzgün riyazi ifadə daxil edin');
+            return;
+        }
+        if (isNaN(v) || !isFinite(v) || v <= 0) {
+            valid = false;
+            errorMsg = inp.label + ' müsbət ədəd və ya düzgün riyazi ifadə olmalıdır (> 0).';
+            return;
+        }
         vals[inp.id] = v;
     });
 
     if (!valid) {
-        showGeoResult('<span class="error">Zəhmət olmasa müsbət ədədlər daxil edin.</span>');
+        showGeoResult(`<span class="error">${errorMsg || 'Tərəfin uzunluğu müsbət ədəd və ya düzgün riyazi ifadə olmalıdır.'}</span>`);
         return;
     }
 
@@ -589,6 +745,23 @@ function calculateGeometry() {
                 results.push({ label: 'Sahə', formula: 'S = (a · b) / 2', value: clean((a * b) / 2) });
                 results.push({ label: 'Hipotenuz', formula: 'c = √(a² + b²)', value: clean(hyp) });
                 results.push({ label: 'Perimetr', formula: 'P = a + b + c', value: clean(a + b + hyp) });
+            } else if (currentMode === 'right_hyp') {
+                const a = vals.a, c = vals.c;
+                if (a >= c) {
+                    showGeoResult('<span class="error">Xəta: Hipotenuz katetdən böyük olmalıdır (c > a)</span>');
+                    return;
+                }
+                const b = clean(Math.sqrt(c * c - a * a));
+                const area = clean((a * b) / 2);
+                const p = clean(a + b + c);
+                const alpha = clean(Math.asin(a / c) * 180 / Math.PI);
+                const beta = clean(90 - alpha);
+
+                results.push({ label: 'Məchul katet (b)', formula: 'b = √(c² − a²)', value: b });
+                results.push({ label: 'Perimetr', formula: 'P = a + b + c', value: p });
+                results.push({ label: 'Sahə', formula: 'S = (a · b) / 2', value: area });
+                results.push({ label: 'Bucaq α (katet a qarşısı)', formula: 'α = arcsin(a / c)', value: alpha, unit: '°' });
+                results.push({ label: 'Bucaq β (katet b qarşısı)', formula: 'β = 90° − α', value: beta, unit: '°' });
             }
             break;
         }

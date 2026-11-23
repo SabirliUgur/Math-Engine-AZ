@@ -132,6 +132,15 @@
                         </select>
                     </div>
                     <div id="shapeInputMode" class="form-group" style="display:none;"></div>
+                    <div id="geoSymbolBar" class="geo-symbol-bar">
+                        <span class="geo-symbol-label">Simvollar:</span>
+                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('√')">√</button>
+                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('π')">π</button>
+                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('/')">/</button>
+                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('^')">^</button>
+                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol('(')">(</button>
+                        <button type="button" class="geo-sym-btn" onclick="insertGeoSymbol(')')">)</button>
+                    </div>
                     <div id="shapeInputs" class="input-row"></div>
                     <button id="geoCalcBtn" class="primary-btn" style="display:none;" onclick="calculateGeometry()">Hesabla</button>
                     <div id="geoResults" class="result-box"></div>

@@ -5,6 +5,35 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [1.7.0] - 2026-11-23 — "Expression Geometry, Percentage Engine & Bug Fixes"
+
+### 🚀 Təkmilləşdirmələr və Yeniliklər (Added & Improved)
+- **Postfiks Faiz (`%`) Mühərriki**:
+  - `%` simvolu binar qalıq operatorundan çıxarılaraq tam hüquqlu postfiks faiz operatoruna çevrildi.
+  - Sərbəst və ya mötərizə/vurma/bölmə daxilində hesablamalar: `70% = 0.7`, `100 × (70%) = 70`, `100 × 70% = 70`, `200 ÷ 50% = 400`.
+  - Standart kalkulyator əlavə/çıxma faizi: `A + B% = A + (A · B / 100)` (məs: `100 + 20% = 120`), `A - B% = A - (A · B / 100)` (məs: `100 - 20% = 80`).
+  - Zəncirvari faiz hesablamaları (`100 + 20% + 10% = 132`) və mürəkkəb ifadələr tam dəqiqliklə icra olunur.
+- **Mənfi Əsaslı Qüvvət İstifadəçi Təcrübəsi (UX)**:
+  - Mənfi ədəd daxil edildikdə və ya `±` ilə işarə dəyişdirildikdə, dərhal `x²` və ya `xⁿ` basıldıqda mənfi əsas avtomatik mötərizəyə alınır: məsələn, `-3` ardınca `x²` basıldıqda ekranda `(-3)^2` formalaşır və düzgün olaraq `9` nəticəsini verir.
+  - Riyazi cəbr qanunları və standart assosiativlik tam qorunur (`(-3)^2 === 9` və `-3^2 === -9`).
+  - `±` işarə çeviricisi `X` və `(-X)` arasında səlis və təmiz keçid edir.
+- **Həndəsədə Simvolik və İfadə Daxiletməsi (`√`, `π`, `/`, `^`)**:
+  - `MathCore` parserinə unaykod radikal simvolu `√` inteqrasiya edildi (`√3` -> `sqrt(3)`, `√(3+1)` -> `sqrt(3+1)`, `2√3` -> `2*sqrt(3)`, `√3/2` -> `sqrt(3)/2`).
+  - Həndəsə bölməsindəki bütün daxiletmə sahələri `type="text"` rejiminə keçirildi; istifadəçilər `√3`, `√3/2`, `2√5`, `π`, `3/4` və s. riyazi ifadələri birbaşa daxil edə bilərlər.
+  - Həndəsə kartının daxilinə mobil cihazlar üçün bir toxunuşla simvol daxiletmə paneli (`√`, `π`, `/`, `^`, `(`, `)`) əlavə edildi.
+  - Müsbət ədəd və riyazi ifadə yoxlanışı və aydın Azərbaycan dilində xəta bildirişləri tətbiq edildi.
+- **Düzbucaqlı Üçbucaq: Katet və Hipotenuz Rejimi**:
+  - Həndəsə -> Üçbucaq bölməsinə yeni hesablama üsulu əlavə edildi: **`"Düzbucaqlı: Katet və hipotenuz"`**.
+  - Daxil edilən katet `a` və hipotenuz `c` üçün `c > a` həndəsi şərti yoxlanılır.
+  - Məchul katet `b = √(c² − a²)`, perimetr `P = a + b + c`, sahə `S = (a · b) / 2` və iti bucaqlar `α = arcsin(a / c)`, `β = 90° − α` yüksək dəqiqliklə hesablanır.
+- **Kalkulyator Ekranının Dinamik Şrifti və Mətn Daşmasının Qarşısının Alınması**:
+  - Azərbaycan dilində uzun xəta mesajlarının mobil ekranlarda kəsilməsinin (`çatı...`) qarşısı alındı.
+  - `.calc-result` sahəsinə mətnin uzunluğuna uyğun olaraq dinamik `text-medium`, `text-long` və `is-error` sinifləri tətbiq edildi; sözlər kəsilmədən səlis şəkildə növbəti sətrə keçir.
+- **PWA Service Worker Keş Yenilənməsi**:
+  - Keş versiyası `'math-engine-az-v1.7.0'` səviyyəsinə yüksəldildi, köhnə keşlər avtomatik təmizlənir.
+
+---
+
 ## [1.5.0] - 2026-11-23 — "Core Precision & Offline Engine"
 
 ### 🚀 Əlavə edildi (Added)
