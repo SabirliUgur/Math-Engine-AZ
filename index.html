@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 
     <!-- Core Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=2.0.1">
+    <link rel="stylesheet" href="style.css?v=2.5.0">
 </head>
 <body>
 
@@ -45,30 +45,34 @@
                             <path d="M8 18h.01"></path>
                         </svg>
                     </div>
-                    <span class="brand-title">Math Engine AZ</span>
+                    <span class="brand-title" data-i18n="brandTitle">Math Engine AZ</span>
                 </div>
 
                 <!-- Navigation Tabs -->
                 <nav class="sidebar-nav" id="tabNav">
                     <button class="tab-btn active" data-tab="calculator" type="button">
                         <span class="material-symbols-outlined text-[20px]">calculate</span>
-                        <span>Kalkulyator</span>
+                        <span data-i18n="tabCalculator">Kalkulyator</span>
                     </button>
                     <button class="tab-btn" data-tab="geometry" type="button">
                         <span class="material-symbols-outlined text-[20px]">category</span>
-                        <span>Həndəsə</span>
+                        <span data-i18n="tabGeometry">Həndəsə</span>
                     </button>
                     <button class="tab-btn" data-tab="algebra" type="button">
                         <span class="material-symbols-outlined text-[20px]">functions</span>
-                        <span>Cəbr</span>
+                        <span data-i18n="tabAlgebra">Cəbr</span>
                     </button>
                     <button class="tab-btn" data-tab="analysis" type="button">
                         <span class="material-symbols-outlined text-[20px]">show_chart</span>
-                        <span>Analiz</span>
+                        <span data-i18n="tabAnalysis">Analiz</span>
                     </button>
                     <button class="tab-btn" data-tab="statistics" type="button">
                         <span class="material-symbols-outlined text-[20px]">bar_chart</span>
-                        <span>Statistika</span>
+                        <span data-i18n="tabStatistics">Statistika</span>
+                    </button>
+                    <button class="tab-btn" data-tab="settings" type="button">
+                        <span class="material-symbols-outlined text-[20px]">settings</span>
+                        <span data-i18n="tabSettings">Parametrlər</span>
                     </button>
                 </nav>
             </div>
@@ -76,33 +80,28 @@
             <!-- Integrated Scrollable History at Bottom -->
             <div class="sidebar-history">
                 <div class="history-section-header">
-                    <span class="history-section-title">Tarixçə</span>
+                    <span class="history-section-title" data-i18n="historyTitle">Tarixçə</span>
                     <div class="history-header-actions">
-                        <button id="exportHistoryBtn" class="history-action-btn" title="İxrac et (.json)" onclick="exportHistory()" type="button">
+                        <button id="exportHistoryBtn" class="history-action-btn" title="İxrac et (.json)" data-i18n-title="historyExport" onclick="exportHistory()" type="button">
                             <span class="material-symbols-outlined text-[18px]">download</span>
                         </button>
-                        <button id="clearHistoryBtn" class="history-action-btn btn-clear" title="Təmizlə" onclick="clearHistory()" type="button">
+                        <button id="clearHistoryBtn" class="history-action-btn btn-clear" title="Təmizlə" data-i18n-title="historyClear" onclick="clearHistory()" type="button">
                             <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
                         </button>
                     </div>
                 </div>
                 <div id="historyList" class="history-scroll-list">
-                    <p class="history-empty-msg">Hələ hesablama yoxdur</p>
+                    <p class="history-empty-msg" id="historyEmptyMsg" data-i18n="historyEmpty">Hələ hesablama yoxdur</p>
                 </div>
             </div>
         </aside>
 
         <!-- ==================== MAIN WORKSPACE ==================== -->
         <div class="main-workspace">
-            <!-- Top Bar: Mobile Menu + Theme Toggle -->
+            <!-- Top Bar: Mobile Menu Button (Clean top bar with removed floating theme toggle) -->
             <header class="workspace-top-bar">
                 <button id="sidebarToggle" class="mobile-sidebar-toggle" title="Menyu" type="button">
                     <span class="material-symbols-outlined text-[22px]">menu</span>
-                </button>
-                
-                <button id="themeToggle" class="theme-pill-btn" title="Tema dəyişdir" type="button">
-                    <span class="material-symbols-outlined text-[18px]" id="themeIcon">dark_mode</span>
-                    <span id="themeLabel">Qaranlıq</span>
                 </button>
             </header>
 
@@ -117,8 +116,8 @@
                         <div class="workspace-card">
                             <div class="card-header-flex">
                                 <div class="segmented-mode-pill">
-                                    <button id="mode-besit" class="mode-pill-btn" type="button">Bəsit</button>
-                                    <button id="mode-elmi" class="mode-pill-btn active" type="button">Elmi</button>
+                                    <button id="mode-besit" class="mode-pill-btn" type="button" data-i18n="modeBesit">Bəsit</button>
+                                    <button id="mode-elmi" class="mode-pill-btn active" type="button" data-i18n="modeElmi">Elmi</button>
                                 </div>
                                 <span class="card-engine-tag">F(X) · ENGINE</span>
                             </div>
@@ -173,10 +172,10 @@
                                     <button class="calc-key key-num" data-action="num" data-value="3" type="button">3</button>
                                     <button class="calc-key key-op" data-action="op" data-value="+" type="button">+</button>
 
-                                    <!-- Row 6: 0 (span 2), ., = -->
-                                    <button class="calc-key key-num key-col-2" data-action="num" data-value="0" type="button">0</button>
+                                    <!-- Row 6: 0 (1 col), . (1 col), = (span 2) -->
+                                    <button class="calc-key key-num" data-action="num" data-value="0" type="button">0</button>
                                     <button class="calc-key key-num" data-action="decimal" type="button">.</button>
-                                    <button class="calc-key key-eq" data-action="equals" type="button">=</button>
+                                    <button class="calc-key key-eq key-col-2" data-action="equals" type="button">=</button>
                                 </div>
 
                                 <!-- 2. ELMİ (Scientific) 5-Column Keypad -->
@@ -195,11 +194,11 @@
                                     <button class="calc-key key-sci" data-action="square" type="button">x²</button>
                                     <button class="calc-key key-del" data-action="allClear" type="button">AC</button>
 
-                                    <!-- Row 3: xⁿ, (, ), %, ÷ -->
+                                    <!-- Row 3: xⁿ, a/b, (, ), ÷ -->
                                     <button class="calc-key key-sci" data-action="pow" type="button">xⁿ</button>
+                                    <button class="calc-key key-sci" data-action="fraction" type="button" title="Kəsr daxil edin (a/b)">a/b</button>
                                     <button class="calc-key key-sci" data-action="openParen" type="button">(</button>
                                     <button class="calc-key key-sci" data-action="closeParen" type="button">)</button>
-                                    <button class="calc-key key-sci" data-action="percent" type="button">%</button>
                                     <button class="calc-key key-op" data-action="op" data-value="/" type="button">÷</button>
 
                                     <!-- Row 4: π, 7, 8, 9, × -->
@@ -223,8 +222,8 @@
                                     <button class="calc-key key-num" data-action="num" data-value="3" type="button">3</button>
                                     <button class="calc-key key-op" data-action="op" data-value="+" type="button">+</button>
 
-                                    <!-- Row 7: n!, 0, ., Ans, = -->
-                                    <button class="calc-key key-sci" data-action="factorial" type="button">n!</button>
+                                    <!-- Row 7: %, 0, ., Ans, = -->
+                                    <button class="calc-key key-sci" data-action="percent" type="button">%</button>
                                     <button class="calc-key key-num" data-action="num" data-value="0" type="button">0</button>
                                     <button class="calc-key key-num" data-action="decimal" type="button">.</button>
                                     <button class="calc-key key-sci" data-action="ans" type="button">Ans</button>
@@ -237,7 +236,7 @@
                     <!-- TAB 2: GEOMETRY -->
                     <section id="sec-geometry" class="tab-section">
                         <div class="workspace-card">
-                            <h2 class="section-heading-title">📐 Həndəsi Hesablamalar</h2>
+                            <h2 class="section-heading-title"><span class="material-symbols-outlined text-[20px] text-accent mr-2 inline-flex align-middle">category</span><span data-i18n="secGeoTitle">Həndəsi Hesablamalar</span></h2>
                             <div class="form-group">
                                 <label for="shapeSelect">Fiquru seçin:</label>
                                 <select id="shapeSelect">
@@ -278,7 +277,7 @@
                     <!-- TAB 3: ALGEBRA -->
                     <section id="sec-algebra" class="tab-section">
                         <div class="workspace-card">
-                            <h2 class="section-heading-title">✖️ Cəbr və Tənliklər</h2>
+                            <h2 class="section-heading-title"><span class="material-symbols-outlined text-[20px] text-accent mr-2 inline-flex align-middle">functions</span><span data-i18n="secAlgebraTitle">Cəbr və Tənliklər</span></h2>
                             <div class="sub-tabs" id="algebraSubTabs">
                                 <button class="sub-tab active" data-subtab="quadratic" type="button">Kvadrat tənlik</button>
                                 <button class="sub-tab" data-subtab="linear2" type="button">2 məchullu</button>
@@ -383,7 +382,7 @@
                     <!-- TAB 4: ANALYSIS -->
                     <section id="sec-analysis" class="tab-section">
                         <div class="workspace-card">
-                            <h2 class="section-heading-title">📈 Riyazi Analiz</h2>
+                            <h2 class="section-heading-title"><span class="material-symbols-outlined text-[20px] text-accent mr-2 inline-flex align-middle">show_chart</span><span data-i18n="secAnalysisTitle">Riyazi Analiz</span></h2>
                             <div class="sub-tabs" id="analysisSubTabs">
                                 <button class="sub-tab active" data-subtab="derivative" type="button">Törəmə</button>
                                 <button class="sub-tab" data-subtab="integral" type="button">İnteqral</button>
@@ -442,7 +441,7 @@
                     <!-- TAB 5: STATISTICS -->
                     <section id="sec-statistics" class="tab-section">
                         <div class="workspace-card">
-                            <h2 class="section-heading-title">🎲 Ehtimal, Statistika və Matrislər</h2>
+                            <h2 class="section-heading-title"><span class="material-symbols-outlined text-[20px] text-accent mr-2 inline-flex align-middle">bar_chart</span><span data-i18n="secStatsTitle">Ehtimal, Statistika və Matrislər</span></h2>
                             <div class="sub-tabs" id="statsSubTabs">
                                 <button class="sub-tab active" data-subtab="stats" type="button">Statistika</button>
                                 <button class="sub-tab" data-subtab="probability" type="button">Ehtimal</button>
@@ -512,25 +511,72 @@
                             </div>
                         </div>
                     </section>
+                    
+                    <!-- TAB 6: SETTINGS -->
+                    <section id="sec-settings" class="tab-section">
+                        <div class="workspace-card">
+                            <h2 class="section-heading-title"><span class="material-symbols-outlined text-[20px] text-accent mr-2 inline-flex align-middle">settings</span><span data-i18n="settingsTitle">Parametrlər</span></h2>
+
+                            <div class="settings-group-list">
+                                <!-- 1. Appearance / Tema -->
+                                <div class="setting-item">
+                                    <div class="setting-item-info">
+                                        <span class="setting-item-title" data-i18n="settingThemeTitle">Görünüş və Tema</span>
+                                        <span class="setting-item-desc" data-i18n="settingThemeDesc">Açıq, tünd və ya sistem temasını seçin</span>
+                                    </div>
+                                    <div class="segmented-control" id="themeSegmented">
+                                        <button class="seg-btn" data-theme-val="light" type="button" data-i18n="themeLight">Aydınlıq</button>
+                                        <button class="seg-btn" data-theme-val="dark" type="button" data-i18n="themeDark">Qaranlıq</button>
+                                        <button class="seg-btn active" data-theme-val="auto" type="button" data-i18n="themeAuto">Avtomatik</button>
+                                    </div>
+                                </div>
+
+                                <!-- 2. Language / Dil -->
+                                <div class="setting-item">
+                                    <div class="setting-item-info">
+                                        <span class="setting-item-title" data-i18n="settingLangTitle">İnterfeys Dili</span>
+                                        <span class="setting-item-desc" data-i18n="settingLangDesc">Tətbiqin əsas dilini təyin edin</span>
+                                    </div>
+                                    <div class="segmented-control" id="langSegmented">
+                                        <button class="seg-btn active" data-lang-val="az" type="button" data-i18n="langAz">Azərbaycan</button>
+                                        <button class="seg-btn" data-lang-val="en" type="button" data-i18n="langEn">English</button>
+                                    </div>
+                                </div>
+
+                                <!-- 3. Haptic Feedback / Vibrasiya -->
+                                <div class="setting-item">
+                                    <div class="setting-item-info">
+                                        <span class="setting-item-title" data-i18n="settingHapticTitle">Düymə Vibrasiyası</span>
+                                        <span class="setting-item-desc" data-i18n="settingHapticDesc">Kalkulyator düymələrinə toxunduqda yüngül haptik əks-əlaqə</span>
+                                        <span class="setting-item-note" data-i18n="settingHapticNote">Vibrasiya dəstəklənən mobil brauzerlərdə (Android Chrome, Samsung Internet) işləyir, masaüstü və iOS Safari cihazlarında nəzərə alınmır.</span>
+                                    </div>
+                                    <div class="segmented-control" id="hapticSegmented">
+                                        <button class="seg-btn active" data-haptic-val="1" type="button" data-i18n="hapticActive">Aktiv</button>
+                                        <button class="seg-btn" data-haptic-val="0" type="button" data-i18n="hapticDisabled">Deaktiv</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
                 </div>
 
-                <!-- RIGHT COLUMN: Visualization Card (Vizual Model və Qrafik) -->
+                <!-- RIGHT COLUMN: Visualization Card (Vizual Model və Qrafik / Həll Addımları) -->
                 <div class="right-panel-col">
-                    <section class="workspace-card visual-model-card">
+                    <section class="workspace-card visual-model-card" id="rightWorkspaceCard">
                         <div class="card-header-flex">
                             <div class="flex flex-col">
-                                <h2 class="font-bold text-base text-text tracking-tight" id="visual-title">Vizual Model və Qrafik</h2>
-                                <span class="text-xs text-text-muted font-medium" id="visual-subtitle">Koordinat müstəvisi · 2D</span>
+                                <h2 class="font-bold text-base text-text tracking-tight" id="visual-title" data-i18n="solverTitle">Həll Addımları</h2>
+                                <span class="text-xs text-text-muted font-medium" id="visual-subtitle" data-i18n="solverSubtitle">Addım-addım riyazi izahat</span>
                             </div>
-                            <div class="flex items-center gap-1 p-1 rounded-lg bg-bg-display border border-border">
-                                <button id="zoom-in-btn" class="p-1 rounded text-text-sec hover:bg-border hover:text-text transition-colors" title="Yaxınlaşdır" type="button">
+                            <div class="flex items-center gap-1 p-1 rounded-lg bg-bg-display border border-border" id="graphZoomControls">
+                                <button id="zoom-in-btn" class="p-1 rounded text-text-sec hover:bg-border hover:text-text transition-colors" title="Yaxınlaşdır" data-i18n-title="zoomIn" type="button">
                                     <span class="material-symbols-outlined text-[18px]">zoom_in</span>
                                 </button>
-                                <button id="zoom-out-btn" class="p-1 rounded text-text-sec hover:bg-border hover:text-text transition-colors" title="Uzaqlaşdır" type="button">
+                                <button id="zoom-out-btn" class="p-1 rounded text-text-sec hover:bg-border hover:text-text transition-colors" title="Uzaqlaşdır" data-i18n-title="zoomOut" type="button">
                                     <span class="material-symbols-outlined text-[18px]">zoom_out</span>
                                 </button>
-                                <button id="zoom-reset-btn" class="p-1 rounded text-text-sec hover:bg-border hover:text-text transition-colors" title="Sıfırla" type="button">
+                                <button id="zoom-reset-btn" class="p-1 rounded text-text-sec hover:bg-border hover:text-text transition-colors" title="Sıfırla" data-i18n-title="zoomReset" type="button">
                                     <span class="material-symbols-outlined text-[18px]">restart_alt</span>
                                 </button>
                             </div>
@@ -538,8 +584,8 @@
 
                         <!-- Visualization Viewport Area -->
                         <div class="visual-viewport" id="visualViewport">
-                            <!-- 1. Coordinate Grid Pattern & Math Preview Curve (Default) -->
-                            <div id="visual-grid-container" class="absolute inset-0 w-full h-full">
+                            <!-- 1. Coordinate Grid Pattern & Math Preview Curve (Default background when plotting) -->
+                            <div id="visual-grid-container" class="absolute inset-0 w-full h-full hidden">
                                 <svg id="graph-svg" class="w-full h-full text-border transition-transform duration-200" preserveAspectRatio="xMidYMid meet" viewBox="0 0 400 320">
                                     <defs>
                                         <pattern id="coord-grid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -557,14 +603,24 @@
                                 </svg>
                             </div>
 
-                            <!-- 2. Interactive Function Plotter Canvas (Active during Analiz -> Qrafik) -->
+                            <!-- 2. Interactive Function Plotter Canvas (Active during variable x or Analiz -> Qrafik) -->
                             <div id="canvas-container" class="visual-canvas-container hidden">
                                 <canvas id="graphCanvas"></canvas>
                             </div>
 
+                            <!-- 3. Dynamic Step-by-Step Solver & Alternative Representations -->
+                            <div id="solver-container" class="solver-container">
+                                <div id="solver-empty" class="solver-empty-state">
+                                    <span class="material-symbols-outlined text-[36px] text-accent opacity-60 mb-2">calculate</span>
+                                    <h4 class="font-semibold text-text text-sm mb-1" data-i18n="solverEmptyTitle">Riyazi ifadə daxil edin</h4>
+                                    <p class="text-xs text-text-muted max-w-[280px] leading-relaxed" data-i18n="solverEmptyDesc">Kalkulyatorda ədəd və ya əməliyyat daxil etdikdə, burada ətraflı addım-addım həll və alternativ formlar göstəriləcək.</p>
+                                </div>
+                                <div id="solver-content" class="solver-content hidden"></div>
+                            </div>
+
                             <!-- Floating Helper Status Badge -->
                             <div class="visual-badge-pill" id="visual-badge">
-                                <span id="visual-badge-text">Funksiyanı daxil edin və ya əməliyyatı seçin</span>
+                                <span id="visual-badge-text" data-i18n="visualBadgeIdle">Funksiyanı daxil edin və ya əməliyyatı seçin</span>
                             </div>
                         </div>
                     </section>
@@ -575,9 +631,11 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/math-core.js?v=2.0.1"></script>
+    <script src="js/math-core.js?v=2.5.0"></script>
+    <script src="js/i18n.js?v=2.5.0"></script>
+    <script src="js/step-solver.js?v=2.5.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js"></script>
-    <script src="app.js?v=2.0.1"></script>
+    <script src="app.js?v=2.5.0"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {

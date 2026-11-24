@@ -5,6 +5,38 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [2.5.0] - 2026-11-24 — "Settings Hub, Stacked Fractions, Step-by-Step Solver, Bilingual Support & Haptic Keypad"
+
+### ⚙️ Parametrlər Paneli və Çoxdilli Dəstək (Settings & Bilingual)
+- **Parametrlər Bölməsi (Settings Hub)**:
+  - Sol yan paneldə 6-cı naviqasiya vərəqi kimi dişli çarx ikonu ilə **`Parametrlər`** bölməsi əlavə edildi.
+  - **Görünüş (Tema)**: 3-seçimli seqment idarəetməsi — **`Aydınlıq`** (Light), **`Qaranlıq`** (Dark) və **`Avtomatik`** (Auto).
+    - `Avtomatik` rejimdə sistemin/brauzerin rəng rejimi `matchMedia('(prefers-color-scheme: dark)')` ilə canlı izlənilir və cihaz rejimi dəyişdikdə interfeys dərhal yenilənir.
+  - **İnterfeys Dili**: 2-seçimli seqment idarəetməsi — **`Azərbaycan`** (`az`) və **`English`** (`en`). Sıfır asılılıqlı `js/i18n.js` mühərriki vasitəsilə səhifə yenilənmədən bütün başlıqlar, düymələr, izahatlar və xəta mesajları dərhal tərcümə olunur.
+  - **Düymə Vibrasiyası (Haptic Feedback)**: `Aktiv` və ya `Deaktiv` edilə bilən haptik toxunma əks-əlaqəsi. Kalkulyator düymələrinə kliklədikdə dəstəklənən mobil brauzerlərdə (Android Chrome, Samsung Internet) 15ms vibrasiya çağırılır; iOS Safari və kompüterlərdə təhlükəsiz şəkildə ötürülür.
+  - İş masasının yuxarı sağındakı köhnə üzən tema düyməsi ləğv edildi, kartların yuxarı hizalanması tam düz və estetik hala gətirildi.
+
+### 📐 Yığılmış Kəsrlər və Addım-Addım Həll Mühərriki (Stacked Fractions & Step Solver)
+- **Kəsr Düyməsi (`[ a/b ]`)**:
+  - Elmi rejim klaviaturasına xüsusi `[ a/b ]` kəsr şablonu düyməsi əlavə edildi. Kəsrli ifadələri daxil etməyə və ya nəticə alındıqdan sonra onluq ilə kəsr təqdimatı arasında keçid etməyə imkan verir.
+  - Nəticələr üçün alternativ formlar kartı: Düzgün/qeyri-düzgün kəsr ($\frac{n}{d}$), qarışıq kəsr ($W\frac{r}{d}$) və onluq kəsr formatları.
+- **Şərti Həll Addımları (Step-by-Step Solver) vs 2D Qrafik**:
+  - `Kalkulyator` vərəqində sabit və sırf ədədi hesablamalarda (məs: `5/7 * 2`, `1/2 + 1/3`, `100 + 20%`, `(-3)^2`) statik qrafik əvəzinə sağ kartda **`Həll Addımları`** nümayiş etdirilir.
+  - Həll addımları tam ədədin kəsrə çevrilməsi ($a = \frac{a}{1}$), sürət və məxrəclərin vurulması, ortaq məxrəc (ƏKOB), ƏBOB ilə ixtisar, faiz ardıcıllığı və PEMDAS qaydalarını aydın kartlarla göstərir.
+  - İfadə daxilində dəyişən (`x`, məs: `2x + 1`, `sin(x)`) daxil edildikdə, sağ kart avtomatik olaraq 2D koordinat müstəvisinə (**`Vizual Model və Qrafik`**) keçir və funksiyanın qrafikini interaktiv çəkir.
+
+### 🎛️ Bəsit Rejim Klaviaturası və İkon Standartlaşdırılması
+- **Bəsit Rejimin 6-cı Sətri**:
+  - 4 sütunlu tor üçün: `[ 0 ]` (1 sütun), `[ . ]` (1 sütun) və `[ = ]` (2 sütun enində vurğulanmış bənövşəyi düymə).
+- **Vektor İkonlar**:
+  - Bölmə başlıqlarındakı bütün emojilər ləğv edilərək yan paneldəki Material Symbols vektor ikonları ilə əvəzləndi.
+
+### 🌐 PWA və Keş Yenilənməsi
+- Service Worker keş adı `'math-engine-az-v2.5.0'` olaraq yeniləndi.
+- `./js/i18n.js` və `./js/step-solver.js` ilkin keşə əlavə edildi.
+
+---
+
 ## [2.0.0] - 2026-11-24 — "Modern Split-Workspace UI & Dual-Theme Overhaul"
 
 ### 🎨 Vizual və İnterfeys Yenilikləri (UI/UX Redesign)

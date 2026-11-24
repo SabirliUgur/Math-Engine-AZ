@@ -16,22 +16,58 @@
 }(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
-    // Localized Azerbaijani Error Messages
-    const ERRORS = {
-        DIV_ZERO: "Sıfıra bölmə yolverilməzdir",
-        UNBALANCED_PARENS: "Mötərizələr düzgün bağlanmayıb",
-        INVALID_SYNTAX: "Sintaksis xətası: ifadə düzgün deyil",
-        SQRT_NEGATIVE: "Mənfi ədəddən kvadrat kök almaq olmaz",
-        LOG_NON_POSITIVE: "Loqarifmin arqumenti müsbət olmalıdır (x > 0)",
-        ASIN_DOMAIN: "asin arqumenti [-1, 1] parçasında olmalıdır",
-        ACOS_DOMAIN: "acos arqumenti [-1, 1] parçasında olmalıdır",
-        TAN_ASYMPTOTE: "tan funksiyası bu nöqtədə təyin olunmayıb (90° + k·180°)",
-        COT_ASYMPTOTE: "cot funksiyası bu nöqtədə təyin olunmayıb (k·180°)",
-        FACTORIAL_INVALID: "Faktorial yalnız mənfi olmayan tam ədədlər üçün təyin olunub",
-        UNKNOWN_IDENTIFIER: "Naməlum simvol və ya funksiya: ",
-        MISSING_OPERAND: "Riyazi əməl və ya ədəd çatışmır",
-        EMPTY_EXPRESSION: "İfadə boşdur"
+    let currentLang = 'az';
+
+    // Localized Error Messages (Azerbaijani & English)
+    const ERRORS_MAP = {
+        az: {
+            DIV_ZERO: "Sıfıra bölmə yolverilməzdir",
+            UNBALANCED_PARENS: "Mötərizələr düzgün bağlanmayıb",
+            INVALID_SYNTAX: "Sintaksis xətası: ifadə düzgün deyil",
+            SQRT_NEGATIVE: "Mənfi ədəddən kvadrat kök almaq olmaz",
+            LOG_NON_POSITIVE: "Loqarifmin arqumenti müsbət olmalıdır (x > 0)",
+            ASIN_DOMAIN: "asin arqumenti [-1, 1] parçasında olmalıdır",
+            ACOS_DOMAIN: "acos arqumenti [-1, 1] parçasında olmalıdır",
+            TAN_ASYMPTOTE: "tan funksiyası bu nöqtədə təyin olunmayıb (90° + k·180°)",
+            COT_ASYMPTOTE: "cot funksiyası bu nöqtədə təyin olunmayıb (k·180°)",
+            FACTORIAL_INVALID: "Faktorial yalnız mənfi olmayan tam ədədlər üçün təyin olunub",
+            UNKNOWN_IDENTIFIER: "Naməlum simvol və ya funksiya: ",
+            MISSING_OPERAND: "Riyazi əməl və ya ədəd çatışmır",
+            EMPTY_EXPRESSION: "İfadə boşdur"
+        },
+        en: {
+            DIV_ZERO: "Division by zero is undefined",
+            UNBALANCED_PARENS: "Mismatched or unclosed parentheses",
+            INVALID_SYNTAX: "Syntax error: invalid expression",
+            SQRT_NEGATIVE: "Cannot take square root of a negative number",
+            LOG_NON_POSITIVE: "Logarithm argument must be positive (x > 0)",
+            ASIN_DOMAIN: "asin argument must be in [-1, 1]",
+            ACOS_DOMAIN: "acos argument must be in [-1, 1]",
+            TAN_ASYMPTOTE: "tan is undefined at this point (90° + k·180°)",
+            COT_ASYMPTOTE: "cot is undefined at this point (k·180°)",
+            FACTORIAL_INVALID: "Factorial is only defined for non-negative integers",
+            UNKNOWN_IDENTIFIER: "Unknown symbol or function: ",
+            MISSING_OPERAND: "Missing operand or operator",
+            EMPTY_EXPRESSION: "Expression is empty"
+        }
     };
+
+    const ERRORS = new Proxy({}, {
+        get: function (target, prop) {
+            const dict = ERRORS_MAP[currentLang] || ERRORS_MAP.az;
+            return dict[prop] || ERRORS_MAP.az[prop] || prop;
+        }
+    });
+
+    function setLanguage(lang) {
+        if (lang === 'en' || lang === 'az') {
+            currentLang = lang;
+        }
+    }
+
+    function getLanguage() {
+        return currentLang;
+    }
 
     /**
      * IEEE-754 Floating-Point Precision Cleaner
@@ -59,6 +95,70 @@
         if (Math.abs(cleaned) < 1e-13) return 0;
         if (Math.abs(cleaned - Math.round(cleaned)) < 1e-9) return Math.round(cleaned);
         return Object.is(cleaned, -0) ? 0 : cleaned;
+    }
+
+    /**
+     * Converts a decimal or floating point number to an exact rational fraction
+     * using continued fraction expansion. Returns { n, d, isInteger, isImproper, mixed, decimal }.
+     */
+    function toFraction(val, tolerance = 1e-9) {
+        if (typeof val !== 'number') {
+            val = parseFloat(val);
+        }
+        if (isNaN(val) || !isFinite(val)) return null;
+
+        const sign = val < 0 ? -1 : 1;
+        val = Math.abs(val);
+
+        const intPart = Math.floor(val);
+        const fracPart = val - intPart;
+
+        if (fracPart < tolerance) {
+            return {
+                n: sign * intPart,
+                d: 1,
+                sign,
+                isInteger: true,
+                isImproper: false,
+                mixed: null,
+                decimal: cleanPrecision(sign * intPart)
+            };
+        }
+
+        let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
+        let b = val;
+        let maxIter = 50;
+
+        while (maxIter-- > 0) {
+            const a = Math.floor(b);
+            const auxH = h1; h1 = a * h1 + h2; h2 = auxH;
+            const auxK = k1; k1 = a * k1 + k2; k2 = auxK;
+
+            if (Math.abs(val - h1 / k1) <= Math.max(val * tolerance, tolerance) || k1 > 100000) {
+                break;
+            }
+            const diff = b - a;
+            if (Math.abs(diff) < 1e-12) break;
+            b = 1 / diff;
+        }
+
+        if (k1 === 0 || !isFinite(h1) || !isFinite(k1)) return null;
+
+        const n = sign * h1;
+        const d = k1;
+        const isImproper = Math.abs(n) >= d && d > 1;
+        const whole = isImproper ? Math.floor(Math.abs(n) / d) * sign : 0;
+        const rem = isImproper ? Math.abs(n) % d : 0;
+
+        return {
+            n,
+            d,
+            sign,
+            isInteger: d === 1,
+            isImproper,
+            mixed: (isImproper && rem > 0) ? { whole, rem, d } : null,
+            decimal: cleanPrecision(sign * (h1 / k1))
+        };
     }
 
     // Supported Constants and Functions
@@ -1056,6 +1156,9 @@
         tokenize,
         toRPN,
         cleanPrecision,
+        toFraction,
+        setLanguage,
+        getLanguage,
         derivative,
         definiteIntegral,
         sampleFunction,

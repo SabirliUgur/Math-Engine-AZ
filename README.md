@@ -1,10 +1,10 @@
-# 🧮 Math-Engine-AZ (v2.0.0 — "Modern Split-Workspace UI & Dual-Theme Overhaul")
+# 🧮 Math-Engine-AZ (v2.5.0 — "Settings Hub, Stacked Fractions & Step-by-Step Solver")
 
-Müasir, bölünmüş iş masalı (split-workspace), yüksək dəqiqlikli, təhlükəsiz və tam oflayn işləyə bilən **Elmi və Həndəsi Kalkulyator Mühərriki**. İstifadəçi interfeysi tam **Azərbaycan dilində** hazırlanmışdır.
+Müasir, bölünmüş iş masalı (split-workspace), parametrlər panelli, ikidilli (Azərbaycan / English), haptik əks-əlaqəli, yığılmış kəsr və addım-addım həll mühərrikli **Elmi və Həndəsi Riyazi Mühərrik**.
 
 [![Canlı Demo](https://img.shields.io/badge/Demo-Canlı%20Sayt-6366f1?style=for-the-badge&logo=githubpages&logoColor=white)](https://sabirliugur.github.io/Math-Engine-AZ/)
 [![Lisenziya](https://img.shields.io/badge/Lisenziya-MIT-green?style=for-the-badge)](LICENSE)
-[![Versiya](https://img.shields.io/badge/Versiya-v2.0.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Versiya](https://img.shields.io/badge/Versiya-v2.5.0-blue?style=for-the-badge)](CHANGELOG.md)
 [![PWA Dəstəyi](https://img.shields.io/badge/PWA-Oflayn%20Dəstəkli-orange?style=for-the-badge)](manifest.json)
 
 ---
@@ -15,29 +15,32 @@ Tətbiqi heç bir quraşdırma tələb olunmadan birbaşa brauzerinizdə istifad
 
 ---
 
-## 🚀 v2.0.0 Yenilikləri və Təkmilləşdirmələr
+## 🚀 v2.5.0 Yenilikləri və Təkmilləşdirmələr
 
-### 1. 🖥️ İki Sütunlu Bölünmüş İş Masası (Split-Workspace Architecture)
-- **Sol Panel (Sidebar, ~280px)**:
-  - Minimalist həndəsi loqo və "Math Engine AZ" brend başlığı.
-  - Şaquli naviqasiya vərəqləri (`Kalkulyator`, `Həndəsə`, `Cəbr`, `Analiz`, `Statistika`) və aktiv pill vurğusu (`#4F46E5`).
-  - Sol panelə inteqrasiya edilmiş, müstəqil sürüşdürülə bilən **Tarixçə** paneli (kompakt **İxrac (.json)** və **Təmizlə** düymələri ilə). Kliklədikdə nəticə birbaşa daxil edilir (`Ans`).
-  - Mobil cihazlar üçün intuitiv sürüşən menyu (drawer) və qaranlıq kölgəlik (backdrop).
-- **Sağ Əsas Sahə (Main Workspace)**:
-  - **Sol Kart**: İnteraktiv daxiletmə və hesablamalar.
-  - **Sağ Kart (`Vizual Model və Qrafik`)**: Həndəsi koordinat toru (`coordinate grid pattern`) fonu, miqyaslama (zoom in, zoom out, reset) idarəediciləri və dinamik vizual vəziyyət göstəricisi.
+### 1. ⚙️ Parametrlər Bölməsi (Settings Hub) və İkidilli Dəstək (AZ / EN)
+- **Sol Naviqasiyada Parametrlər**: 6-cı naviqasiya vərəqi kimi dişli çarx ikonu ilə xüsusi parametrlər mərkəzi.
+- **Görünüş (Tema)**:
+  - 3-seçimli seqment idarəetməsi: **`Aydınlıq`** (Light), **`Qaranlıq`** (Dark) və **`Avtomatik`** (Auto).
+  - `Avtomatik` rejim seçildikdə əməliyyat sisteminin / brauzerin mövzusu (`prefers-color-scheme`) canlı izlənilir və dərhal uyğunlaşdırılır.
+- **İnterfeys Dili**:
+  - **`Azərbaycan`** və **`English`** dilləri arasında səhifəni yeniləmədən anlıq keçid (`js/i18n.js`).
+- **Düymə Vibrasiyası (Haptic Feedback)**:
+  - Dəstəklənən mobil brauzerlərdə (Android Chrome, Samsung Internet) düyməyə toxunarkən incə haptik əks-əlaqə (15ms). Kompüter və iOS-da səssiz ötürülür.
+- **Estetik Təmizləmə**: Yuxarı sağdakı köhnə üzən tema düyməsi ləğv edildi, kartların yuxarı hizalanması tam düz və estetik hala gətirildi.
 
-### 2. 🎛️ Bəsit / Elmi Rejim Keçidi (Segmented Pill Toggle)
-- Kalkulyatorun yuxarısında **Bəsit** və **Elmi** rejimləri arasında sürətli keçid imkanı.
-- `Bəsit` rejim seçildikdə mürəkkəb elmi funksiyalar gizlədilir və 4 sütunlu böyüdülmüş bəsit klaviatura göstərilir.
-- `Elmi` rejim seçildikdə tam 5 sütunlu qabaqcıl klaviatura nümayiş olunur.
+### 2. 📐 Yığılmış Kəsrlər (Stacked Fractions) və Addım-Addım Həll (Step-by-Step Solver)
+- **Kəsr Düyməsi (`[ a/b ]`)**:
+  - Elmi klaviaturaya xüsusi kəsr şablonu düyməsi əlavə edildi. Nəticə çıxdıqda onluq və kəsr formatları arasında keçid təmin edir.
+  - Alternativ formlar: Düzgün/qeyri-düzgün kəsr ($\frac{n}{d}$), qarışıq kəsr ($W\frac{r}{d}$) və onluq kəsr formatları.
+- **Şərti Həll Addımları vs 2D Qrafik**:
+  - Kalkulyatorda sabit və ya sırf ədədi ifadələrdə (məs: `5/7 * 2`, `1/2 + 1/3`, `100 + 20%`, `(-3)^2`) statik qrafik əvəzinə sağ paneldə ətraflı **`Həll Addımları`** göstərilir.
+  - İfadə daxilində dəyişən (`x`, məs: `2x + 1`, `sin(x)`) daxil edildikdə, sağ kart avtomatik olaraq 2D koordinat müstəvisinə (**`Vizual Model və Qrafik`**) keçir və funksiyanın qrafikini interaktiv çəkir.
 
-### 3. 🌗 Yüksək Kontrastlı İkiqat Tema (Light & Dark)
-- Həm İşıqlı (Light), həm də Qaranlıq (Dark) rejimlərdə mükəmməl rəng kontrastı, dəqiq `#E2E8F0` / `#2D3748` haşiyələr və aydın oxunan düymə yazıları.
-- Yuxarı sağ küncdə Dark/Light keçid düyməsi.
-
-### 4. 📈 İnteraktiv Qrafik İnteqrasiyası
-- `Analiz -> Qrafik` seçildikdə, `<canvas>` funksiya qrafiki birbaşa sağ vizual kartda canlandırılır.
+### 3. 🎛️ Bəsit Klaviaturanın 6-cı Sətri və İkon Təmizliyi
+- **Bəsit Klaviaturanın 6-cı Sətri**:
+  - `[ 0 ]` (1 sütun), `[ . ]` (1 sütun) və `[ = ]` (2 sütun enində vurğulanmış bənövşəyi).
+- **Vektor İkonlar**:
+  - Bölmə başlıqlarındakı emojilər Material Symbols SVG vektor ikonları ilə əvəzləndi.
 
 ---
 

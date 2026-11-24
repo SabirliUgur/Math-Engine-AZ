@@ -1,11 +1,11 @@
 /* ============================================================
-   ELMI KALKULYATOR — APP.JS (v2.0.0 — "Modern Split-Workspace UI & Dual-Theme Overhaul")
+   ELMI KALKULYATOR — APP.JS (v2.5.0 — "Settings Hub, Stacked Fractions & Step-by-Step Solver")
    Bütün riyazi hesablamalar lokal olaraq MathCore mühərriki ilə icra olunur.
    Heç bir eval() və ya new Function() istifadə olunmur.
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
+    initSettings();
     initSidebarDrawer();
     initTabs();
     initSubTabs();
@@ -38,39 +38,113 @@ function initInputFocusTracking() {
 }
 
 /* ==========================================================
-   1. THEME MANAGEMENT (Dual-Theme: Light & Dark)
+   1. SETTINGS HUB, AUTO THEME & BILINGUAL ENGINE
    ========================================================== */
-function initTheme() {
-    const saved = localStorage.getItem('calcTheme') || 'dark';
-    applyTheme(saved === 'dark');
+let currentThemeSetting = 'auto'; // 'light' | 'dark' | 'auto'
+let isHapticEnabled = true;
 
-    const toggleBtn = document.getElementById('themeToggle');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark-theme');
-            applyTheme(!isDark);
+function initSettings() {
+    // 1. Initialize bilingual engine
+    if (window.I18n && typeof I18n.init === 'function') {
+        I18n.init();
+    }
+
+    // 2. Theme Setting
+    const savedTheme = localStorage.getItem('math_engine_az_theme') || localStorage.getItem('calcTheme') || 'auto';
+    currentThemeSetting = (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'auto';
+    applyThemeSetting(currentThemeSetting);
+
+    // Watch OS theme change when 'auto' is selected
+    const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (darkQuery && typeof darkQuery.addEventListener === 'function') {
+        darkQuery.addEventListener('change', e => {
+            if (currentThemeSetting === 'auto') {
+                applyTheme(e.matches);
+            }
+        });
+    }
+
+    // Theme Segmented Control
+    const themeSegmented = document.getElementById('themeSegmented');
+    if (themeSegmented) {
+        themeSegmented.querySelectorAll('.seg-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.themeVal === currentThemeSetting);
+            btn.addEventListener('click', () => {
+                const val = btn.dataset.themeVal;
+                currentThemeSetting = val;
+                localStorage.setItem('math_engine_az_theme', val);
+                themeSegmented.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+                applyThemeSetting(val);
+                triggerHaptic();
+            });
+        });
+    }
+
+    // 3. Language Segmented Control
+    const langSegmented = document.getElementById('langSegmented');
+    if (langSegmented) {
+        const curLang = window.I18n ? I18n.getLanguage() : 'az';
+        langSegmented.querySelectorAll('.seg-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.langVal === curLang);
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.langVal;
+                langSegmented.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+                if (window.I18n) {
+                    I18n.setLanguage(lang);
+                }
+                // Refresh solver if visible
+                if (calcState && calcState.expression) {
+                    updateSolverOrGraph(calcState.expression);
+                }
+                triggerHaptic();
+            });
+        });
+    }
+
+    // 4. Haptic Feedback Setting
+    const savedHaptic = localStorage.getItem('math_engine_az_haptic');
+    isHapticEnabled = savedHaptic !== '0';
+    const hapticSegmented = document.getElementById('hapticSegmented');
+    if (hapticSegmented) {
+        hapticSegmented.querySelectorAll('.seg-btn').forEach(btn => {
+            const val = btn.dataset.hapticVal === '1';
+            btn.classList.toggle('active', val === isHapticEnabled);
+            btn.addEventListener('click', () => {
+                isHapticEnabled = btn.dataset.hapticVal === '1';
+                localStorage.setItem('math_engine_az_haptic', isHapticEnabled ? '1' : '0');
+                hapticSegmented.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+                triggerHaptic();
+            });
         });
     }
 }
 
-function applyTheme(isDark) {
-    const icon = document.getElementById('themeIcon');
-    const label = document.getElementById('themeLabel');
+function applyThemeSetting(setting) {
+    if (setting === 'auto') {
+        const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(isDark);
+    } else {
+        applyTheme(setting === 'dark');
+    }
+}
 
+function applyTheme(isDark) {
     if (isDark) {
         document.documentElement.classList.add('dark');
         document.body.classList.remove('light-theme');
         document.body.classList.add('dark', 'dark-theme');
-        if (icon) icon.textContent = 'light_mode';
-        if (label) label.textContent = 'İşıqlı';
-        localStorage.setItem('calcTheme', 'dark');
     } else {
         document.documentElement.classList.remove('dark');
         document.body.classList.remove('dark', 'dark-theme');
         document.body.classList.add('light-theme');
-        if (icon) icon.textContent = 'dark_mode';
-        if (label) label.textContent = 'Qaranlıq';
-        localStorage.setItem('calcTheme', 'light');
+    }
+}
+
+function triggerHaptic() {
+    if (isHapticEnabled && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+        try {
+            navigator.vibrate(15);
+        } catch (e) {}
     }
 }
 
@@ -105,6 +179,7 @@ function closeMobileSidebar() {
 function initTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+            triggerHaptic();
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
             btn.classList.add('active');
@@ -120,6 +195,7 @@ function initSubTabs() {
     document.querySelectorAll('.sub-tabs').forEach(container => {
         container.querySelectorAll('.sub-tab').forEach(btn => {
             btn.addEventListener('click', () => {
+                triggerHaptic();
                 const parent = btn.closest('.tab-section');
                 parent.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
                 parent.querySelectorAll('.sub-content').forEach(c => c.classList.remove('active'));
@@ -142,48 +218,200 @@ function updateVisualCard(tabId, subtabId) {
     const visualBadgeText = document.getElementById('visual-badge-text');
     const gridContainer = document.getElementById('visual-grid-container');
     const canvasContainer = document.getElementById('canvas-container');
+    const solverContainer = document.getElementById('solver-container');
+    const zoomControls = document.getElementById('graphZoomControls');
 
     if (!visualTitle) return;
 
+    if (tabId === 'calculator') {
+        updateSolverOrGraph(calcState.expression);
+        return;
+    }
+
+    // For other tabs, hide solver container
+    if (solverContainer) solverContainer.classList.add('hidden');
+
     if (tabId === 'analysis' && subtabId === 'graph') {
-        visualTitle.textContent = 'Funksiya Qrafiki';
-        visualSubtitle.textContent = '2D İnteraktiv Qrafik Müstəvisi';
-        if (visualBadgeText) visualBadgeText.textContent = 'f(x) qrafiki aktivdir';
+        visualTitle.textContent = window.I18n ? I18n.t('subTabGraph', 'Funksiya Qrafiki') : 'Funksiya Qrafiki';
+        visualSubtitle.textContent = window.I18n ? I18n.t('visualGraphSubtitle', '2D İnteraktiv Qrafik Müstəvisi') : '2D İnteraktiv Qrafik Müstəvisi';
+        if (visualBadgeText) visualBadgeText.textContent = window.I18n ? I18n.t('visualBadgeGraph', 'f(x) qrafiki aktivdir') : 'f(x) qrafiki aktivdir';
         if (gridContainer) gridContainer.classList.add('hidden');
         if (canvasContainer) canvasContainer.classList.remove('hidden');
+        if (zoomControls) zoomControls.style.display = 'flex';
         plotFunction();
     } else {
         if (gridContainer) gridContainer.classList.remove('hidden');
         if (canvasContainer) canvasContainer.classList.add('hidden');
+        if (zoomControls) zoomControls.style.display = 'flex';
 
         switch (tabId) {
-            case 'calculator':
-                visualTitle.textContent = 'Vizual Model və Qrafik';
-                visualSubtitle.textContent = 'Koordinat müstəvisi · 2D';
-                if (visualBadgeText) visualBadgeText.textContent = 'Funksiyanı daxil edin və ya əməliyyatı seçin';
-                break;
             case 'geometry':
-                visualTitle.textContent = 'Həndəsi Fiqur Modeli';
+                visualTitle.textContent = window.I18n ? I18n.t('secGeoTitle', 'Həndəsi Fiqur Modeli') : 'Həndəsi Fiqur Modeli';
                 visualSubtitle.textContent = '2D / 3D Həndəsə Müstəvisi';
                 if (visualBadgeText) visualBadgeText.textContent = 'Seçilmiş fiqurun həndəsi parametrləri';
                 break;
             case 'algebra':
-                visualTitle.textContent = 'Cəbri Analiz və Köklər';
+                visualTitle.textContent = window.I18n ? I18n.t('secAlgebraTitle', 'Cəbri Analiz və Köklər') : 'Cəbri Analiz və Köklər';
                 visualSubtitle.textContent = 'Funksiya və Tənliklər Müstəvisi';
                 if (visualBadgeText) visualBadgeText.textContent = 'Tənlik kökləri və asılılıqlar';
                 break;
             case 'analysis':
-                visualTitle.textContent = 'Riyazi Analiz Müstəvisi';
+                visualTitle.textContent = window.I18n ? I18n.t('secAnalysisTitle', 'Riyazi Analiz Müstəvisi') : 'Riyazi Analiz Müstəvisi';
                 visualSubtitle.textContent = 'Törəmə və İnteqral Dinamikası';
                 if (visualBadgeText) visualBadgeText.textContent = 'Analitik əyrilər və sahələr';
                 break;
             case 'statistics':
-                visualTitle.textContent = 'Statistik Paylanma Modeli';
+                visualTitle.textContent = window.I18n ? I18n.t('secStatsTitle', 'Statistik Paylanma Modeli') : 'Statistik Paylanma Modeli';
                 visualSubtitle.textContent = 'Ehtimal və Paylanma Əyrisi';
                 if (visualBadgeText) visualBadgeText.textContent = 'Statistik paylanma və matrislər';
                 break;
+            case 'settings':
+                visualTitle.textContent = window.I18n ? I18n.t('settingsTitle', 'Parametrlər') : 'Parametrlər';
+                visualSubtitle.textContent = window.I18n ? I18n.t('versionInfo', 'Versiya 2.5.0') : 'Versiya 2.5.0';
+                if (visualBadgeText) visualBadgeText.textContent = window.I18n ? I18n.t('settingsAppearance', 'Görünüş və Parametrlər') : 'Görünüş və Parametrlər';
+                if (gridContainer) gridContainer.classList.add('hidden');
+                if (zoomControls) zoomControls.style.display = 'none';
+                break;
         }
     }
+}
+
+/**
+ * Dynamically switches Right Workspace between f(x) Graph & Step-by-Step Solver
+ */
+function updateSolverOrGraph(expr) {
+    const activeTab = document.querySelector('.tab-btn.active');
+    const tabName = activeTab ? activeTab.dataset.tab : 'calculator';
+    if (tabName !== 'calculator') return;
+
+    const visualTitle = document.getElementById('visual-title');
+    const visualSubtitle = document.getElementById('visual-subtitle');
+    const visualBadgeText = document.getElementById('visual-badge-text');
+    const gridContainer = document.getElementById('visual-grid-container');
+    const canvasContainer = document.getElementById('canvas-container');
+    const solverContainer = document.getElementById('solver-container');
+    const zoomControls = document.getElementById('graphZoomControls');
+
+    const solveData = (window.StepSolver && typeof StepSolver.solve === 'function')
+        ? StepSolver.solve(expr, calcState.angleMode)
+        : { empty: !expr, hasVariable: false };
+
+    if (solveData.hasVariable) {
+        // Plot mode: f(x) dynamic graph
+        if (solverContainer) solverContainer.classList.add('hidden');
+        if (gridContainer) gridContainer.classList.add('hidden');
+        if (canvasContainer) canvasContainer.classList.remove('hidden');
+        if (zoomControls) zoomControls.style.display = 'flex';
+
+        if (visualTitle) visualTitle.textContent = (window.I18n ? I18n.t('visualTitle') : 'Vizual Model və Qrafik');
+        if (visualSubtitle) visualSubtitle.textContent = (window.I18n ? I18n.t('visualGraphSubtitle') : 'f(x) qrafiki · 2D');
+        if (visualBadgeText) visualBadgeText.textContent = (window.I18n ? I18n.t('visualBadgeGraph') : 'f(x) qrafiki aktivdir');
+
+        plotFunction(solveData.expression || expr);
+    } else {
+        // Solver mode: Step-by-step breakdown & alternative representations
+        if (canvasContainer) canvasContainer.classList.add('hidden');
+        if (gridContainer) gridContainer.classList.add('hidden');
+        if (solverContainer) solverContainer.classList.remove('hidden');
+        if (zoomControls) zoomControls.style.display = 'none';
+
+        if (visualTitle) visualTitle.textContent = (window.I18n ? I18n.t('solverTitle') : 'Həll Addımları');
+        if (visualSubtitle) visualSubtitle.textContent = (window.I18n ? I18n.t('solverSubtitle') : 'Addım-addım riyazi izahat');
+        if (visualBadgeText) visualBadgeText.textContent = (window.I18n ? I18n.t('visualBadgeIdle') : 'Funksiyanı daxil edin və ya əməliyyatı seçin');
+
+        renderSolutionSteps(solveData);
+    }
+}
+
+function renderSolutionSteps(data) {
+    const emptyEl = document.getElementById('solver-empty');
+    const contentEl = document.getElementById('solver-content');
+    if (!emptyEl || !contentEl) return;
+
+    if (!data || data.empty || (!data.steps && !data.error)) {
+        emptyEl.classList.remove('hidden');
+        contentEl.classList.add('hidden');
+        contentEl.innerHTML = '';
+        return;
+    }
+
+    emptyEl.classList.add('hidden');
+    contentEl.classList.remove('hidden');
+
+    let html = '';
+
+    if (data.error) {
+        html += `
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Xəta</span>
+                </div>
+                <div class="step-explanation" style="color: #ef4444;">${escHtml(data.error)}</div>
+            </div>
+        `;
+        contentEl.innerHTML = html;
+        return;
+    }
+
+    // Render Steps
+    if (Array.isArray(data.steps)) {
+        data.steps.forEach((step, idx) => {
+            html += `
+                <div class="step-card">
+                    <div class="step-header">
+                        <span class="step-badge">Addım ${idx + 1}</span>
+                        <span class="step-title">${escHtml(step.title || '')}</span>
+                    </div>
+                    ${step.formula ? `<div class="step-formula">${step.formula}</div>` : ''}
+                    ${step.explanation ? `<div class="step-explanation">${escHtml(step.explanation)}</div>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    // Render Alternative Forms (stacked fractions, mixed numbers, decimals)
+    if (data.altForms) {
+        const alt = data.altForms;
+        const lang = window.I18n ? I18n.getLanguage() : 'az';
+        const isEn = lang === 'en';
+        html += `
+            <div class="alt-forms-card">
+                <div class="alt-forms-title">
+                    <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+                    <span>${isEn ? 'Alternative Forms' : 'Alternativ Formlar'}</span>
+                </div>
+                <div class="alt-forms-grid">
+                    ${alt.improper ? `
+                        <div class="alt-form-item" style="cursor: pointer;" onclick="insertAltForm('${alt.improper}')" title="${isEn ? 'Click to use' : 'İstifadə etmək üçün klikləyin'}">
+                            <span class="alt-form-label">${isEn ? 'Fraction' : 'Düzgün/Qeyri-düzgün kəsr'}</span>
+                            <span class="alt-form-val">${alt.improperHtml || alt.improper}</span>
+                        </div>
+                    ` : ''}
+                    ${alt.mixed ? `
+                        <div class="alt-form-item" style="cursor: pointer;" onclick="insertAltForm('${alt.mixed}')" title="${isEn ? 'Click to use' : 'İstifadə etmək üçün klikləyin'}">
+                            <span class="alt-form-label">${isEn ? 'Mixed Number' : 'Qarışıq kəsr'}</span>
+                            <span class="alt-form-val">${alt.mixedHtml || alt.mixed}</span>
+                        </div>
+                    ` : ''}
+                    ${alt.decimal !== undefined ? `
+                        <div class="alt-form-item" style="cursor: pointer;" onclick="insertAltForm('${alt.decimal}')" title="${isEn ? 'Click to use' : 'İstifadə etmək üçün klikləyin'}">
+                            <span class="alt-form-label">${isEn ? 'Decimal' : 'Onluq kəsr'}</span>
+                            <span class="alt-form-val">${alt.decimal}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    contentEl.innerHTML = html;
+}
+
+function insertAltForm(val) {
+    if (!val) return;
+    calcState.result = String(val);
+    updateCalcDisplay(false);
+    triggerHaptic();
 }
 
 /* ==========================================================
@@ -220,8 +448,14 @@ function initCalculatorModeToggle() {
         setKeypadMode(true);
     }
 
-    modeElmi.addEventListener('click', () => setKeypadMode(true));
-    modeBesit.addEventListener('click', () => setKeypadMode(false));
+    modeElmi.addEventListener('click', () => {
+        triggerHaptic();
+        setKeypadMode(true);
+    });
+    modeBesit.addEventListener('click', () => {
+        triggerHaptic();
+        setKeypadMode(false);
+    });
 }
 
 /* ==========================================================
@@ -436,6 +670,7 @@ function initCalculator() {
         btns.addEventListener('click', e => {
             const btn = e.target.closest('.calc-key, .btn');
             if (!btn) return;
+            triggerHaptic();
             handleCalcButton(btn.dataset.action, btn.dataset.value || btn.dataset.val);
         });
     }
@@ -443,6 +678,7 @@ function initCalculator() {
     const angleBtn = document.getElementById('angleModeBtn');
     if (angleBtn) {
         angleBtn.addEventListener('click', () => {
+            triggerHaptic();
             calcState.angleMode = calcState.angleMode === 'DEG' ? 'RAD' : 'DEG';
             angleBtn.textContent = calcState.angleMode;
             // Re-evaluate live preview if applicable
@@ -450,10 +686,11 @@ function initCalculator() {
                 try {
                     const preview = evalMathExpr(calcState.expression);
                     if (preview !== null && isFinite(preview)) {
-                        document.getElementById('calcResult').textContent = formatNumber(preview);
+                        calcState.result = formatNumber(preview);
                     }
                 } catch {}
             }
+            updateSolverOrGraph(calcState.expression);
         });
     }
 
@@ -520,6 +757,37 @@ function handleCalcButton(action, value) {
             wrapNegativeBaseIfNeeded();
             calcState.expression += '^';
             break;
+        case 'fraction':
+            if (calcState.justCalculated) {
+                // If result is shown, toggle or format result as fraction!
+                const num = parseFloat(calcState.result);
+                if (isFinite(num) && window.MathCore && MathCore.toFraction) {
+                    const frac = MathCore.toFraction(num);
+                    if (frac && frac.d > 1) {
+                        if (calcState.showingFraction) {
+                            calcState.result = String(frac.decimal);
+                            calcState.showingFraction = false;
+                        } else {
+                            calcState.result = `${frac.n}/${frac.d}`;
+                            calcState.showingFraction = true;
+                        }
+                        updateCalcDisplay(false);
+                        updateSolverOrGraph(calcState.expression);
+                        return;
+                    }
+                }
+            } else {
+                const matchNum = calcState.expression.match(/([0-9.]+)$/);
+                if (matchNum) {
+                    const n = matchNum[1];
+                    calcState.expression = calcState.expression.slice(0, -n.length) + `(${n}/`;
+                } else if (!calcState.expression || /[+*×÷/(\^-\s]$/.test(calcState.expression)) {
+                    calcState.expression += '(';
+                } else {
+                    calcState.expression += '/';
+                }
+            }
+            break;
         case 'factorial':
             calcState.expression += '!';
             break;
@@ -556,6 +824,8 @@ function handleCalcButton(action, value) {
             calcState.expression = '';
             calcState.result = '0';
             calcState.justCalculated = false;
+            calcState.showingFraction = false;
+            updateSolverOrGraph('');
             break;
         case 'equals':
             evaluateCalc();
@@ -570,11 +840,13 @@ function handleCalcButton(action, value) {
                 if (preview !== null && isFinite(preview)) {
                     calcState.result = formatNumber(preview);
                     updateCalcDisplay(false);
+                    updateSolverOrGraph(calcState.expression);
                     return;
                 }
             }
         } catch {}
         updateCalcDisplay(false);
+        updateSolverOrGraph(calcState.expression);
     }
 }
 
@@ -701,19 +973,22 @@ function evaluateCalc() {
     try {
         const result = evalMathExpr(calcState.expression);
         if (result === null || result === undefined || isNaN(result)) {
-            throw new Error('Hesablana bilmədi');
+            throw new Error(window.I18n ? I18n.t('errInvalidSyntax', 'Hesablana bilmədi') : 'Hesablana bilmədi');
         }
         const display = formatNumber(result);
-        addToHistory('Kalkulyator', calcState.expression, display);
+        addToHistory(window.I18n ? I18n.t('tabCalculator', 'Kalkulyator') : 'Kalkulyator', calcState.expression, display);
         if (window.MathCore && MathCore.HistoryStore) {
             MathCore.HistoryStore.setAns(result);
         }
         calcState.result = display;
         calcState.justCalculated = true;
+        calcState.showingFraction = false;
         updateCalcDisplay(false);
+        updateSolverOrGraph(calcState.expression);
     } catch (err) {
-        calcState.result = err.message || 'Xəta';
+        calcState.result = err.message || (window.I18n ? I18n.t('errorGeneric', 'Xəta') : 'Xəta');
         updateCalcDisplay(true);
+        updateSolverOrGraph(calcState.expression);
     }
 }
 
@@ -1373,10 +1648,9 @@ function calcIntegral() {
 }
 
 /* ---------- Graph ---------- */
-function plotFunction() {
+function plotFunction(customExpr) {
     const exprInput = document.getElementById('graphFunc');
-    if (!exprInput) return;
-    const expr = exprInput.value.trim();
+    const expr = (typeof customExpr === 'string' && customExpr.trim()) ? customExpr.trim() : (exprInput ? exprInput.value.trim() : '');
     const xMinEl = document.getElementById('graphXMin');
     const xMaxEl = document.getElementById('graphXMax');
     const xMin = xMinEl ? (parseFloat(xMinEl.value) || -10) : -10;
