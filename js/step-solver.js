@@ -73,7 +73,13 @@
      * Generate step-by-step solution object
      */
     function solve(expr, angleMode = 'DEG') {
-        const lang = (I18n && typeof I18n.getLanguage === 'function') ? I18n.getLanguage() : 'az';
+        const lang = (I18n && typeof I18n.getLanguage === 'function')
+            ? I18n.getLanguage()
+            : ((typeof window !== 'undefined' && window.I18n && typeof window.I18n.getLanguage === 'function')
+                ? window.I18n.getLanguage()
+                : ((typeof localStorage !== 'undefined' && (localStorage.getItem('math_engine_az_lang') === 'en' || localStorage.getItem('math_engine_az_lang') === 'az'))
+                    ? localStorage.getItem('math_engine_az_lang')
+                    : (MathCore && MathCore.getLanguage ? MathCore.getLanguage() : 'az')));
         const isEn = lang === 'en';
 
         if (!expr || !expr.trim()) {
@@ -97,7 +103,7 @@
         let finalVal = null;
         try {
             if (MathCore && typeof MathCore.evaluate === 'function') {
-                finalVal = MathCore.evaluate(raw, { angleMode });
+                finalVal = MathCore.evaluate(raw, { angleMode, lang });
             }
         } catch (e) {
             return {

@@ -65,6 +65,11 @@
             visualBadgeGraph: "f(x) qrafiki aktivdir",
             visualBadgeIdle: "Funksiyanı daxil edin və ya əməliyyatı seçin",
 
+            // General & Common Labels
+            stepWord: "Addım",
+            errorGeneric: "Xəta",
+            errorBadge: "Xəta",
+
             // Settings Hub
             settingsTitle: "Parametrlər",
             settingsHeading: "⚙️ Parametrlər",
@@ -183,6 +188,11 @@
             visualBadgeGraph: "f(x) plot is active",
             visualBadgeIdle: "Enter a function or select an operation",
 
+            // General & Common Labels
+            stepWord: "Step",
+            errorGeneric: "Error",
+            errorBadge: "Error",
+
             // Settings Hub
             settingsTitle: "Settings",
             settingsHeading: "⚙️ Settings",
@@ -258,11 +268,14 @@
     let currentLang = 'az';
 
     function init() {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        const saved = (typeof localStorage !== 'undefined') ? localStorage.getItem(STORAGE_KEY) : null;
         if (saved === 'en' || saved === 'az') {
             currentLang = saved;
         } else {
             currentLang = 'az';
+        }
+        if (typeof window !== 'undefined' && window.MathCore && typeof window.MathCore.setLanguage === 'function') {
+            window.MathCore.setLanguage(currentLang);
         }
         applyLanguage(currentLang);
     }
@@ -282,7 +295,9 @@
         applyLanguage(lang);
 
         // Notify listeners if any
-        window.dispatchEvent(new CustomEvent('languagechange', { detail: { lang } }));
+        if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function' && typeof CustomEvent !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('languagechange', { detail: { lang } }));
+        }
     }
 
     function getLanguage() {
@@ -290,6 +305,7 @@
     }
 
     function applyLanguage(lang) {
+        if (typeof document === 'undefined') return;
         const dict = TRANSLATIONS[lang] || TRANSLATIONS.az;
 
         // Update document lang

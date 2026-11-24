@@ -92,8 +92,21 @@ function initSettings() {
                 if (window.I18n) {
                     I18n.setLanguage(lang);
                 }
-                // Refresh solver if visible
+                if (window.MathCore && typeof MathCore.setLanguage === 'function') {
+                    MathCore.setLanguage(lang);
+                }
+                // Refresh calculator display & solver if active
                 if (calcState && calcState.expression) {
+                    try {
+                        const preview = evalMathExpr(calcState.expression);
+                        if (preview !== null && isFinite(preview)) {
+                            calcState.result = formatNumber(preview);
+                            updateCalcDisplay(false);
+                        }
+                    } catch (err) {
+                        calcState.result = err.message || (window.I18n ? I18n.t('errorGeneric', 'Error') : 'Error');
+                        updateCalcDisplay(true);
+                    }
                     updateSolverOrGraph(calcState.expression);
                 }
                 triggerHaptic();
@@ -340,11 +353,18 @@ function renderSolutionSteps(data) {
 
     let html = '';
 
+    const lang = (window.I18n && typeof I18n.getLanguage === 'function')
+        ? I18n.getLanguage()
+        : ((typeof localStorage !== 'undefined' && localStorage.getItem('math_engine_az_lang')) || 'az');
+    const isEn = lang === 'en';
+    const errorBadgeText = isEn ? 'Error' : 'Xəta';
+    const stepWord = isEn ? 'Step' : 'Addım';
+
     if (data.error) {
         html += `
             <div class="step-card">
                 <div class="step-header">
-                    <span class="step-badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Xəta</span>
+                    <span class="step-badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">${errorBadgeText}</span>
                 </div>
                 <div class="step-explanation" style="color: #ef4444;">${escHtml(data.error)}</div>
             </div>
@@ -359,7 +379,7 @@ function renderSolutionSteps(data) {
             html += `
                 <div class="step-card">
                     <div class="step-header">
-                        <span class="step-badge">Addım ${idx + 1}</span>
+                        <span class="step-badge">${stepWord} ${idx + 1}</span>
                         <span class="step-title">${escHtml(step.title || '')}</span>
                     </div>
                     ${step.formula ? `<div class="step-formula">${step.formula}</div>` : ''}
@@ -970,10 +990,14 @@ function appendFunc(fn) {
 
 function evaluateCalc() {
     if (!calcState.expression.trim()) return;
+    const lang = (window.I18n && typeof I18n.getLanguage === 'function')
+        ? I18n.getLanguage()
+        : ((typeof localStorage !== 'undefined' && localStorage.getItem('math_engine_az_lang')) || 'az');
+    const isEn = lang === 'en';
     try {
         const result = evalMathExpr(calcState.expression);
         if (result === null || result === undefined || isNaN(result)) {
-            throw new Error(window.I18n ? I18n.t('errInvalidSyntax', 'Hesablana bilmədi') : 'Hesablana bilmədi');
+            throw new Error(window.I18n ? I18n.t('errInvalidSyntax', isEn ? 'Evaluation failed' : 'Hesablana bilmədi') : (isEn ? 'Evaluation failed' : 'Hesablana bilmədi'));
         }
         const display = formatNumber(result);
         addToHistory(window.I18n ? I18n.t('tabCalculator', 'Kalkulyator') : 'Kalkulyator', calcState.expression, display);
@@ -986,7 +1010,7 @@ function evaluateCalc() {
         updateCalcDisplay(false);
         updateSolverOrGraph(calcState.expression);
     } catch (err) {
-        calcState.result = err.message || (window.I18n ? I18n.t('errorGeneric', 'Xəta') : 'Xəta');
+        calcState.result = err.message || (window.I18n ? I18n.t('errorGeneric', isEn ? 'Error' : 'Xəta') : (isEn ? 'Error' : 'Xəta'));
         updateCalcDisplay(true);
         updateSolverOrGraph(calcState.expression);
     }
@@ -994,12 +1018,17 @@ function evaluateCalc() {
 
 function evalMathExpr(expr) {
     if (window.MathCore && typeof MathCore.evaluate === 'function') {
+        const lang = (window.I18n && typeof I18n.getLanguage === 'function')
+            ? I18n.getLanguage()
+            : ((typeof localStorage !== 'undefined' && localStorage.getItem('math_engine_az_lang')) || 'az');
         return MathCore.evaluate(expr, {
             angleMode: calcState.angleMode,
-            ans: MathCore.HistoryStore.getAns()
+            ans: (MathCore.HistoryStore && typeof MathCore.HistoryStore.getAns === 'function') ? MathCore.HistoryStore.getAns() : 0,
+            lang: lang
         });
     }
-    throw new Error('MathCore mühərriki tapılmadı');
+    const isEn = (window.I18n && typeof I18n.getLanguage === 'function') ? I18n.getLanguage() === 'en' : false;
+    throw new Error(isEn ? 'MathCore engine not found' : 'MathCore mühərriki tapılmadı');
 }
 
 function formatNumber(n) {
@@ -1188,34 +1217,39 @@ function calculateGeometry() {
     let valid = true;
     let errorMsg = '';
 
+    const lang = (window.I18n && typeof I18n.getLanguage === 'function')
+        ? I18n.getLanguage()
+        : ((typeof localStorage !== 'undefined' && localStorage.getItem('math_engine_az_lang')) || 'az');
+    const isEn = lang === 'en';
+
     mode.inputs.forEach(inp => {
         const el = document.getElementById('geo_' + inp.id);
         const rawVal = el ? el.value.trim() : '';
         if (!rawVal) {
             valid = false;
-            errorMsg = 'Zəhmət olmasa bütün xanaları doldurun.';
+            errorMsg = isEn ? 'Please fill in all fields.' : 'Zəhmət olmasa bütün xanaları doldurun.';
             return;
         }
         let v;
         try {
             v = (window.MathCore && typeof MathCore.evaluate === 'function')
-                ? MathCore.evaluate(rawVal, { angleMode: 'DEG' })
+                ? MathCore.evaluate(rawVal, { angleMode: 'DEG', lang })
                 : parseFloat(rawVal);
         } catch (e) {
             valid = false;
-            errorMsg = 'Xəta (' + inp.label + '): ' + (e.message || 'Düzgün riyazi ifadə daxil edin');
+            errorMsg = (isEn ? 'Error' : 'Xəta') + ' (' + inp.label + '): ' + (e.message || (isEn ? 'Please enter a valid mathematical expression' : 'Düzgün riyazi ifadə daxil edin'));
             return;
         }
         if (isNaN(v) || !isFinite(v) || v <= 0) {
             valid = false;
-            errorMsg = inp.label + ' müsbət ədəd və ya düzgün riyazi ifadə olmalıdır (> 0).';
+            errorMsg = inp.label + (isEn ? ' must be a positive number or valid expression (> 0).' : ' müsbət ədəd və ya düzgün riyazi ifadə olmalıdır (> 0).');
             return;
         }
         vals[inp.id] = v;
     });
 
     if (!valid) {
-        showGeoResult(`<span class="error">${errorMsg || 'Tərəfin uzunluğu müsbət ədəd və ya düzgün riyazi ifadə olmalıdır.'}</span>`);
+        showGeoResult(`<span class="error">${errorMsg || (isEn ? 'Side length must be a positive number or valid expression.' : 'Tərəfin uzunluğu müsbət ədəd və ya düzgün riyazi ifadə olmalıdır.')}</span>`);
         return;
     }
 
@@ -1268,7 +1302,7 @@ function calculateGeometry() {
             } else if (currentMode === 'right_hyp') {
                 const a = vals.a, c = vals.c;
                 if (a >= c) {
-                    showGeoResult('<span class="error">Xəta: Hipotenuz katetdən böyük olmalıdır (c > a)</span>');
+                    showGeoResult('<span class="error">' + (isEn ? 'Error: Hypotenuse must be greater than leg (c > a)' : 'Xəta: Hipotenuz katetdən böyük olmalıdır (c > a)') + '</span>');
                     return;
                 }
                 const b = clean(Math.sqrt(c * c - a * a));
@@ -1616,7 +1650,8 @@ function calcDerivative() {
                          <span class="formula">d/dx [${expr}] = ${escHtml(simplified)}</span>`;
         addToHistory('Analiz', `d/dx [${expr}]`, simplified);
     } catch (err) {
-        out.innerHTML = `<span class="error">Xəta: ${escHtml(err.message)}</span>`;
+        const isEn = (window.I18n && typeof I18n.getLanguage === 'function') ? I18n.getLanguage() === 'en' : false;
+        out.innerHTML = `<span class="error">${isEn ? 'Error' : 'Xəta'}: ${escHtml(err.message)}</span>`;
     }
 }
 
@@ -1643,7 +1678,8 @@ function calcIntegral() {
                          <div style="color:var(--text-muted);font-size:.82rem;margin-top:.4rem">Simpson qaydası ilə (n=1000)</div>`;
         addToHistory('Analiz', `∫[${a},${b}] ${expr} dx`, formatNumber(result));
     } catch (err) {
-        out.innerHTML = `<span class="error">Xəta: ${escHtml(err.message)}</span>`;
+        const isEn = (window.I18n && typeof I18n.getLanguage === 'function') ? I18n.getLanguage() === 'en' : false;
+        out.innerHTML = `<span class="error">${isEn ? 'Error' : 'Xəta'}: ${escHtml(err.message)}</span>`;
     }
 }
 

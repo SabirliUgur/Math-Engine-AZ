@@ -1,24 +1,24 @@
 /**
- * Service Worker for Math-Engine-AZ v2.5.0 ("Settings Hub, Stacked Fractions & Step-by-Step Solver")
+ * Service Worker for Math-Engine-AZ v2.5.1 ("Settings Hub, Stacked Fractions & Step-by-Step Solver")
  * Network-First with Cache Fallback strategy for robust offline capability.
  */
 
-const CACHE_NAME = 'math-engine-az-v2.5.0';
+const CACHE_NAME = 'math-engine-az-v2.5.1';
 
 const PRECACHE_ASSETS = [
     './',
     './index.html',
     './manifest.json',
     './style.css',
-    './style.css?v=2.5.0',
+    './style.css?v=2.5.1',
     './app.js',
-    './app.js?v=2.5.0',
+    './app.js?v=2.5.1',
     './js/math-core.js',
-    './js/math-core.js?v=2.5.0',
+    './js/math-core.js?v=2.5.1',
     './js/i18n.js',
-    './js/i18n.js?v=2.5.0',
+    './js/i18n.js?v=2.5.1',
     './js/step-solver.js',
-    './js/step-solver.js?v=2.5.0',
+    './js/step-solver.js?v=2.5.1',
     './icon-192.png',
     './icon-512.png',
     'https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js'

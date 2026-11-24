@@ -5,6 +5,21 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [2.5.1] - 2026-11-24 — "Bilingual Error & Step Badge Localization, Cache Refresh"
+
+### 🌐 Tərcümə və İki Dillilik Təkmilləşdirmələri (I18n Fixes)
+- **Həll Addımları Bəcləri (Step Badges)**:
+  - İngilis dili seçildikdə `ADDIM 1`, `ADDIM 2` əvəzinə tam lokallaşdırılmış **`STEP 1`**, **`STEP 2`** bəclərinin göstərilməsi təmin edildi.
+  - Xəta baş verdikdə bəcin `XƏTA` əvəzinə **`ERROR`** göstərməsi təmin edildi.
+- **Riyazi Xəta Bildirişləri (Localized Math Errors)**:
+  - `MathCore.evaluate` daxilindəki bütün xəta mesajları dinamik dil yoxlayıcısına (`getActiveLang`) bağlandı.
+  - İngilis dilində: `7 ÷ 0` üçün `"Division by zero is undefined"`, `5 ÷` üçün `"Missing operand or operator"`, `sqrt(-4)` üçün `"Cannot take square root of a negative number"` və s. dərhal nümayiş etdirilir.
+  - Dil dəyişdirildikdə ekranda aktiv olan xəta və ya nəticə səhifəni yeniləmədən dərhal tərcümə olunur.
+- **Keş Yenilənməsi (Service Worker & Assets)**:
+  - Mobil və veb istifadəçilərinin köhnə skript keşlərində qalmaması üçün Service Worker keş adı `math-engine-az-v2.5.1` olaraq yeniləndi və `skipWaiting` ilə aktivləşdirildi.
+
+---
+
 ## [2.5.0] - 2026-11-24 — "Settings Hub, Stacked Fractions, Step-by-Step Solver, Bilingual Support & Haptic Keypad"
 
 ### ⚙️ Parametrlər Paneli və Çoxdilli Dəstək (Settings & Bilingual)

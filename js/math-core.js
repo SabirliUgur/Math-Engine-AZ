@@ -52,9 +52,23 @@
         }
     };
 
+    function getActiveLang() {
+        if (typeof window !== 'undefined' && window.I18n && typeof window.I18n.getLanguage === 'function') {
+            return window.I18n.getLanguage();
+        }
+        if (typeof localStorage !== 'undefined') {
+            try {
+                const s = localStorage.getItem('math_engine_az_lang');
+                if (s === 'en' || s === 'az') return s;
+            } catch (e) {}
+        }
+        return currentLang || 'az';
+    }
+
     const ERRORS = new Proxy({}, {
         get: function (target, prop) {
-            const dict = ERRORS_MAP[currentLang] || ERRORS_MAP.az;
+            const lang = getActiveLang();
+            const dict = ERRORS_MAP[lang] || ERRORS_MAP.az;
             return dict[prop] || ERRORS_MAP.az[prop] || prop;
         }
     });
@@ -66,7 +80,7 @@
     }
 
     function getLanguage() {
-        return currentLang;
+        return getActiveLang();
     }
 
     /**
@@ -721,6 +735,9 @@
      * Main evaluation entry point
      */
     function evaluate(expr, context = {}) {
+        if (context && (context.lang === 'en' || context.lang === 'az')) {
+            currentLang = context.lang;
+        }
         const tokens = tokenize(expr);
         const rpn = toRPN(tokens);
         return evaluateRPN(rpn, context);
