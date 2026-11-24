@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 
     <!-- Core Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=2.0.0">
+    <link rel="stylesheet" href="style.css?v=2.0.1">
 </head>
 <body>
 
@@ -139,56 +139,97 @@
                                 </div>
                             </div>
 
-                            <!-- 5-Column Keypad -->
-                            <div class="calc-keypad-grid" id="calcButtons">
-                                <!-- Row 1: Scientific functions + DEL -->
-                                <button class="calc-key key-sci" data-sci="true" data-action="sin" type="button">sin</button>
-                                <button class="calc-key key-sci" data-sci="true" data-action="cos" type="button">cos</button>
-                                <button class="calc-key key-sci" data-sci="true" data-action="tan" type="button">tan</button>
-                                <button class="calc-key key-sci" data-sci="true" data-action="cot" type="button">cot</button>
-                                <button class="calc-key key-del" data-action="backspace" type="button">DEL</button>
+                            <!-- Keypad Area (Contains both Bəsit and Elmi layouts) -->
+                            <div id="calcButtons">
+                                <!-- 1. BƏSİT (Basic) 4-Column Keypad -->
+                                <div id="keypad-besit" class="calc-keypad-grid is-besit hidden">
+                                    <!-- Row 1: AC, DEL, (, ) -->
+                                    <button class="calc-key key-del" data-action="allClear" type="button">AC</button>
+                                    <button class="calc-key key-del" data-action="backspace" type="button">DEL</button>
+                                    <button class="calc-key key-sci" data-action="openParen" type="button">(</button>
+                                    <button class="calc-key key-sci" data-action="closeParen" type="button">)</button>
 
-                                <!-- Row 2: ln, log, sqrt, x², AC -->
-                                <button class="calc-key key-sci" data-sci="true" data-action="ln" type="button">ln</button>
-                                <button class="calc-key key-sci" data-sci="true" data-action="log" type="button">log</button>
-                                <button class="calc-key key-sci" data-sci="true" data-action="sqrt" type="button">√</button>
-                                <button class="calc-key key-sci" data-sci="true" data-action="square" type="button">x²</button>
-                                <button class="calc-key key-del" data-action="allClear" type="button">AC</button>
+                                    <!-- Row 2: %, ±, Ans, ÷ -->
+                                    <button class="calc-key key-sci" data-action="percent" type="button">%</button>
+                                    <button class="calc-key key-sci" data-action="negate" type="button">±</button>
+                                    <button class="calc-key key-sci" data-action="ans" type="button">Ans</button>
+                                    <button class="calc-key key-op" data-action="op" data-value="/" type="button">÷</button>
 
-                                <!-- Row 3: xⁿ, (, ), %, ÷ -->
-                                <button class="calc-key key-sci" data-sci="true" data-action="pow" type="button">xⁿ</button>
-                                <button class="calc-key key-sci" data-action="openParen" type="button">(</button>
-                                <button class="calc-key key-sci" data-action="closeParen" type="button">)</button>
-                                <button class="calc-key key-sci" data-action="percent" type="button">%</button>
-                                <button class="calc-key key-op" data-action="op" data-value="/" type="button">÷</button>
+                                    <!-- Row 3: 7, 8, 9, × -->
+                                    <button class="calc-key key-num" data-action="num" data-value="7" type="button">7</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="8" type="button">8</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="9" type="button">9</button>
+                                    <button class="calc-key key-op" data-action="op" data-value="*" type="button">×</button>
 
-                                <!-- Row 4: π, 7, 8, 9, × -->
-                                <button class="calc-key key-sci" data-sci="true" data-action="pi" type="button">π</button>
-                                <button class="calc-key key-num" data-action="num" data-value="7" type="button">7</button>
-                                <button class="calc-key key-num" data-action="num" data-value="8" type="button">8</button>
-                                <button class="calc-key key-num" data-action="num" data-value="9" type="button">9</button>
-                                <button class="calc-key key-op" data-action="op" data-value="*" type="button">×</button>
+                                    <!-- Row 4: 4, 5, 6, − -->
+                                    <button class="calc-key key-num" data-action="num" data-value="4" type="button">4</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="5" type="button">5</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="6" type="button">6</button>
+                                    <button class="calc-key key-op" data-action="op" data-value="-" type="button">−</button>
 
-                                <!-- Row 5: e, 4, 5, 6, − -->
-                                <button class="calc-key key-sci" data-sci="true" data-action="e" type="button">e</button>
-                                <button class="calc-key key-num" data-action="num" data-value="4" type="button">4</button>
-                                <button class="calc-key key-num" data-action="num" data-value="5" type="button">5</button>
-                                <button class="calc-key key-num" data-action="num" data-value="6" type="button">6</button>
-                                <button class="calc-key key-op" data-action="op" data-value="-" type="button">−</button>
+                                    <!-- Row 5: 1, 2, 3, + -->
+                                    <button class="calc-key key-num" data-action="num" data-value="1" type="button">1</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="2" type="button">2</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="3" type="button">3</button>
+                                    <button class="calc-key key-op" data-action="op" data-value="+" type="button">+</button>
 
-                                <!-- Row 6: ±, 1, 2, 3, + -->
-                                <button class="calc-key key-sci" data-action="negate" type="button">±</button>
-                                <button class="calc-key key-num" data-action="num" data-value="1" type="button">1</button>
-                                <button class="calc-key key-num" data-action="num" data-value="2" type="button">2</button>
-                                <button class="calc-key key-num" data-action="num" data-value="3" type="button">3</button>
-                                <button class="calc-key key-op" data-action="op" data-value="+" type="button">+</button>
+                                    <!-- Row 6: 0 (span 2), ., = -->
+                                    <button class="calc-key key-num key-col-2" data-action="num" data-value="0" type="button">0</button>
+                                    <button class="calc-key key-num" data-action="decimal" type="button">.</button>
+                                    <button class="calc-key key-eq" data-action="equals" type="button">=</button>
+                                </div>
 
-                                <!-- Row 7: n!, 0, ., Ans, = -->
-                                <button class="calc-key key-sci" data-sci="true" data-action="factorial" type="button">n!</button>
-                                <button class="calc-key key-num" data-action="num" data-value="0" type="button">0</button>
-                                <button class="calc-key key-num" data-action="decimal" type="button">.</button>
-                                <button class="calc-key key-sci" data-action="ans" type="button">Ans</button>
-                                <button class="calc-key key-eq" data-action="equals" type="button">=</button>
+                                <!-- 2. ELMİ (Scientific) 5-Column Keypad -->
+                                <div id="keypad-elmi" class="calc-keypad-grid is-elmi">
+                                    <!-- Row 1: Scientific functions + DEL -->
+                                    <button class="calc-key key-sci" data-action="sin" type="button">sin</button>
+                                    <button class="calc-key key-sci" data-action="cos" type="button">cos</button>
+                                    <button class="calc-key key-sci" data-action="tan" type="button">tan</button>
+                                    <button class="calc-key key-sci" data-action="cot" type="button">cot</button>
+                                    <button class="calc-key key-del" data-action="backspace" type="button">DEL</button>
+
+                                    <!-- Row 2: ln, log, sqrt, x², AC -->
+                                    <button class="calc-key key-sci" data-action="ln" type="button">ln</button>
+                                    <button class="calc-key key-sci" data-action="log" type="button">log</button>
+                                    <button class="calc-key key-sci" data-action="sqrt" type="button">√</button>
+                                    <button class="calc-key key-sci" data-action="square" type="button">x²</button>
+                                    <button class="calc-key key-del" data-action="allClear" type="button">AC</button>
+
+                                    <!-- Row 3: xⁿ, (, ), %, ÷ -->
+                                    <button class="calc-key key-sci" data-action="pow" type="button">xⁿ</button>
+                                    <button class="calc-key key-sci" data-action="openParen" type="button">(</button>
+                                    <button class="calc-key key-sci" data-action="closeParen" type="button">)</button>
+                                    <button class="calc-key key-sci" data-action="percent" type="button">%</button>
+                                    <button class="calc-key key-op" data-action="op" data-value="/" type="button">÷</button>
+
+                                    <!-- Row 4: π, 7, 8, 9, × -->
+                                    <button class="calc-key key-sci" data-action="pi" type="button">π</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="7" type="button">7</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="8" type="button">8</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="9" type="button">9</button>
+                                    <button class="calc-key key-op" data-action="op" data-value="*" type="button">×</button>
+
+                                    <!-- Row 5: e, 4, 5, 6, − -->
+                                    <button class="calc-key key-sci" data-action="e" type="button">e</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="4" type="button">4</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="5" type="button">5</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="6" type="button">6</button>
+                                    <button class="calc-key key-op" data-action="op" data-value="-" type="button">−</button>
+
+                                    <!-- Row 6: ±, 1, 2, 3, + -->
+                                    <button class="calc-key key-sci" data-action="negate" type="button">±</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="1" type="button">1</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="2" type="button">2</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="3" type="button">3</button>
+                                    <button class="calc-key key-op" data-action="op" data-value="+" type="button">+</button>
+
+                                    <!-- Row 7: n!, 0, ., Ans, = -->
+                                    <button class="calc-key key-sci" data-action="factorial" type="button">n!</button>
+                                    <button class="calc-key key-num" data-action="num" data-value="0" type="button">0</button>
+                                    <button class="calc-key key-num" data-action="decimal" type="button">.</button>
+                                    <button class="calc-key key-sci" data-action="ans" type="button">Ans</button>
+                                    <button class="calc-key key-eq" data-action="equals" type="button">=</button>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -534,9 +575,9 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/math-core.js?v=2.0.0"></script>
+    <script src="js/math-core.js?v=2.0.1"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js"></script>
-    <script src="app.js?v=2.0.0"></script>
+    <script src="app.js?v=2.0.1"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {

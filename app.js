@@ -192,27 +192,32 @@ function updateVisualCard(tabId, subtabId) {
 function initCalculatorModeToggle() {
     const modeElmi = document.getElementById('mode-elmi');
     const modeBesit = document.getElementById('mode-besit');
-    const keypad = document.getElementById('calcButtons');
-    const sciKeys = document.querySelectorAll('[data-sci="true"]');
+    const keypadElmi = document.getElementById('keypad-elmi');
+    const keypadBesit = document.getElementById('keypad-besit');
 
-    if (!modeElmi || !modeBesit || !keypad) return;
+    if (!modeElmi || !modeBesit || !keypadElmi || !keypadBesit) return;
 
     function setKeypadMode(isElmi) {
         if (isElmi) {
             modeElmi.classList.add('active');
             modeBesit.classList.remove('active');
-            keypad.classList.remove('is-besit');
-            sciKeys.forEach(k => {
-                k.style.display = '';
-            });
+            keypadElmi.classList.remove('hidden');
+            keypadBesit.classList.add('hidden');
+            localStorage.setItem('calcKeypadMode', 'elmi');
         } else {
             modeBesit.classList.add('active');
             modeElmi.classList.remove('active');
-            keypad.classList.add('is-besit');
-            sciKeys.forEach(k => {
-                k.style.display = 'none';
-            });
+            keypadBesit.classList.remove('hidden');
+            keypadElmi.classList.add('hidden');
+            localStorage.setItem('calcKeypadMode', 'besit');
         }
+    }
+
+    const savedMode = localStorage.getItem('calcKeypadMode');
+    if (savedMode === 'besit') {
+        setKeypadMode(false);
+    } else {
+        setKeypadMode(true);
     }
 
     modeElmi.addEventListener('click', () => setKeypadMode(true));

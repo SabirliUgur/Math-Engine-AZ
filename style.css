@@ -654,11 +654,35 @@ button, input, select, textarea {
     text-align: right;
 }
 
-/* ---------- 5-COLUMN KEYPAD ---------- */
+/* ---------- 5-COLUMN & 4-COLUMN KEYPAD ---------- */
 .calc-keypad-grid {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.5rem;
+}
+
+.calc-keypad-grid.is-elmi {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.calc-keypad-grid.is-besit {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0.65rem;
+}
+
+.calc-keypad-grid.is-besit .calc-key {
+    height: 56px;
+    font-size: 1.25rem;
+}
+
+.calc-keypad-grid.is-besit .key-col-2,
+.calc-key.key-col-2 {
+    grid-column: span 2 / span 2;
+}
+
+.calc-keypad-grid.hidden,
+.hidden {
+    display: none !important;
 }
 
 .calc-key {
@@ -739,20 +763,6 @@ button, input, select, textarea {
     filter: brightness(0.95);
 }
 
-/* Bəsit (Basic) 4-column Keypad Mode */
-.calc-keypad-grid.is-besit {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 0.65rem;
-}
-
-.calc-keypad-grid.is-besit .calc-key {
-    height: 56px;
-    font-size: 1.25rem;
-}
-
-.calc-keypad-grid.is-besit .key-col-2 {
-    grid-column: span 2 / span 2;
-}
 
 /* ---------- RIGHT VISUALIZATION CARD ---------- */
 .visual-model-card {

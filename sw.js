@@ -3,18 +3,18 @@
  * Network-First with Cache Fallback strategy for robust offline capability.
  */
 
-const CACHE_NAME = 'math-engine-az-v2.0.1';
+const CACHE_NAME = 'math-engine-az-v2.0.2';
 
 const PRECACHE_ASSETS = [
     './',
     './index.html',
     './manifest.json',
     './style.css',
-    './style.css?v=2.0.0',
+    './style.css?v=2.0.1',
     './app.js',
-    './app.js?v=2.0.0',
+    './app.js?v=2.0.1',
     './js/math-core.js',
-    './js/math-core.js?v=2.0.0',
+    './js/math-core.js?v=2.0.1',
     './icon-192.png',
     './icon-512.png',
     'https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js'
