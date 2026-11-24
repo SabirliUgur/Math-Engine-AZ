@@ -1,24 +1,29 @@
 /**
- * Service Worker for Math-Engine-AZ v2.5.1 ("Settings Hub, Stacked Fractions & Step-by-Step Solver")
+ * Service Worker for Math-Engine-AZ v3.0.0 ("Structured Math Editor, Interactive Step-by-Step Solver, 2D Geometry & Statistical Charts")
  * Network-First with Cache Fallback strategy for robust offline capability.
  */
 
-const CACHE_NAME = 'math-engine-az-v2.5.1';
+const CACHE_NAME = 'math-engine-az-v3.0.0';
 
 const PRECACHE_ASSETS = [
     './',
     './index.html',
+    './index.html?v=3.0.0',
     './manifest.json',
     './style.css',
-    './style.css?v=2.5.1',
+    './style.css?v=3.0.0',
     './app.js',
-    './app.js?v=2.5.1',
+    './app.js?v=3.0.0',
     './js/math-core.js',
-    './js/math-core.js?v=2.5.1',
+    './js/math-core.js?v=3.0.0',
+    './js/math-editor.js',
+    './js/math-editor.js?v=3.0.0',
+    './js/visual-charts.js',
+    './js/visual-charts.js?v=3.0.0',
     './js/i18n.js',
-    './js/i18n.js?v=2.5.1',
+    './js/i18n.js?v=3.0.0',
     './js/step-solver.js',
-    './js/step-solver.js?v=2.5.1',
+    './js/step-solver.js?v=3.0.0',
     './icon-192.png',
     './icon-512.png',
     'https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js'

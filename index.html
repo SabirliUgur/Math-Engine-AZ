@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 
     <!-- Core Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=2.5.1">
+    <link rel="stylesheet" href="style.css?v=3.0.0">
 </head>
 <body>
 
@@ -50,30 +50,37 @@
 
                 <!-- Navigation Tabs -->
                 <nav class="sidebar-nav" id="tabNav">
-                    <button class="tab-btn active" data-tab="calculator" type="button">
-                        <span class="material-symbols-outlined text-[20px]">calculate</span>
-                        <span data-i18n="tabCalculator">Kalkulyator</span>
-                    </button>
-                    <button class="tab-btn" data-tab="geometry" type="button">
-                        <span class="material-symbols-outlined text-[20px]">category</span>
-                        <span data-i18n="tabGeometry">Həndəsə</span>
-                    </button>
-                    <button class="tab-btn" data-tab="algebra" type="button">
-                        <span class="material-symbols-outlined text-[20px]">functions</span>
-                        <span data-i18n="tabAlgebra">Cəbr</span>
-                    </button>
-                    <button class="tab-btn" data-tab="analysis" type="button">
-                        <span class="material-symbols-outlined text-[20px]">show_chart</span>
-                        <span data-i18n="tabAnalysis">Analiz</span>
-                    </button>
-                    <button class="tab-btn" data-tab="statistics" type="button">
-                        <span class="material-symbols-outlined text-[20px]">bar_chart</span>
-                        <span data-i18n="tabStatistics">Statistika</span>
-                    </button>
-                    <button class="tab-btn" data-tab="settings" type="button">
-                        <span class="material-symbols-outlined text-[20px]">settings</span>
-                        <span data-i18n="tabSettings">Parametrlər</span>
-                    </button>
+                    <div class="sidebar-nav-group math-nav-group">
+                        <button class="tab-btn active" data-tab="calculator" type="button">
+                            <span class="material-symbols-outlined text-[20px]">calculate</span>
+                            <span data-i18n="tabCalculator">Kalkulyator</span>
+                        </button>
+                        <button class="tab-btn" data-tab="geometry" type="button">
+                            <span class="material-symbols-outlined text-[20px]">category</span>
+                            <span data-i18n="tabGeometry">Həndəsə</span>
+                        </button>
+                        <button class="tab-btn" data-tab="algebra" type="button">
+                            <span class="material-symbols-outlined text-[20px]">functions</span>
+                            <span data-i18n="tabAlgebra">Cəbr</span>
+                        </button>
+                        <button class="tab-btn" data-tab="analysis" type="button">
+                            <span class="material-symbols-outlined text-[20px]">show_chart</span>
+                            <span data-i18n="tabAnalysis">Analiz</span>
+                        </button>
+                        <button class="tab-btn" data-tab="statistics" type="button">
+                            <span class="material-symbols-outlined text-[20px]">bar_chart</span>
+                            <span data-i18n="tabStatistics">Statistika</span>
+                        </button>
+                    </div>
+
+                    <div class="sidebar-nav-divider"></div>
+
+                    <div class="sidebar-nav-group settings-nav-group">
+                        <button class="tab-btn" data-tab="settings" type="button">
+                            <span class="material-symbols-outlined text-[20px]">settings</span>
+                            <span data-i18n="tabSettings">Parametrlər</span>
+                        </button>
+                    </div>
                 </nav>
             </div>
 
@@ -119,21 +126,36 @@
                                     <button id="mode-besit" class="mode-pill-btn" type="button" data-i18n="modeBesit">Bəsit</button>
                                     <button id="mode-elmi" class="mode-pill-btn active" type="button" data-i18n="modeElmi">Elmi</button>
                                 </div>
-                                <span class="card-engine-tag">F(X) · ENGINE</span>
                             </div>
 
                             <!-- Display Screen -->
                             <div class="calc-display-chassis">
                                 <div class="calc-display-controls">
-                                    <button id="angleModeBtn" class="angle-badge-btn" title="Bucaq vahidi: DEG / RAD" type="button">
-                                        DEG
-                                    </button>
-                                    <button id="copy-btn" class="copy-result-btn" title="Nəticəni kopyala" type="button">
-                                        <span class="material-symbols-outlined text-[18px]" id="copy-icon">content_copy</span>
-                                    </button>
+                                    <div class="slot-nav-toolbar">
+                                        <button id="slotNavLeft" class="slot-nav-btn" title="Sol yuva (←)" data-i18n-title="navLeft" type="button">
+                                            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                                        </button>
+                                        <button id="slotNavRight" class="slot-nav-btn" title="Sağ yuva (→)" data-i18n-title="navRight" type="button">
+                                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                        </button>
+                                        <button class="slot-nav-btn slot-template-btn" data-action="fraction" title="Kəsr (□/□)" data-i18n-title="btnFrac" type="button">
+                                            <span class="calc-frac-symbol">□/□</span>
+                                        </button>
+                                        <button class="slot-nav-btn slot-template-btn" data-action="mixedFraction" title="Qarışıq kəsr (□ □/□)" data-i18n-title="btnMixedFrac" type="button">
+                                            <span class="calc-frac-symbol">□ □/□</span>
+                                        </button>
+                                    </div>
+                                    <div class="calc-display-actions">
+                                        <button id="angleModeBtn" class="angle-badge-btn" title="Bucaq vahidi: DEG / RAD" type="button">
+                                            DEG
+                                        </button>
+                                        <button id="copy-btn" class="copy-result-btn" title="Nəticəni kopyala" data-i18n-title="copyResult" type="button">
+                                            <span class="material-symbols-outlined text-[18px]" id="copy-icon">content_copy</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="calc-readout-wrap">
-                                    <div class="calc-expression-text" id="calcExpression">&nbsp;</div>
+                                    <div class="calc-expression-text structured-math-view" id="calcExpression">&nbsp;</div>
                                     <div class="calc-result-text" id="calcResult">0</div>
                                 </div>
                             </div>
@@ -194,11 +216,11 @@
                                     <button class="calc-key key-sci" data-action="square" type="button">x²</button>
                                     <button class="calc-key key-del" data-action="allClear" type="button">AC</button>
 
-                                    <!-- Row 3: xⁿ, a/b, (, ), ÷ -->
-                                    <button class="calc-key key-sci" data-action="pow" type="button">xⁿ</button>
-                                    <button class="calc-key key-sci" data-action="fraction" type="button" title="Kəsr daxil edin (a/b)">a/b</button>
-                                    <button class="calc-key key-sci" data-action="openParen" type="button">(</button>
-                                    <button class="calc-key key-sci" data-action="closeParen" type="button">)</button>
+                                    <!-- Row 3: xⁿ, □/□, □ □/□, ( ), ÷ -->
+                                    <button class="calc-key key-sci" data-action="pow" type="button" title="Qüvvət (xⁿ)" data-i18n-title="btnPower">xⁿ</button>
+                                    <button class="calc-key key-sci" data-action="fraction" type="button" title="Kəsr (□/□)" data-i18n-title="btnFrac">□/□</button>
+                                    <button class="calc-key key-sci" data-action="mixedFraction" type="button" title="Qarışıq kəsr (□ □/□)" data-i18n-title="btnMixedFrac">□ □/□</button>
+                                    <button class="calc-key key-sci" data-action="parens" type="button" title="Mötərizə ( )">( )</button>
                                     <button class="calc-key key-op" data-action="op" data-value="/" type="button">÷</button>
 
                                     <!-- Row 4: π, 7, 8, 9, × -->
@@ -618,9 +640,50 @@
                                 <div id="solver-content" class="solver-content hidden"></div>
                             </div>
 
-                            <!-- Floating Helper Status Badge -->
-                            <div class="visual-badge-pill" id="visual-badge">
-                                <span id="visual-badge-text" data-i18n="visualBadgeIdle">Funksiyanı daxil edin və ya əməliyyatı seçin</span>
+                            <!-- 4. 2D Geometry Diagram Viewport -->
+                            <div id="geometry-diagram-container" class="visual-viewport-subpanel hidden"></div>
+
+                            <!-- 5. Statistics Distribution / Bar Chart Viewport -->
+                            <div id="stats-chart-container" class="visual-viewport-subpanel hidden"></div>
+
+                            <!-- 6. Settings Info & Shortcuts Hub -->
+                            <div id="settings-info-container" class="settings-info-panel hidden">
+                                <div class="settings-info-header">
+                                    <div class="info-badge-row">
+                                        <span class="info-tag-version" data-i18n="appVersionVal">v3.0.0 (Structured Math Editor)</span>
+                                        <span class="info-tag-cache" data-i18n="pwaCacheActive">Aktiv (math-engine-az-v3.0.0)</span>
+                                    </div>
+                                    <h3 class="settings-info-title" data-i18n="sysInfoTitle">Sistem Məlumatı</h3>
+                                    <p class="settings-info-desc" data-i18n="sysInfoSubtitle">PWA mühərriki və cihaz konfiqurasiyası</p>
+                                </div>
+
+                                <div class="shortcuts-card">
+                                    <h4 class="shortcuts-title">
+                                        <span class="material-symbols-outlined text-[16px]">keyboard</span>
+                                        <span data-i18n="shortcutsTitle">Qısayol Düymələri (Keyboard)</span>
+                                    </h4>
+                                    <div class="shortcuts-grid">
+                                        <div class="shortcut-item"><kbd>0</kbd>–<kbd>9</kbd><span>Rəqəmlər / Digits</span></div>
+                                        <div class="shortcut-item"><kbd>+</kbd> <kbd>-</kbd> <kbd>*</kbd> <kbd>/</kbd><span>Əsas əməllər / Operators</span></div>
+                                        <div class="shortcut-item"><kbd>^</kbd><span>Qüvvət / Exponent (xⁿ)</span></div>
+                                        <div class="shortcut-item"><kbd>(</kbd> <kbd>)</kbd><span>Mötərizələr / Parentheses</span></div>
+                                        <div class="shortcut-item"><kbd>Enter</kbd> / <kbd>=</kbd><span>Hesabla / Evaluate</span></div>
+                                        <div class="shortcut-item"><kbd>Escape</kbd><span>Təmizlə / All Clear</span></div>
+                                        <div class="shortcut-item"><kbd>Backspace</kbd><span>Atomik silmə / Atomic DEL</span></div>
+                                        <div class="shortcut-item"><kbd>←</kbd> <kbd>→</kbd><span>Yuva naviqasiyası / Slot Nav</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-reset-card">
+                                    <div class="reset-info">
+                                        <span class="reset-title" data-i18n="resetDefaults">Ayarları sıfırla</span>
+                                        <span class="reset-desc" data-i18n="resetDefaultsDesc">Bütün görünüş, dil və vibrasiya parametrlərini ilkin vəziyyətinə qaytarın</span>
+                                    </div>
+                                    <button id="resetDefaultsBtn" class="reset-defaults-btn" type="button" onclick="resetSettingsDefaults()">
+                                        <span class="material-symbols-outlined text-[18px]">restore</span>
+                                        <span data-i18n="resetDefaults">Ayarları sıfırla</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -631,11 +694,13 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/math-core.js?v=2.5.1"></script>
-    <script src="js/i18n.js?v=2.5.1"></script>
-    <script src="js/step-solver.js?v=2.5.1"></script>
+    <script src="js/math-core.js?v=3.0.0"></script>
+    <script src="js/i18n.js?v=3.0.0"></script>
+    <script src="js/math-editor.js?v=3.0.0"></script>
+    <script src="js/visual-charts.js?v=3.0.0"></script>
+    <script src="js/step-solver.js?v=3.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js"></script>
-    <script src="app.js?v=2.5.1"></script>
+    <script src="app.js?v=3.0.0"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {

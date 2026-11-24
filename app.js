@@ -1,5 +1,5 @@
 /* ============================================================
-   ELMI KALKULYATOR — APP.JS (v2.5.0 — "Settings Hub, Stacked Fractions & Step-by-Step Solver")
+   ELMI KALKULYATOR — APP.JS (v3.0.0 — "Structured Math Editor, Interactive Step-by-Step Solver, 2D Geometry & Statistical Charts")
    Bütün riyazi hesablamalar lokal olaraq MathCore mühərriki ilə icra olunur.
    Heç bir eval() və ya new Function() istifadə olunmur.
    ============================================================ */
@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initMatrix();
     loadHistory();
     initInputFocusTracking();
+
+    const statInput = document.getElementById('statData');
+    if (statInput) {
+        statInput.addEventListener('input', () => {
+            updateStatisticsChart();
+        });
+    }
 
     window.addEventListener('resize', () => {
         const canvasContainer = document.getElementById('canvas-container');
@@ -228,65 +235,111 @@ function initSubTabs() {
 function updateVisualCard(tabId, subtabId) {
     const visualTitle = document.getElementById('visual-title');
     const visualSubtitle = document.getElementById('visual-subtitle');
-    const visualBadgeText = document.getElementById('visual-badge-text');
     const gridContainer = document.getElementById('visual-grid-container');
     const canvasContainer = document.getElementById('canvas-container');
     const solverContainer = document.getElementById('solver-container');
+    const geoContainer = document.getElementById('geometry-diagram-container');
+    const statsContainer = document.getElementById('stats-chart-container');
+    const settingsContainer = document.getElementById('settings-info-container');
     const zoomControls = document.getElementById('graphZoomControls');
 
     if (!visualTitle) return;
+
+    // Hide all subpanels by default
+    [gridContainer, canvasContainer, solverContainer, geoContainer, statsContainer, settingsContainer].forEach(el => {
+        if (el) el.classList.add('hidden');
+    });
 
     if (tabId === 'calculator') {
         updateSolverOrGraph(calcState.expression);
         return;
     }
 
-    // For other tabs, hide solver container
-    if (solverContainer) solverContainer.classList.add('hidden');
-
     if (tabId === 'analysis' && subtabId === 'graph') {
         visualTitle.textContent = window.I18n ? I18n.t('subTabGraph', 'Funksiya Qrafiki') : 'Funksiya Qrafiki';
         visualSubtitle.textContent = window.I18n ? I18n.t('visualGraphSubtitle', '2D İnteraktiv Qrafik Müstəvisi') : '2D İnteraktiv Qrafik Müstəvisi';
-        if (visualBadgeText) visualBadgeText.textContent = window.I18n ? I18n.t('visualBadgeGraph', 'f(x) qrafiki aktivdir') : 'f(x) qrafiki aktivdir';
-        if (gridContainer) gridContainer.classList.add('hidden');
         if (canvasContainer) canvasContainer.classList.remove('hidden');
         if (zoomControls) zoomControls.style.display = 'flex';
         plotFunction();
+    } else if (tabId === 'geometry') {
+        visualTitle.textContent = window.I18n ? I18n.t('geoDiagramTitle', '2D Həndəsi Çertyoj') : '2D Həndəsi Çertyoj';
+        visualSubtitle.textContent = window.I18n ? I18n.t('geoDiagramSubtitle', 'Dinamik ölçülər və bucaqlar') : 'Dinamik ölçülər və bucaqlar';
+        if (geoContainer) geoContainer.classList.remove('hidden');
+        if (zoomControls) zoomControls.style.display = 'none';
+        updateGeometryDiagram();
+    } else if (tabId === 'statistics') {
+        visualTitle.textContent = window.I18n ? I18n.t('statsChartTitle', 'Statistik Paylanma Qrafiki') : 'Statistik Paylanma Qrafiki';
+        visualSubtitle.textContent = window.I18n ? I18n.t('statsChartSubtitle', 'Verilənlər sütunları və Ədədi Orta (x̄)') : 'Verilənlər sütunları və Ədədi Orta (x̄)';
+        if (statsContainer) statsContainer.classList.remove('hidden');
+        if (zoomControls) zoomControls.style.display = 'none';
+        updateStatisticsChart();
+    } else if (tabId === 'settings') {
+        visualTitle.textContent = window.I18n ? I18n.t('sysInfoTitle', 'Sistem Məlumatı') : 'Sistem Məlumatı';
+        visualSubtitle.textContent = window.I18n ? I18n.t('sysInfoSubtitle', 'PWA mühərriki və cihaz konfiqurasiyası') : 'PWA mühərriki və cihaz konfiqurasiyası';
+        if (settingsContainer) settingsContainer.classList.remove('hidden');
+        if (zoomControls) zoomControls.style.display = 'none';
     } else {
+        // Fallback for algebra
+        visualTitle.textContent = window.I18n ? I18n.t('secAlgebraTitle', 'Cəbri Analiz və Köklər') : 'Cəbri Analiz və Köklər';
+        visualSubtitle.textContent = 'Funksiya və Tənliklər Müstəvisi';
         if (gridContainer) gridContainer.classList.remove('hidden');
-        if (canvasContainer) canvasContainer.classList.add('hidden');
-        if (zoomControls) zoomControls.style.display = 'flex';
-
-        switch (tabId) {
-            case 'geometry':
-                visualTitle.textContent = window.I18n ? I18n.t('secGeoTitle', 'Həndəsi Fiqur Modeli') : 'Həndəsi Fiqur Modeli';
-                visualSubtitle.textContent = '2D / 3D Həndəsə Müstəvisi';
-                if (visualBadgeText) visualBadgeText.textContent = 'Seçilmiş fiqurun həndəsi parametrləri';
-                break;
-            case 'algebra':
-                visualTitle.textContent = window.I18n ? I18n.t('secAlgebraTitle', 'Cəbri Analiz və Köklər') : 'Cəbri Analiz və Köklər';
-                visualSubtitle.textContent = 'Funksiya və Tənliklər Müstəvisi';
-                if (visualBadgeText) visualBadgeText.textContent = 'Tənlik kökləri və asılılıqlar';
-                break;
-            case 'analysis':
-                visualTitle.textContent = window.I18n ? I18n.t('secAnalysisTitle', 'Riyazi Analiz Müstəvisi') : 'Riyazi Analiz Müstəvisi';
-                visualSubtitle.textContent = 'Törəmə və İnteqral Dinamikası';
-                if (visualBadgeText) visualBadgeText.textContent = 'Analitik əyrilər və sahələr';
-                break;
-            case 'statistics':
-                visualTitle.textContent = window.I18n ? I18n.t('secStatsTitle', 'Statistik Paylanma Modeli') : 'Statistik Paylanma Modeli';
-                visualSubtitle.textContent = 'Ehtimal və Paylanma Əyrisi';
-                if (visualBadgeText) visualBadgeText.textContent = 'Statistik paylanma və matrislər';
-                break;
-            case 'settings':
-                visualTitle.textContent = window.I18n ? I18n.t('settingsTitle', 'Parametrlər') : 'Parametrlər';
-                visualSubtitle.textContent = window.I18n ? I18n.t('versionInfo', 'Versiya 2.5.0') : 'Versiya 2.5.0';
-                if (visualBadgeText) visualBadgeText.textContent = window.I18n ? I18n.t('settingsAppearance', 'Görünüş və Parametrlər') : 'Görünüş və Parametrlər';
-                if (gridContainer) gridContainer.classList.add('hidden');
-                if (zoomControls) zoomControls.style.display = 'none';
-                break;
-        }
+        if (zoomControls) zoomControls.style.display = 'none';
     }
+}
+
+/**
+ * Live 2D Geometry Diagram Rendering
+ */
+function updateGeometryDiagram() {
+    const geoContainer = document.getElementById('geometry-diagram-container');
+    if (!geoContainer || !window.VisualCharts) return;
+
+    if (!currentShape) {
+        const isEn = window.I18n && I18n.getLanguage() === 'en';
+        geoContainer.innerHTML = `<div class="text-text-muted text-xs p-4 text-center">${isEn ? 'Please select a shape to view 2D diagram' : '2D çertyoju görmək üçün fiqur seçin'}</div>`;
+        return;
+    }
+
+    const shape = shapes[currentShape];
+    const mode = shape ? shape.modes.find(m => m.id === currentMode) : null;
+    const vals = {};
+    if (mode) {
+        mode.inputs.forEach(inp => {
+            const el = document.getElementById('geo_' + inp.id);
+            if (el && el.value.trim()) {
+                try {
+                    vals[inp.id] = (window.MathCore && MathCore.evaluate)
+                        ? MathCore.evaluate(el.value.trim())
+                        : parseFloat(el.value.trim());
+                } catch {
+                    vals[inp.id] = parseFloat(el.value.trim());
+                }
+            }
+        });
+    }
+
+    geoContainer.innerHTML = VisualCharts.renderGeometry(currentShape, currentMode, vals);
+}
+
+/**
+ * Live Statistics Bar / Distribution Chart Rendering
+ */
+function updateStatisticsChart(dataArray, statsObj) {
+    const statsContainer = document.getElementById('stats-chart-container');
+    if (!statsContainer || !window.VisualCharts) return;
+
+    if (!dataArray || dataArray.length === 0) {
+        const raw = document.getElementById('statData') ? document.getElementById('statData').value.trim() : '';
+        dataArray = raw ? raw.split(/[,;\s]+/).map(Number).filter(n => !isNaN(n)) : [];
+    }
+
+    if (dataArray.length === 0) {
+        const isEn = window.I18n && I18n.getLanguage() === 'en';
+        statsContainer.innerHTML = `<div class="text-text-muted text-xs p-4 text-center">${isEn ? 'Enter numbers to view statistical distribution chart' : 'Statistik paylanma qrafikini görmək üçün ədədlər daxil edin'}</div>`;
+        return;
+    }
+
+    statsContainer.innerHTML = VisualCharts.renderStatistics(dataArray, statsObj || {});
 }
 
 /**
@@ -299,11 +352,17 @@ function updateSolverOrGraph(expr) {
 
     const visualTitle = document.getElementById('visual-title');
     const visualSubtitle = document.getElementById('visual-subtitle');
-    const visualBadgeText = document.getElementById('visual-badge-text');
     const gridContainer = document.getElementById('visual-grid-container');
     const canvasContainer = document.getElementById('canvas-container');
     const solverContainer = document.getElementById('solver-container');
+    const geoContainer = document.getElementById('geometry-diagram-container');
+    const statsContainer = document.getElementById('stats-chart-container');
+    const settingsContainer = document.getElementById('settings-info-container');
     const zoomControls = document.getElementById('graphZoomControls');
+
+    [gridContainer, geoContainer, statsContainer, settingsContainer].forEach(el => {
+        if (el) el.classList.add('hidden');
+    });
 
     const solveData = (window.StepSolver && typeof StepSolver.solve === 'function')
         ? StepSolver.solve(expr, calcState.angleMode)
@@ -312,25 +371,21 @@ function updateSolverOrGraph(expr) {
     if (solveData.hasVariable) {
         // Plot mode: f(x) dynamic graph
         if (solverContainer) solverContainer.classList.add('hidden');
-        if (gridContainer) gridContainer.classList.add('hidden');
         if (canvasContainer) canvasContainer.classList.remove('hidden');
         if (zoomControls) zoomControls.style.display = 'flex';
 
         if (visualTitle) visualTitle.textContent = (window.I18n ? I18n.t('visualTitle') : 'Vizual Model və Qrafik');
         if (visualSubtitle) visualSubtitle.textContent = (window.I18n ? I18n.t('visualGraphSubtitle') : 'f(x) qrafiki · 2D');
-        if (visualBadgeText) visualBadgeText.textContent = (window.I18n ? I18n.t('visualBadgeGraph') : 'f(x) qrafiki aktivdir');
 
         plotFunction(solveData.expression || expr);
     } else {
         // Solver mode: Step-by-step breakdown & alternative representations
         if (canvasContainer) canvasContainer.classList.add('hidden');
-        if (gridContainer) gridContainer.classList.add('hidden');
         if (solverContainer) solverContainer.classList.remove('hidden');
         if (zoomControls) zoomControls.style.display = 'none';
 
         if (visualTitle) visualTitle.textContent = (window.I18n ? I18n.t('solverTitle') : 'Həll Addımları');
         if (visualSubtitle) visualSubtitle.textContent = (window.I18n ? I18n.t('solverSubtitle') : 'Addım-addım riyazi izahat');
-        if (visualBadgeText) visualBadgeText.textContent = (window.I18n ? I18n.t('visualBadgeIdle') : 'Funksiyanı daxil edin və ya əməliyyatı seçin');
 
         renderSolutionSteps(solveData);
     }
@@ -373,9 +428,30 @@ function renderSolutionSteps(data) {
         return;
     }
 
-    // Render Steps
+    // Render Steps with Expandable Sub-steps Accordion
     if (Array.isArray(data.steps)) {
         data.steps.forEach((step, idx) => {
+            const hasSubsteps = Array.isArray(step.substeps) && step.substeps.length > 0;
+            const subStepsHtml = hasSubsteps ? `
+                <div class="step-substeps-wrap">
+                    <button class="substeps-toggle-btn" type="button" onclick="toggleStepSubsteps(this)">
+                        <span class="substeps-toggle-label">${isEn ? 'Show detailed steps' : 'Ətraflı addımları göstər'}</span>
+                        <span class="material-symbols-outlined substeps-icon">expand_more</span>
+                    </button>
+                    <div class="substeps-body hidden">
+                        ${step.substeps.map((sub, sIdx) => `
+                            <div class="substep-row">
+                                <span class="substep-bullet">${sIdx + 1}.</span>
+                                <div class="substep-details">
+                                    ${sub.formula ? `<div class="substep-formula">${sub.formula}</div>` : ''}
+                                    ${sub.explanation ? `<div class="substep-exp">${escHtml(sub.explanation)}</div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : '';
+
             html += `
                 <div class="step-card">
                     <div class="step-header">
@@ -384,6 +460,7 @@ function renderSolutionSteps(data) {
                     </div>
                     ${step.formula ? `<div class="step-formula">${step.formula}</div>` : ''}
                     ${step.explanation ? `<div class="step-explanation">${escHtml(step.explanation)}</div>` : ''}
+                    ${subStepsHtml}
                 </div>
             `;
         });
@@ -392,8 +469,6 @@ function renderSolutionSteps(data) {
     // Render Alternative Forms (stacked fractions, mixed numbers, decimals)
     if (data.altForms) {
         const alt = data.altForms;
-        const lang = window.I18n ? I18n.getLanguage() : 'az';
-        const isEn = lang === 'en';
         html += `
             <div class="alt-forms-card">
                 <div class="alt-forms-title">
@@ -427,12 +502,52 @@ function renderSolutionSteps(data) {
     contentEl.innerHTML = html;
 }
 
-function insertAltForm(val) {
-    if (!val) return;
-    calcState.result = String(val);
-    updateCalcDisplay(false);
+window.toggleStepSubsteps = function(btn) {
+    if (!btn) return;
+    const body = btn.nextElementSibling;
+    if (!body) return;
+    const isEn = (window.I18n && typeof I18n.getLanguage === 'function') ? I18n.getLanguage() === 'en' : false;
+    body.classList.toggle('hidden');
+    btn.classList.toggle('is-expanded');
+    const isExp = btn.classList.contains('is-expanded');
+    const label = btn.querySelector('.substeps-toggle-label');
+    if (label) {
+        label.textContent = isExp ? (isEn ? 'Hide detailed steps' : 'Ətraflı addımları gizlət') : (isEn ? 'Show detailed steps' : 'Ətraflı addımları göstər');
+    }
     triggerHaptic();
-}
+};
+
+window.resetSettingsDefaults = function() {
+    localStorage.removeItem('math_engine_az_theme');
+    localStorage.removeItem('math_engine_az_lang');
+    localStorage.removeItem('math_engine_az_haptic');
+    localStorage.removeItem('calcTheme');
+    localStorage.removeItem('calcKeypadMode');
+
+    currentThemeSetting = 'auto';
+    applyThemeSetting('auto');
+    isHapticEnabled = true;
+
+    if (window.I18n) {
+        I18n.setLanguage('az');
+    }
+
+    const themeSeg = document.getElementById('themeSegmented');
+    if (themeSeg) {
+        themeSeg.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.themeVal === 'auto'));
+    }
+    const langSeg = document.getElementById('langSegmented');
+    if (langSeg) {
+        langSeg.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.langVal === 'az'));
+    }
+    const hapticSeg = document.getElementById('hapticSegmented');
+    if (hapticSeg) {
+        hapticSeg.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.hapticVal === '1'));
+    }
+
+    alert(window.I18n ? I18n.t('resetSuccess', 'Ayarlar uğurla sıfırlandı!') : 'Ayarlar uğurla sıfırlandı!');
+    triggerHaptic();
+};
 
 /* ==========================================================
    4. BƏSİT / ELMİ KEYPAD SEGMENTED TOGGLE
@@ -649,11 +764,20 @@ function useHistoryItem(index) {
     const calcTab = document.querySelector('[data-tab="calculator"]');
     if (calcTab) calcTab.click();
 
-    if (calcState.justCalculated || !calcState.expression.trim()) {
-        calcState.expression = String(valToInsert);
-        calcState.justCalculated = false;
+    if (window.VisualMathEditor) {
+        if (calcState.justCalculated || VisualMathEditor.isEmpty()) {
+            VisualMathEditor.setExpression(String(valToInsert));
+            calcState.justCalculated = false;
+        } else {
+            VisualMathEditor.insertParsed(String(valToInsert));
+        }
     } else {
-        calcState.expression += String(valToInsert);
+        if (calcState.justCalculated || !calcState.expression.trim()) {
+            calcState.expression = String(valToInsert);
+            calcState.justCalculated = false;
+        } else {
+            calcState.expression += String(valToInsert);
+        }
     }
     calcState.result = String(valToInsert);
 
@@ -661,9 +785,43 @@ function useHistoryItem(index) {
         MathCore.HistoryStore.setAns(parseFloat(valToInsert) || 0);
     }
 
-    document.getElementById('calcExpression').textContent = formatExprDisplay(calcState.expression);
-    document.getElementById('calcResult').textContent = calcState.result;
+    updateCalcDisplay(false);
+    updateSolverOrGraph(calcState.expression);
 }
+
+window.insertAltForm = function(val) {
+    if (!val) return;
+    triggerHaptic();
+
+    if (lastFocusedInput && document.body.contains(lastFocusedInput) && lastFocusedInput.id !== 'calcExpression') {
+        lastFocusedInput.value = val;
+        lastFocusedInput.dispatchEvent(new Event('input', { bubbles: true }));
+        lastFocusedInput.dispatchEvent(new Event('change', { bubbles: true }));
+        lastFocusedInput.focus();
+        return;
+    }
+
+    const calcTab = document.querySelector('[data-tab="calculator"]');
+    if (calcTab) calcTab.click();
+
+    if (window.VisualMathEditor) {
+        VisualMathEditor.setExpression(String(val));
+    } else {
+        calcState.expression = String(val);
+        calcState.justCalculated = false;
+    }
+    calcState.result = String(val);
+
+    if (window.MathCore && MathCore.HistoryStore) {
+        const numVal = parseFloat(val);
+        if (isFinite(numVal)) {
+            MathCore.HistoryStore.setAns(numVal);
+        }
+    }
+
+    updateCalcDisplay(false);
+    updateSolverOrGraph(calcState.expression);
+};
 
 function toggleHistory() {
     const p = document.getElementById('historyPanel');
@@ -685,6 +843,45 @@ const calcState = {
 };
 
 function initCalculator() {
+    const exprEl = document.getElementById('calcExpression');
+    if (window.VisualMathEditor && exprEl) {
+        VisualMathEditor.init(exprEl, (serializedExpr) => {
+            calcState.expression = serializedExpr;
+            if (!serializedExpr) {
+                calcState.result = '0';
+                updateCalcDisplay(false);
+                updateSolverOrGraph('');
+                return;
+            }
+            try {
+                const preview = evalMathExpr(serializedExpr);
+                if (preview !== null && isFinite(preview)) {
+                    calcState.result = formatNumber(preview);
+                    updateCalcDisplay(false);
+                }
+            } catch {
+                // Incomplete syntax while typing
+            }
+            updateSolverOrGraph(serializedExpr);
+        });
+    }
+
+    const navToolbar = document.querySelector('.slot-nav-toolbar');
+    if (navToolbar) {
+        navToolbar.addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            triggerHaptic();
+            if (btn.id === 'slotNavLeft' || btn.dataset.action === 'navLeft') {
+                handleCalcButton('navLeft');
+            } else if (btn.id === 'slotNavRight' || btn.dataset.action === 'navRight') {
+                handleCalcButton('navRight');
+            } else if (btn.dataset.action) {
+                handleCalcButton(btn.dataset.action);
+            }
+        });
+    }
+
     const btns = document.getElementById('calcButtons');
     if (btns) {
         btns.addEventListener('click', e => {
@@ -731,14 +928,119 @@ function initCalculator() {
         else if (key === ')') handleCalcButton('closeParen');
         else if (key === '^') handleCalcButton('pow');
         else if (key === '!') handleCalcButton('factorial');
-        else if (key === 'Enter' || key === '=') handleCalcButton('equals');
-        else if (key === 'Backspace') handleCalcButton('backspace');
+        else if (key === 'Enter' || key === '=') { e.preventDefault(); handleCalcButton('equals'); }
+        else if (key === 'Backspace') { e.preventDefault(); handleCalcButton('backspace'); }
+        else if (key === 'Delete') { e.preventDefault(); handleCalcButton('del'); }
         else if (key === 'Escape') handleCalcButton('allClear');
         else if (key === '%') handleCalcButton('percent');
+        else if (key === 'ArrowLeft') { e.preventDefault(); handleCalcButton('navLeft'); }
+        else if (key === 'ArrowRight') { e.preventDefault(); handleCalcButton('navRight'); }
     });
 }
 
 function handleCalcButton(action, value) {
+    if (window.VisualMathEditor) {
+        switch (action) {
+            case 'num':
+                if (calcState.justCalculated) { VisualMathEditor.clear(); calcState.justCalculated = false; }
+                VisualMathEditor.insertToken(value);
+                break;
+            case 'decimal':
+                if (calcState.justCalculated) { VisualMathEditor.clear(); VisualMathEditor.insertToken('0'); calcState.justCalculated = false; }
+                VisualMathEditor.insertToken('.');
+                break;
+            case 'op':
+                calcState.justCalculated = false;
+                VisualMathEditor.insertToken(' ' + value + ' ');
+                break;
+            case 'openParen':
+                if (calcState.justCalculated) { VisualMathEditor.clear(); calcState.justCalculated = false; }
+                VisualMathEditor.insertToken('(');
+                break;
+            case 'closeParen':
+                VisualMathEditor.insertToken(')');
+                break;
+            case 'parens':
+                if (calcState.justCalculated) { VisualMathEditor.clear(); calcState.justCalculated = false; }
+                VisualMathEditor.insertToken('(');
+                break;
+            case 'sin':
+            case 'cos':
+            case 'tan':
+            case 'cot':
+            case 'asin':
+            case 'acos':
+            case 'atan':
+            case 'ln':
+            case 'log':
+                if (calcState.justCalculated) { VisualMathEditor.clear(); calcState.justCalculated = false; }
+                VisualMathEditor.insertToken(action + '(');
+                break;
+            case 'sqrt':
+                if (calcState.justCalculated) { VisualMathEditor.clear(); calcState.justCalculated = false; }
+                VisualMathEditor.insertRadical();
+                break;
+            case 'square':
+                VisualMathEditor.insertExponent('2');
+                break;
+            case 'pow':
+                VisualMathEditor.insertExponent();
+                break;
+            case 'fraction':
+                VisualMathEditor.insertFraction();
+                break;
+            case 'mixedFraction':
+                VisualMathEditor.insertMixedFraction();
+                break;
+            case 'factorial':
+                VisualMathEditor.insertToken('!');
+                break;
+            case 'pi':
+                if (calcState.justCalculated) { VisualMathEditor.clear(); calcState.justCalculated = false; }
+                VisualMathEditor.insertToken('pi');
+                break;
+            case 'e':
+                if (calcState.justCalculated) { VisualMathEditor.clear(); calcState.justCalculated = false; }
+                VisualMathEditor.insertToken('e');
+                break;
+            case 'ans':
+                if (calcState.justCalculated) { VisualMathEditor.clear(); calcState.justCalculated = false; }
+                VisualMathEditor.insertToken('ans');
+                break;
+            case 'percent':
+                VisualMathEditor.insertToken('%');
+                break;
+            case 'negate':
+                VisualMathEditor.toggleSign();
+                break;
+            case 'navLeft':
+                VisualMathEditor.navigateLeft();
+                break;
+            case 'navRight':
+                VisualMathEditor.navigateRight();
+                break;
+            case 'del':
+            case 'backspace':
+                VisualMathEditor.deleteAtomic();
+                break;
+            case 'ac':
+            case 'clear':
+            case 'allClear':
+                VisualMathEditor.clear();
+                calcState.expression = '';
+                calcState.result = '0';
+                calcState.justCalculated = false;
+                calcState.showingFraction = false;
+                updateCalcDisplay(false);
+                updateSolverOrGraph('');
+                break;
+            case 'equals':
+                evaluateCalc();
+                return;
+        }
+        return;
+    }
+
     const exprEl = document.getElementById('calcExpression');
     const resEl = document.getElementById('calcResult');
 
@@ -967,7 +1269,9 @@ function updateCalcDisplay(isError = false) {
     const exprEl = document.getElementById('calcExpression');
     if (!resEl || !exprEl) return;
 
-    exprEl.textContent = formatExprDisplay(calcState.expression) || '\u00A0';
+    if (!window.VisualMathEditor) {
+        exprEl.textContent = formatExprDisplay(calcState.expression) || '\u00A0';
+    }
     resEl.textContent = calcState.result;
 
     resEl.classList.remove('is-error', 'text-medium', 'text-long');
@@ -1144,6 +1448,7 @@ function onShapeSelect() {
         inputsDiv.innerHTML = '';
         calcBtn.style.display = 'none';
         currentShape = null;
+        updateGeometryDiagram();
         return;
     }
 
@@ -1164,12 +1469,14 @@ function onShapeSelect() {
 
     renderShapeInputs();
     calcBtn.style.display = 'inline-flex';
+    updateGeometryDiagram();
 }
 
 function onInputModeChange() {
     currentMode = document.getElementById('inputModeSelect').value;
     renderShapeInputs();
     document.getElementById('geoResults').innerHTML = '';
+    updateGeometryDiagram();
 }
 
 function renderShapeInputs() {
@@ -1184,12 +1491,16 @@ function renderShapeInputs() {
         </div>`
     ).join('');
 
-    // Attach focus listeners so quick-symbol bar targets active input
+    // Attach focus and input listeners so quick-symbol bar targets active input and 2D diagram updates live
     document.querySelectorAll('#shapeInputs input').forEach(input => {
         input.addEventListener('focus', () => {
             lastFocusedInput = input;
         });
+        input.addEventListener('input', () => {
+            updateGeometryDiagram();
+        });
     });
+    updateGeometryDiagram();
 }
 
 function insertGeoSymbol(sym) {
@@ -1362,6 +1673,7 @@ function calculateGeometry() {
     ).join('');
 
     showGeoResult(html);
+    updateGeometryDiagram();
     addToHistory('Həndəsə', `${shape.name} (${mode.label})`, results.map(r => `${r.label} = ${formatNumber(r.value)}`).join(', '));
 }
 
@@ -1869,6 +2181,7 @@ function calcStatistics() {
         <span class="formula">σ = √(Σ(xᵢ − x̄)² / n) = ${formatNumber(stdDev)}</span>
     `;
     out.innerHTML = html;
+    updateStatisticsChart(data, { n, sum, mean, median, modes, variance, stdDev, range });
     addToHistory('Statistika', `n=${n}`, `x̄=${formatNumber(mean)}, σ=${formatNumber(stdDev)}`);
 }
 

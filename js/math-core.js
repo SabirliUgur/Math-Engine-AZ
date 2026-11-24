@@ -230,6 +230,9 @@
             .replace(/π/g, 'pi')
             .trim();
 
+        // Support mixed numbers in raw text: e.g. "5 1/2" -> "((5) + ((1)/(2)))"
+        str = str.replace(/(\b\d+)\s+(\d+)\s*\/\s*(\d+\b)/g, '(($1) + (($2)/($3)))');
+
         // Support unicode radical symbol √ (e.g. √3 -> sqrt(3), √(3+1) -> sqrt(3+1), 2√3 -> 2*sqrt(3))
         str = str.replace(/√\s*\(/g, 'sqrt(');
         let prevRadicalStr;

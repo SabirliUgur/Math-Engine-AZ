@@ -5,6 +5,64 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [3.0.0] - 2026-11-24 — "Structured Math Editor, Interactive Step-by-Step Solver, 2D Geometry & Statistical Charts"
+
+### 📐 Strukturlaşdırılmış Vizual Riyazi Redaktor (Structured WYSIWYG Math Editor)
+- **Photomath Tipli Yuva (Slot-based) AST Mühərriki (`js/math-editor.js`)**:
+  - Düz mətn sətri əvəzinə tam vizual, yuvalı riyazi redaktor tətbiq edildi.
+  - **Vertikal Yığılmış Kəsrlər (`□/□`)**: Sürət və məxrəc xanaları olan həqiqi şaquli kəsr strukturu.
+  - **Qarışıq Kəsrlər (`□ □/□`)**: Kəsrin solunda mərkəzləşdirilmiş tam ədəd yuvası (məs: $5\frac{1}{2}$). İstifadəçidən mötərizə və ya süni toplama simvolu tələb etmir.
+  - **Qüvvət Üstü İndeks (`x²`, `xⁿ`)**: Əsasın sağ yuxarısında superscript üsulu ilə yerləşən redaktə edilə bilən qüvvət yuvası (`base^{exp}`).
+  - **Kökaltı İfadə (`√`)**: Genişlənən üst xətli və daxili radicand yuvalı radikal simvolu.
+- **İkitərəfli Yuva Naviqasiyası (`←` və `→`)**:
+  - Displey panelində kursorun sola və sağa hərəkətini təmin edən `←` və `→` düymələri əlavə edildi.
+  - Fiziki klaviatura `ArrowLeft` və `ArrowRight` düymələrinə bağlandı.
+  - Hal-hazırda aktiv olan yuva kəskin neon-bənövşəyi vurğu haşiyəsi və parlaq kursor indikatoru ilə vurğulanır.
+- **Təmiz Riyazi Serializasiya və Precedence Qorunması**:
+  - Vizual ağac `MathCore.evaluate(...)` üçün avtomatik olaraq dəqiq cəbri sintaksisə çevrilir: $5\frac{1}{2}$ daxil edildikdə `((5) + ((1)/(2)))` şəklində serializasiya olunur.
+  - Qat-qat əməliyyatlarda vurma/bölmə sırası qorunur: `5 * 5 1/2 === 27.5` və `5 * 5 1/2 / 2 === 13.75`.
+
+### ⚡ Atomik Funksiya Token Silinməsi (Atomic Function Token Deletion)
+- **Bütöv Funksiya Silinməsi (`DEL` və `Backspace`)**:
+  - İstifadəçi çoxhərfli funksiya adından sonra `DEL` və ya fiziki `Backspace` basdıqda token simvolbəsimvol deyil, **tam bir vahid kimi** silinir.
+  - Əhatə olunan funksiyalar: `sqrt(`, `cbrt(`, `sin(`, `cos(`, `tan(`, `cot(`, `asin(`, `acos(`, `atan(`, `ln(`, `log10(`, `log(`, `abs(`, `exp(`.
+  - Ekranda heç vaxt `sqr`, `si` və ya `l` kimi yarımçıq və sintaksisi pozan fraqmentlər qalmır.
+- **Boş Yuvaların Təmiz Ləğvi**:
+  - Boş kəsr, qüvvət və ya kökaltı yuvasında `DEL` basıldıqda sintaktik xəta yaratmadan bütün boş blok ləğv edilir və kursor əsas səviyyəyə qayıdır.
+
+### 🔍 İnteraktiv Genişlənən Həll Addımları 2.0 (Photomath Akkordeon)
+- **Əsas Addım Kartları**: Photomath təcrübəsinə uyğun aydın nömrələnmiş mərhələ kartları (məs: *1. Qarışıq kəsri düzgün olmayan kəsrə çevirin*, *2. İfadəni sadələşdirin*, *3. Yekun nəticə*).
+- **Açılan/Qapanan Aralıq İzahlar ("Ətraflı addımları göstər")**:
+  - Hər bir əsas kart daxilində chevron ikonu ilə interaktiv akkordeon düyməsi.
+  - Toxunduqda detallı aralıq arifmetik addımları nümayiş etdirir (məs: $5\frac{1}{2} \rightarrow \frac{5 \times 2 + 1}{2} \rightarrow \frac{10 + 1}{2} \rightarrow \frac{11}{2}$).
+- **Alternativ Formlar Altlığı və Təmizləmə**:
+  - Kartın aşağısında yığılmış kəsr, qarışıq kəsr və onluq ekvivalentləri.
+  - Qeyri-funksional `#visual-badge` ("Enter a function or select an operation") düyməsi ləğv edildi.
+
+### 🎨 Yan Panel və Başlıq Təmizliyi & Parametrlər Bölməsi
+- **Başlıq Təmizlənməsi**: Kalkulyator kartının yuxarısındakı dekorativ `F(X) • ENGINE` etiketi silindi.
+- **İzolyasiya Edilmiş Parametrlər Paneli**:
+  - Sol yan paneldə 5 riyazi bölmə (`Kalkulyator`, `Həndəsə`, `Cəbr`, `Analiz`, `Statistika`) yuxarı blokda qruplaşdırıldı.
+  - Xüsusi ayırıcı xətt (`sidebar-nav-divider`) ilə **`Parametrlər`** ən aşağıya — `Tarixçə` blokunun dərhal üzərinə keçirildi.
+- **100% İkidilli Tamlıq (`AZ` / `EN`)**:
+  - Bütün interfeys mətnləri, o cümlədən `"Hələ hesablama yoxdur"` (`"No calculations yet"`), həndəsə və statistika başlıqları, həll addımları və xəta bildirişləri tam lokallaşdırıldı.
+- **Sistem Məlumatı Sağ Kartı (Settings Info)**:
+  - Tətbiq versiyası (`v3.0.0`), PWA oflayn keş vəziyyəti, klaviatura qısayolları bələdçisi və "Ayarları sıfırla / Reset Defaults" funksiyası əlavə edildi.
+
+### 📊 Canlı 2D Həndəsə Çertyojları və Statistika Paylanma Qrafikləri (`js/visual-charts.js`)
+- **2D Həndəsə Çertyojları (`Həndəsə`)**:
+  - Fiqur seçildikdə (Dairə, Kvadrat, Düzbucaqlı, Üçbucaq, Düzbucaqlı Üçbucaq, Trapesiya, Kub, Silindr, Kürə, Konus) və ölçülər daxil edildikdə sağ paneldə real-vaxt rejimində dinamik, tərəf, hündürlük və bucaqları göstərən SVG çertyoj çəkilir.
+  - Pifaqor teoremi üzrə katetlər verildikdə hipotenuz avtomatik hesablanaraq çertyojda qeyd olunur.
+- **Statistik Paylanma Qrafiki (`Statistika`)**:
+  - Verilənlər daxil edildikdə sağ paneldə avtomatik Sütunlu Paylanma Qrafiki qurulur.
+  - Yaşıl kəsik-kəsik xətt ilə **Ədədi Orta ($x̄$)** xətti və nümunə ölçüsü ($n$) qrafikdə vizuallaşdırılır.
+
+### ⌨️ Tam Klaviatura Dəstəyi və PWA Keş Yenilənməsi
+- Masaüstü klaviatura dəstəyi: `0-9`, `+`, `-`, `*`, `/`, `^`, `(`, `)`, `.`, `Enter` (`=`), `Escape` (`AC`), `Backspace` / `Delete` (atomik DEL), `ArrowLeft` / `ArrowRight` (yuva naviqasiyası).
+- `sw.js` daxilində Service Worker keş adı `'math-engine-az-v3.0.0'` olaraq yeniləndi və bütün yeni skriptlər (`math-editor.js`, `visual-charts.js`) keş siyahısına daxil edildi.
+
+---
+
 ## [2.5.1] - 2026-11-24 — "Bilingual Error & Step Badge Localization, Cache Refresh"
 
 ### 🌐 Tərcümə və İki Dillilik Təkmilləşdirmələri (I18n Fixes)
