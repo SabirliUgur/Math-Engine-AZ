@@ -844,6 +844,236 @@ button, input, select, textarea {
     display: none;
 }
 
+/* ==================== OFFLINE INTERACTIVE GUIDE BOT (v3.6.0) ==================== */
+.guide-bot-container {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.guide-bot-trigger {
+    width: 46px;
+    height: 46px;
+    border-radius: 9999px;
+    background: var(--accent, #4F46E5);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 8px 22px rgba(79, 70, 229, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.guide-bot-trigger:hover {
+    transform: translateY(-2px) scale(1.04);
+    background: var(--accent-hover, #4338CA);
+}
+
+.guide-bot-popover {
+    width: min(360px, calc(100vw - 32px));
+    max-height: 460px;
+    background: var(--bg-card, #ffffff);
+    color: var(--text, #0F172A);
+    border: 1px solid var(--border, #E2E8F0);
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.guide-bot-popover.hidden {
+    display: none;
+}
+
+.guide-bot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border, #E2E8F0);
+    background: var(--bg-display, #F8FAFC);
+}
+
+.guide-bot-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.guide-bot-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.guide-bot-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.guide-tour-btn {
+    padding: 4px 9px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--border, #CBD5E1);
+    background: var(--bg-card, #ffffff);
+    color: var(--accent, #4F46E5);
+    cursor: pointer;
+}
+
+.guide-tour-btn:hover {
+    background: var(--accent, #4F46E5);
+    color: #ffffff;
+}
+
+.guide-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-sec, #64748B);
+    cursor: pointer;
+    display: flex;
+    padding: 2px;
+}
+
+.guide-bot-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border, #E2E8F0);
+}
+
+.guide-bot-search {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 0.82rem;
+    color: var(--text, #0F172A);
+}
+
+.guide-bot-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px 4px;
+}
+
+.guide-chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 9999px;
+    border: 1px solid var(--border, #CBD5E1);
+    background: var(--bg-display, #F8FAFC);
+    color: var(--text-sec, #475569);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.guide-chip.active,
+.guide-chip:hover {
+    border-color: var(--accent, #4F46E5);
+    color: var(--accent, #4F46E5);
+}
+
+.guide-bot-body {
+    padding: 8px 12px 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.guide-topic-card {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border, #E2E8F0);
+    background: var(--bg-display, #F8FAFC);
+}
+
+.guide-topic-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+.guide-topic-formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent, #4F46E5);
+    background: rgba(79, 70, 229, 0.08);
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.guide-topic-desc {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text-sec, #475569);
+    margin-bottom: 8px;
+}
+
+.guide-open-btn,
+.guide-nav-btn {
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--accent, #4F46E5);
+    background: var(--accent, #4F46E5);
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.guide-nav-btn:not(.is-primary) {
+    background: transparent;
+    color: var(--text-sec, #475569);
+    border-color: var(--border, #CBD5E1);
+}
+
+.guide-nav-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.guide-tour-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.guide-tour-step {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted, #64748B);
+}
+
+.guide-empty {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted, #64748B);
+    padding: 14px 8px;
+}
+
+.guide-tour-highlight {
+    outline: 2.5px solid #4F46E5 !important;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.22) !important;
+    transition: box-shadow 0.2s ease;
+}
+
 /* ---------- TAB SECTIONS (GEOMETRY, ALGEBRA, ANALYSIS, STATS) ---------- */
 .tab-section {
     display: none;

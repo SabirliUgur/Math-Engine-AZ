@@ -1,10 +1,10 @@
-# 🧮 Math-Engine-AZ (v3.5.0 — "Mathematical Analysis 2.0: Function Limits & Interactive Dual-Function Graphing")
+# 🧮 Math-Engine-AZ (v3.6.0 — "Statistical Distribution Bar Chart & Offline Interactive Guide Assistant")
 
-Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), funksiya limiti hesablayıcılı, ikiqat funksiyalı interaktiv qrafikli (kök/kəsişmə aşkarlanması və canlı crosshair), 2D/3D həndəsə çertyojlu, kompleks Arqan müstəvisi, bərabərsizlik intervalları, həndəsi silsilə qrafikli, koordinatlar metodu, müstəvi vektorları, statistik paylanma qrafikli, ədədlər nəzəriyyəsi və kombinatorika modullu, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
+Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), funksiya limiti hesablayıcılı, ikiqat funksiyalı interaktiv qrafikli, orta xətli statistik sütun qrafikli, 100% oflayn interaktiv bələdçili (`GuideBot`), 2D/3D həndəsə çertyojlu, kompleks Arqan müstəvisi, bərabərsizlik intervalları, həndəsi silsilə qrafikli, ədədlər nəzəriyyəsi və kombinatorika modullu, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
 
 [![Canlı Demo](https://img.shields.io/badge/Demo-Canlı%20Sayt-6366f1?style=for-the-badge&logo=githubpages&logoColor=white)](https://sabirliugur.github.io/Math-Engine-AZ/)
 [![Lisenziya](https://img.shields.io/badge/Lisenziya-MIT-green?style=for-the-badge)](LICENSE)
-[![Versiya](https://img.shields.io/badge/Versiya-v3.5.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Versiya](https://img.shields.io/badge/Versiya-v3.6.0-blue?style=for-the-badge)](CHANGELOG.md)
 [![PWA Dəstəyi](https://img.shields.io/badge/PWA-Oflayn%20Dəstəkli-orange?style=for-the-badge)](manifest.json)
 
 ---
@@ -12,6 +12,12 @@ Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vi
 ## 🌐 Canlı Keçid (Live Demo)
 Tətbiqi heç bir quraşdırma tələb olunmadan birbaşa brauzerinizdə istifadə edin:  
 👉 **[https://sabirliugur.github.io/Math-Engine-AZ/](https://sabirliugur.github.io/Math-Engine-AZ/)**
+
+---
+
+## ✨ v3.6.0 Yenilikləri
+- **Statistik Paylanma Sütun Qrafiki (`Statistika`)**: Verilənlər sütunları və qırıq xətli `Orta` / `Mean` ($\bar{x}$) göstərici xətti.
+- **Oflayn İnteraktiv Bələdçi (`js/guide-bot.js`)**: Kontekstə uyğun çiplər, ikidilli (`AZ`/`EN`) formula axtarışı, **"Bölməyə keç / Open Module"** naviqasiyası və 4 addımlı **İnterfeys turu**.
 
 ---
 

@@ -5,6 +5,20 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [3.6.0] - 2026-11-25 — "Statistical Distribution Bar Chart & Offline Interactive Guide Assistant"
+
+### 📊 Statistika Qrafiki & Oflayn İnteraktiv Bələdçi
+- **Statistik Paylanma Sütun Qrafiki (`VisualCharts.renderStatistics`)**:
+  - Hər bir $x_i$ verilənlər nöqtəsi üçün şaquli sütunlar və ədədi etiketlər, üzərində qırıq xətli **Ədədi Orta ($\bar{x}$)** göstəricisi (`Orta: ...` / `Mean: ...`).
+  - Aydınlıq və Qaranlıq temalara tam uyğunlaşan SVG palitrası.
+- **Oflayn İnteraktiv Bələdçi (`js/guide-bot.js`)**:
+  - Sağ aşağı küncdə üzən kompas (`?` / `explore`) düyməsi və kontekstə uyğun sürətli kömək çipləri (`Calculator`, `Geometry`, `Algebra`, `Calculus`, `Statistics`, `Settings`).
+  - Bütün `v3.0–v3.5` mövzularını əhatə edən ikidilli (`AZ`/`EN`) oflayn formula/mövzu axtarışı və **"Bölməyə keç / Open Module"** birbaşa naviqasiyası.
+  - 4 addımlı interaktiv **"İnterfeys turu / Quick Tour"** (Kəsr/yuva redaktoru, Addım-addım həll, 2D/3D qrafiklər, Oflayn PWA & Parametrlər).
+- **PWA Keş**: `./js/guide-bot.js` `PRECACHE_ASSETS` siyahısına əlavə edildi və `CACHE_NAME` `'math-engine-az-v3.6.0'` olaraq yeniləndi.
+
+---
+
 ## [3.5.0] - 2026-11-25 — "Mathematical Analysis 2.0: Function Limits & Interactive Dual-Function Graphing"
 
 ### 📈 Riyazi Analiz 2.0 (`Analiz`)

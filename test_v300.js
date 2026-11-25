@@ -287,15 +287,16 @@ it('Translates historyEmpty correctly in AZ and EN', () => {
 // -------------------------------------------------------------
 console.log('\n[6] HTML & Service Worker Verification Tests');
 
-it('index.html references all scripts with v3.5.0 query string', () => {
+it('index.html references all scripts with v3.6.0 query string', () => {
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(html.includes('style.css?v=3.5.0'), 'style.css should have v=3.5.0');
-    assert.ok(html.includes('js/math-core.js?v=3.5.0'), 'math-core.js should have v=3.5.0');
-    assert.ok(html.includes('js/math-editor.js?v=3.5.0'), 'math-editor.js should have v=3.5.0');
-    assert.ok(html.includes('js/visual-charts.js?v=3.5.0'), 'visual-charts.js should have v=3.5.0');
-    assert.ok(html.includes('js/i18n.js?v=3.5.0'), 'i18n.js should have v=3.5.0');
-    assert.ok(html.includes('js/step-solver.js?v=3.5.0'), 'step-solver.js should have v=3.5.0');
-    assert.ok(html.includes('app.js?v=3.5.0'), 'app.js should have v=3.5.0');
+    assert.ok(html.includes('style.css?v=3.6.0'), 'style.css should have v=3.6.0');
+    assert.ok(html.includes('js/math-core.js?v=3.6.0'), 'math-core.js should have v=3.6.0');
+    assert.ok(html.includes('js/math-editor.js?v=3.6.0'), 'math-editor.js should have v=3.6.0');
+    assert.ok(html.includes('js/visual-charts.js?v=3.6.0'), 'visual-charts.js should have v=3.6.0');
+    assert.ok(html.includes('js/i18n.js?v=3.6.0'), 'i18n.js should have v=3.6.0');
+    assert.ok(html.includes('js/step-solver.js?v=3.6.0'), 'step-solver.js should have v=3.6.0');
+    assert.ok(html.includes('js/guide-bot.js?v=3.6.0'), 'guide-bot.js should have v=3.6.0');
+    assert.ok(html.includes('app.js?v=3.6.0'), 'app.js should have v=3.6.0');
 });
 
 it('index.html has removed "F(X) • ENGINE" header badge', () => {
@@ -319,11 +320,13 @@ it('index.html isolates Parametrlər with sidebar separator', () => {
     assert.ok(html.includes('sidebar-nav-divider'), 'sidebar-nav-divider should exist before settings');
 });
 
-it('sw.js cache name is updated to math-engine-az-v3.5.0', () => {
+it('sw.js cache name is updated to math-engine-az-v3.6.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.5.0'"), 'CACHE_NAME should be math-engine-az-v3.5.0');
-    assert.ok(sw.includes('./js/math-editor.js?v=3.5.0'), 'sw.js should precache math-editor.js?v=3.5.0');
-    assert.ok(sw.includes('./js/visual-charts.js?v=3.5.0'), 'sw.js should precache visual-charts.js?v=3.5.0');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.6.0'"), 'CACHE_NAME should be math-engine-az-v3.6.0');
+    assert.ok(sw.includes('./js/math-editor.js?v=3.6.0'), 'sw.js should precache math-editor.js?v=3.6.0');
+    assert.ok(sw.includes('./js/visual-charts.js?v=3.6.0'), 'sw.js should precache visual-charts.js?v=3.6.0');
+    assert.ok(sw.includes('./js/guide-bot.js'), 'sw.js should precache guide-bot.js');
+    assert.ok(sw.includes('./js/guide-bot.js?v=3.6.0'), 'sw.js should precache guide-bot.js?v=3.6.0');
 });
 
 // -------------------------------------------------------------
@@ -434,12 +437,12 @@ it('StepSolver preserves all factors in compound expressions (√5 × 3 2/3 & 2 
     I18n.setLanguage('az');
 });
 
-it('Service Worker & index.html cache versions are bumped to v3.5.0', () => {
+it('Service Worker & index.html cache versions are bumped to v3.6.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.5.0';"), 'sw.js CACHE_NAME should be v3.5.0');
-    assert.ok(html.includes('app.js?v=3.5.0'), 'index.html should reference ?v=3.5.0');
-    assert.ok(!html.includes('?v=3.4.0'), 'index.html should not have stale ?v=3.4.0 queries');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.6.0';"), 'sw.js CACHE_NAME should be v3.6.0');
+    assert.ok(html.includes('app.js?v=3.6.0'), 'index.html should reference ?v=3.6.0');
+    assert.ok(!html.includes('?v=3.5.0'), 'index.html should not have stale ?v=3.5.0 queries');
 });
 
 // -------------------------------------------------------------
@@ -667,6 +670,44 @@ it('MathCore.findRoots & findIntersections detect roots and f(x)=g(x) intersecti
     assert.strictEqual(inter[0].y, 0);
     assert.strictEqual(inter[1].x, 3);
     assert.strictEqual(inter[1].y, 5);
+});
+
+// -------------------------------------------------------------
+// 13. v3.6.0 Statistical Bar Chart & Offline GuideBot
+// -------------------------------------------------------------
+console.log('\n[13] v3.6.0 Statistical Bar Chart & Offline GuideBot');
+const GuideBot = require(path.join(ROOT, 'js/guide-bot.js'));
+
+it('VisualCharts.renderStatistics renders localized Mean indicator line (Orta / Mean)', () => {
+    const svgAz = VisualCharts.renderStatistics([5, 10, 15, 20, 25], { mean: 15 }, 'az');
+    assert.ok(svgAz.includes('Orta: x̄ = 15') && svgAz.includes('stroke-dasharray="5 3"'));
+    const svgEn = VisualCharts.renderStatistics([5, 10, 15, 20, 25], { mean: 15 }, 'en');
+    assert.ok(svgEn.includes('Mean: x̄ = 15') && svgEn.includes('stroke-dasharray="5 3"'));
+});
+
+it('GuideBot.searchTopics matches key curriculum queries in AZ & EN', () => {
+    assert.strictEqual(GuideBot.searchTopics('konus', 'az')[0].id, 'solids');
+    assert.strictEqual(GuideBot.searchTopics('diskriminant', 'az')[0].id, 'quadratic');
+    assert.strictEqual(GuideBot.searchTopics('limit', 'en')[0].id, 'limit');
+    assert.strictEqual(GuideBot.searchTopics('əbob', 'az')[0].id, 'numbertheory');
+    assert.strictEqual(GuideBot.searchTopics('vektor', 'az')[0].id, 'vectors');
+});
+
+it('GuideBot topics and tour steps have 100% AZ/EN bilingual parity', () => {
+    for (const topic of GuideBot.TOPICS) {
+        assert.ok(topic.az.title && topic.az.formula && topic.az.desc, `Missing AZ fields for ${topic.id}`);
+        assert.ok(topic.en.title && topic.en.formula && topic.en.desc, `Missing EN fields for ${topic.id}`);
+    }
+    for (const step of GuideBot.TOUR_STEPS) {
+        assert.ok(step.az.title && step.az.desc && step.en.title && step.en.desc, `Missing tour translations for ${step.target}`);
+    }
+});
+
+it('GuideBot.getQuickChips returns 3-4 context-aware chips per tab', () => {
+    for (const tab of ['calculator', 'geometry', 'algebra', 'analysis', 'statistics', 'settings']) {
+        const chips = GuideBot.getQuickChips(tab, 'az');
+        assert.ok(chips.length >= 3 && chips.length <= 4, `Expected 3-4 chips for ${tab}`);
+    }
 });
 
 console.log(`\n========================================`);

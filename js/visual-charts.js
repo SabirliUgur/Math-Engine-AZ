@@ -513,7 +513,7 @@
         const mean = typeof statsObj.mean === 'number' ? statsObj.mean : (nums.reduce((a, b) => a + b, 0) / nums.length);
 
         // Compute Y scale
-        const yFloor = Math.min(0, minVal);
+        const yFloor = Math.min(0, minVal * 1.15);
         const yCeil = Math.max(maxVal * 1.15, mean * 1.15, 1);
         const yRange = yCeil - yFloor || 1;
 
@@ -579,8 +579,8 @@
                 <!-- Mean Line Indicator (Green Dashed) -->
                 <line x1="${padX - 5}" y1="${meanY}" x2="${w - padX + 5}" y2="${meanY}" stroke="#10B981" stroke-width="2" stroke-dasharray="5 3" />
                 <circle cx="${w - padX + 5}" cy="${meanY}" r="3.5" fill="#10B981" />
-                <text x="${w - padX - 4}" y="${meanY - 6}" fill="#10B981" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" text-anchor="end">
-                    x̄ = ${formatVal(mean)}
+                <text x="${w - padX - 4}" y="${Math.max(meanY - 6, 18)}" fill="#10B981" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" text-anchor="end">
+                    ${isEn ? 'Mean' : 'Orta'}: x̄ = ${formatVal(mean)}
                 </text>
             </svg>
         `;

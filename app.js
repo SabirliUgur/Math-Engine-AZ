@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initMatrix();
     loadHistory();
     initInputFocusTracking();
+    if (window.GuideBot && typeof GuideBot.init === 'function') {
+        GuideBot.init();
+    }
 
     const activeTabBtn = document.querySelector('.tab-btn.active');
     if (activeTabBtn) {
@@ -213,6 +216,17 @@ function initTabs() {
         });
     });
 }
+
+function navigateToModule(tabId, subtabId) {
+    const tabBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if (tabBtn) tabBtn.click();
+    if (subtabId) {
+        const sec = document.getElementById(`sec-${tabId}`);
+        const subBtn = sec ? sec.querySelector(`.sub-tab[data-subtab="${subtabId}"]`) : null;
+        if (subBtn) subBtn.click();
+    }
+}
+window.navigateToModule = navigateToModule;
 
 function initSubTabs() {
     document.querySelectorAll('.sub-tabs').forEach(container => {
