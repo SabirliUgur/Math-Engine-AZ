@@ -1168,6 +1168,97 @@
         }
     };
 
+    // =========================================================
+    // 7B. NUMBER THEORY & COMBINATORICS
+    // =========================================================
+
+    /** Greatest Common Divisor of two integers. */
+    function gcd(a, b) {
+        a = Math.abs(Math.trunc(a));
+        b = Math.abs(Math.trunc(b));
+        while (b !== 0) {
+            const t = b;
+            b = a % b;
+            a = t;
+        }
+        return a;
+    }
+
+    /** Least Common Multiple of two integers. */
+    function lcm(a, b) {
+        a = Math.abs(Math.trunc(a));
+        b = Math.abs(Math.trunc(b));
+        if (a === 0 || b === 0) return 0;
+        return Math.abs((a / gcd(a, b)) * b);
+    }
+
+    /** Greatest Common Divisor of an array of integers. */
+    function gcdMulti(arr) {
+        if (!Array.isArray(arr) || arr.length === 0) return NaN;
+        return arr.reduce((acc, val) => gcd(acc, val));
+    }
+
+    /** Least Common Multiple of an array of integers. */
+    function lcmMulti(arr) {
+        if (!Array.isArray(arr) || arr.length === 0) return NaN;
+        return arr.reduce((acc, val) => lcm(acc, val));
+    }
+
+    /** Prime factorization of a positive integer >= 2. Returns [{ prime, power }]. */
+    function primeFactorize(n) {
+        n = Math.trunc(n);
+        if (!Number.isInteger(n) || n < 2) return [];
+        const factors = [];
+        let d = 2;
+        while (d * d <= n) {
+            if (n % d === 0) {
+                let power = 0;
+                while (n % d === 0) {
+                    n = Math.trunc(n / d);
+                    power++;
+                }
+                factors.push({ prime: d, power });
+            }
+            d += (d === 2 ? 1 : 2);
+        }
+        if (n > 1) {
+            factors.push({ prime: n, power: 1 });
+        }
+        return factors;
+    }
+
+    /** Factorial of non-negative integer n. */
+    function intFactorial(n) {
+        if (!Number.isInteger(n) || n < 0) return NaN;
+        let res = 1;
+        for (let i = 2; i <= n; i++) res *= i;
+        return res;
+    }
+
+    /** Permutation P_n = n! */
+    function permutation(n) {
+        return intFactorial(n);
+    }
+
+    /** Arrangement A_n^k = n! / (n - k)! */
+    function arrangement(n, k) {
+        if (!Number.isInteger(n) || !Number.isInteger(k) || n < 0 || k < 0 || k > n) return NaN;
+        let res = 1;
+        for (let i = 0; i < k; i++) res *= (n - i);
+        return res;
+    }
+
+    /** Combination C_n^k = n! / (k! * (n - k)!) */
+    function combination(n, k) {
+        if (!Number.isInteger(n) || !Number.isInteger(k) || n < 0 || k < 0 || k > n) return NaN;
+        k = Math.min(k, n - k);
+        let res = 1;
+        for (let i = 1; i <= k; i++) {
+            res = (res * (n - k + i)) / i;
+        }
+        return Math.round(res);
+    }
+
     // Auto-init ans from existing storage if available
     HistoryStore.initAns();
 
@@ -1182,6 +1273,14 @@
         derivative,
         definiteIntegral,
         sampleFunction,
+        gcd,
+        lcm,
+        gcdMulti,
+        lcmMulti,
+        primeFactorize,
+        permutation,
+        arrangement,
+        combination,
         HistoryStore,
         ERRORS,
         CONSTANTS,

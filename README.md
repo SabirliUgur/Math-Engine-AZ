@@ -1,10 +1,10 @@
-# 🧮 Math-Engine-AZ (v3.0.0 — "Structured Math Editor, Interactive Step-by-Step Solver, 2D Geometry & Statistical Charts")
+# 🧮 Math-Engine-AZ (v3.1.0 — "Number Theory, Combinatorics & Multi-Factor Step Solver")
 
-Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), 2D həndəsə çertyojlu və statistik paylanma qrafikli, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
+Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), 2D həndəsə çertyojlu, statistik paylanma qrafikli, ədədlər nəzəriyyəsi və kombinatorika modullu, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
 
 [![Canlı Demo](https://img.shields.io/badge/Demo-Canlı%20Sayt-6366f1?style=for-the-badge&logo=githubpages&logoColor=white)](https://sabirliugur.github.io/Math-Engine-AZ/)
 [![Lisenziya](https://img.shields.io/badge/Lisenziya-MIT-green?style=for-the-badge)](LICENSE)
-[![Versiya](https://img.shields.io/badge/Versiya-v3.0.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Versiya](https://img.shields.io/badge/Versiya-v3.1.0-blue?style=for-the-badge)](CHANGELOG.md)
 [![PWA Dəstəyi](https://img.shields.io/badge/PWA-Oflayn%20Dəstəkli-orange?style=for-the-badge)](manifest.json)
 
 ---
@@ -12,6 +12,14 @@ Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vi
 ## 🌐 Canlı Keçid (Live Demo)
 Tətbiqi heç bir quraşdırma tələb olunmadan birbaşa brauzerinizdə istifadə edin:  
 👉 **[https://sabirliugur.github.io/Math-Engine-AZ/](https://sabirliugur.github.io/Math-Engine-AZ/)**
+
+---
+
+## ✨ v3.1.0 Yenilikləri
+- **Ədədlər Nəzəriyyəsi və Kombinatorika (`Statistika` → `Ədədlər və Kombinatorika`)**:
+  - **ƏBOB və ƏKOB (`GCD & LCM`)**: İstənilən sayda (2+) müsbət tam ədəd üçün ƏBOB, ƏKOB və sadə vuruqlara ayırma ($24 = 2^3 \times 3$).
+  - **Kombinatorika**: Permutasiya ($P_n = n!$), Aranjeman ($A_n^k = \frac{n!}{(n-k)!}$) və Kombinezon ($C_n^k = \frac{n!}{k!(n-k)!}$) hesablayıcısı.
+- **Çoxvuruqlu Həll Addımları (`js/step-solver.js`)**: Mürəkkəb ifadələrdə (`√5 × 3 2/3`, `2 * (1/3) + 4`) bütün vuruqları sol tərəfdə qoruyan aralıq addım kartları.
 
 ---
 

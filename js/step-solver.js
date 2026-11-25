@@ -1,5 +1,5 @@
 /**
- * StepSolver v3.0.0 — Interactive Step-by-Step Mathematical Solver for Math Engine AZ
+ * StepSolver v3.1.0 — Interactive Step-by-Step Mathematical Solver for Math Engine AZ
  * Generates transparent, human-readable primary step cards and expandable sub-steps
  * (Photomath-inspired breakdown) with true visual stacked fractions, mixed numbers,
  * and alternative representations in Azerbaijani and English.
@@ -149,9 +149,11 @@
                     ]
                 });
 
-                // Check if there is an outer operation (e.g. "5 * 5 1/2")
-                const outerMulMatch = raw.match(/^([0-9.]+)\s*[*×·]\s*.+$/) || raw.match(/^.+\s*[*×·]\s*([0-9.]+)$/);
-                const outerDivMatch = raw.match(/^.+\s*[/÷]\s*([0-9.]+)$/);
+                // Check if there is a simple outer operation (e.g. "5 * 5 1/2" or "5 1/2 / 2")
+                const escapedMixed = mixedMatch[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const outerMulMatch = raw.match(new RegExp(`^([0-9.]+)\\s*[*×·]\\s*${escapedMixed}$`)) ||
+                                      raw.match(new RegExp(`^${escapedMixed}\\s*[*×·]\\s*([0-9.]+)$`));
+                const outerDivMatch = raw.match(new RegExp(`^${escapedMixed}\\s*[/÷]\\s*([0-9.]+)$`));
 
                 if (outerMulMatch) {
                     const factor = parseFloat(outerMulMatch[1]);
@@ -198,20 +200,40 @@
                         ]
                     });
                 } else if (steps.length === 1 && finalVal !== null) {
-                    // Only standalone mixed number
-                    steps.push({
-                        title: isEn ? "2. Decimal equivalent" : "2. Onluq kəsr qarşılığı",
-                        formula: `${renderFracHtml(impNum, den)} = ${finalVal}`,
-                        explanation: isEn
-                            ? `Divide numerator ${impNum} by denominator ${den} to obtain decimal form.`
-                            : `Sürəti (${impNum}) məxrəcə (${den}) bölərək onluq kəsr qiymətini əldə edin.`,
-                        substeps: [
-                            {
-                                formula: `${impNum} ÷ ${den} = ${finalVal}`,
-                                explanation: isEn ? "Long division calculation." : "Bölmə əməliyyatının nəticəsi."
-                            }
-                        ]
-                    });
+                    const isStandaloneMixed = raw.replace(/\s+/g, '') === mixedMatch[0].replace(/\s+/g, '');
+                    if (isStandaloneMixed) {
+                        // Only standalone mixed number
+                        steps.push({
+                            title: isEn ? "2. Decimal equivalent" : "2. Onluq kəsr qarşılığı",
+                            formula: `${renderFracHtml(impNum, den)} = ${finalVal}`,
+                            explanation: isEn
+                                ? `Divide numerator ${impNum} by denominator ${den} to obtain decimal form.`
+                                : `Sürəti (${impNum}) məxrəcə (${den}) bölərək onluq kəsr qiymətini əldə edin.`,
+                            substeps: [
+                                {
+                                    formula: `${impNum} ÷ ${den} = ${finalVal}`,
+                                    explanation: isEn ? "Long division calculation." : "Bölmə əməliyyatının nəticəsi."
+                                }
+                            ]
+                        });
+                    } else {
+                        // Compound multi-factor/multi-term expression: preserve full LHS context
+                        const replacedHtml = raw.replace(mixedMatch[0], renderFracHtml(impNum, den));
+                        const replacedText = raw.replace(mixedMatch[0], `(${impNum}/${den})`);
+                        steps.push({
+                            title: isEn ? "2. Substitute improper fraction & evaluate" : "2. Düzgün olmayan kəsri yerinə qoyun və hesablayın",
+                            formula: `${replacedHtml} = ${finalVal}`,
+                            explanation: isEn
+                                ? `Substitute ${impNum}/${den} back into the full expression and evaluate.`
+                                : `${impNum}/${den} kəsrini tam ifadədə yerinə qoyub hesablayın.`,
+                            substeps: [
+                                {
+                                    formula: `${replacedText} = ${finalVal}`,
+                                    explanation: isEn ? "Full expression context preserved." : "Tam ifadə konteksti qorunaraq hesablandı."
+                                }
+                            ]
+                        });
+                    }
                 }
 
                 // Final Step: Result
@@ -565,32 +587,39 @@
         }
 
         // DEFAULT: General Arithmetic Steps (PEMDAS breakdown)
-        steps.push({
-            title: isEn ? "1. Expression structure" : "1. İfadənin strukturu",
-            formula: raw,
-            explanation: isEn
-                ? "Evaluate following standard mathematical order of operations (PEMDAS)."
-                : "Standart riyazi əməliyyat ardıcıllığı (mötərizələr, qüvvətlər, vurma/bölmə, toplama/çıxma) ilə icra olunur.",
-            substeps: [
-                {
-                    formula: 'PEMDAS: P → E → MD → AS',
-                    explanation: isEn ? "Parentheses → Exponents → Multiplication/Division → Addition/Subtraction." : "Mötərizələr → Qüvvətlər → Vurma/Bölmə → Toplama/Çıxma."
-                }
-            ]
-        });
+        // Try to build intermediate multi-factor steps that preserve full context
+        const intermediateSteps = buildIntermediateSteps(raw, finalVal, isEn, MathCore, angleMode);
 
-        if (finalVal !== null) {
+        if (intermediateSteps && intermediateSteps.length > 0) {
+            intermediateSteps.forEach(s => steps.push(s));
+        } else {
             steps.push({
-                title: isEn ? "2. Evaluated result" : "2. Yekun nəticə",
-                formula: `= ${finalVal}`,
-                explanation: isEn ? "Cleaned of floating-point precision artifacts." : "IEEE-754 üzən nöqtə dəqiqlik təmizləyicisi ilə hesablandı.",
+                title: isEn ? "1. Expression structure" : "1. İfadənin strukturu",
+                formula: raw,
+                explanation: isEn
+                    ? "Evaluate following standard mathematical order of operations (PEMDAS)."
+                    : "Standart riyazi əməliyyat ardıcıllığı (mötərizələr, qüvvətlər, vurma/bölmə, toplama/çıxma) ilə icra olunur.",
                 substeps: [
                     {
-                        formula: `${raw} = ${finalVal}`,
-                        explanation: isEn ? "Final value verified." : "Yekun qiymət təsdiqləndi."
+                        formula: 'PEMDAS: P → E → MD → AS',
+                        explanation: isEn ? "Parentheses → Exponents → Multiplication/Division → Addition/Subtraction." : "Mötərizələr → Qüvvətlər → Vurma/Bölmə → Toplama/Çıxma."
                     }
                 ]
             });
+
+            if (finalVal !== null) {
+                steps.push({
+                    title: isEn ? "2. Evaluated result" : "2. Yekun nəticə",
+                    formula: `= ${finalVal}`,
+                    explanation: isEn ? "Cleaned of floating-point precision artifacts." : "IEEE-754 üzən nöqtə dəqiqlik təmizləyicisi ilə hesablandı.",
+                    substeps: [
+                        {
+                            formula: `${raw} = ${finalVal}`,
+                            explanation: isEn ? "Final value verified." : "Yekun qiymət təsdiqləndi."
+                        }
+                    ]
+                });
+            }
         }
 
         return {
@@ -601,6 +630,189 @@
             steps,
             altForms
         };
+    }
+
+    /**
+     * Build intermediate step cards that preserve full expression context.
+     * For compound expressions like "√5 × 3 2/3", this ensures the LHS
+     * of each step shows the complete expression rather than dropping earlier factors.
+     */
+    function buildIntermediateSteps(raw, finalVal, isEn, MC, angleMode) {
+        if (finalVal === null || !isFinite(finalVal)) return null;
+
+        // Tokenize by top-level + or - operators (respecting parentheses)
+        const tokens = tokenizeTopLevel(raw);
+        if (!tokens || tokens.length < 2) {
+            // For single-term or simple compound multiplication: try factor decomposition
+            const factors = tokenizeFactors(raw);
+            if (!factors || factors.length < 2) return null;
+
+            // Multi-factor expression: evaluate each factor while preserving full context
+            const steps = [];
+            let stepNum = 1;
+
+            steps.push({
+                title: isEn ? `${stepNum++}. Expression structure` : `${stepNum++}. İfadənin strukturu`,
+                formula: raw,
+                explanation: isEn
+                    ? "Identify each factor in the expression and evaluate them following PEMDAS."
+                    : "İfadədəki hər bir vuruğu müəyyən edin və PEMDAS qaydasına uyğun hesablayın.",
+                substeps: [
+                    {
+                        formula: 'PEMDAS: P → E → MD → AS',
+                        explanation: isEn ? "Parentheses → Exponents → Multiplication/Division → Addition/Subtraction." : "Mötərizələr → Qüvvətlər → Vurma/Bölmə → Toplama/Çıxma."
+                    }
+                ]
+            });
+
+            // Show intermediate evaluations preserving full expression context
+            let partialExpr = raw;
+            const substepsDetail = [];
+            for (let i = 0; i < factors.length; i++) {
+                const factor = factors[i].term.trim();
+                let factorVal;
+                try {
+                    factorVal = MC && typeof MC.evaluate === 'function'
+                        ? MC.evaluate(factor, { angleMode, lang: isEn ? 'en' : 'az' })
+                        : null;
+                } catch (e) { factorVal = null; }
+
+                if (factorVal !== null && factor !== String(factorVal)) {
+                    substepsDetail.push({
+                        formula: `${factor} = ${factorVal}`,
+                        explanation: isEn ? `Evaluate factor: ${factor}` : `Vuruğu hesablayın: ${factor}`
+                    });
+                    // Replace the factor in partial expression with its value
+                    partialExpr = partialExpr.replace(factor, String(factorVal));
+                }
+            }
+
+            if (substepsDetail.length > 0) {
+                steps.push({
+                    title: isEn ? `${stepNum++}. Evaluate individual factors` : `${stepNum++}. Hər bir vuruğu hesablayın`,
+                    formula: `${raw} → ${partialExpr}`,
+                    explanation: isEn
+                        ? "Evaluate each sub-expression while preserving the full expression context."
+                        : "Tam ifadə kontekstini qoruyaraq hər bir alt-ifadəni hesablayın.",
+                    substeps: substepsDetail
+                });
+            }
+
+            steps.push({
+                title: isEn ? `${stepNum++}. Final Result` : `${stepNum++}. Yekun nəticə`,
+                formula: `${raw} = ${finalVal}`,
+                explanation: isEn ? "Full expression evaluated with exact precision." : "Tam ifadə dəqiq arifmetik ilə hesablandı.",
+                substeps: [
+                    {
+                        formula: `= ${finalVal}`,
+                        explanation: isEn ? "Final value verified." : "Yekun qiymət təsdiqləndi."
+                    }
+                ]
+            });
+
+            return steps;
+        }
+
+        // Multi-term addition/subtraction: show each term evaluation
+        const steps = [];
+        let stepNum = 1;
+
+        steps.push({
+            title: isEn ? `${stepNum++}. Expression structure` : `${stepNum++}. İfadənin strukturu`,
+            formula: raw,
+            explanation: isEn
+                ? "Evaluate following standard mathematical order of operations (PEMDAS)."
+                : "Standart riyazi əməliyyat ardıcıllığı ilə icra olunur.",
+            substeps: [
+                {
+                    formula: 'PEMDAS: P → E → MD → AS',
+                    explanation: isEn ? "Parentheses → Exponents → Multiplication/Division → Addition/Subtraction." : "Mötərizələr → Qüvvətlər → Vurma/Bölmə → Toplama/Çıxma."
+                }
+            ]
+        });
+
+        const termDetails = [];
+        for (const t of tokens) {
+            const term = t.term.trim();
+            let termVal;
+            try {
+                termVal = MC && typeof MC.evaluate === 'function'
+                    ? MC.evaluate(term, { angleMode, lang: isEn ? 'en' : 'az' })
+                    : null;
+            } catch (e) { termVal = null; }
+
+            if (termVal !== null && term !== String(termVal)) {
+                termDetails.push({
+                    formula: `${term} = ${termVal}`,
+                    explanation: isEn ? `Evaluate term: ${term}` : `Həddi hesablayın: ${term}`
+                });
+            }
+        }
+
+        if (termDetails.length > 0) {
+            steps.push({
+                title: isEn ? `${stepNum++}. Evaluate each term` : `${stepNum++}. Hər bir həddi hesablayın`,
+                formula: raw,
+                explanation: isEn ? "Compute sub-expressions preserving full expression context." : "Tam ifadə kontekstini qoruyaraq alt-ifadələri hesablayın.",
+                substeps: termDetails
+            });
+        }
+
+        steps.push({
+            title: isEn ? `${stepNum++}. Final Result` : `${stepNum++}. Yekun nəticə`,
+            formula: `${raw} = ${finalVal}`,
+            explanation: isEn ? "Cleaned of floating-point precision artifacts." : "IEEE-754 üzən nöqtə dəqiqlik təmizləyicisi ilə hesablandı.",
+            substeps: [
+                {
+                    formula: `= ${finalVal}`,
+                    explanation: isEn ? "Final value verified." : "Yekun qiymət təsdiqləndi."
+                }
+            ]
+        });
+
+        return steps;
+    }
+
+    /**
+     * Tokenize expression into top-level terms split by + or - (outside parentheses).
+     */
+    function tokenizeTopLevel(expr) {
+        const tokens = [];
+        let depth = 0;
+        let current = '';
+        for (let i = 0; i < expr.length; i++) {
+            const ch = expr[i];
+            if (ch === '(') { depth++; current += ch; }
+            else if (ch === ')') { depth--; current += ch; }
+            else if (depth === 0 && (ch === '+' || ch === '-') && i > 0 && current.trim()) {
+                tokens.push({ term: current.trim(), op: ch });
+                current = ch === '-' ? '-' : '';
+            }
+            else { current += ch; }
+        }
+        if (current.trim()) tokens.push({ term: current.trim() });
+        return tokens.length >= 2 ? tokens : null;
+    }
+
+    /**
+     * Tokenize expression into top-level multiplication/division factors.
+     */
+    function tokenizeFactors(expr) {
+        const tokens = [];
+        let depth = 0;
+        let current = '';
+        for (let i = 0; i < expr.length; i++) {
+            const ch = expr[i];
+            if (ch === '(') { depth++; current += ch; }
+            else if (ch === ')') { depth--; current += ch; }
+            else if (depth === 0 && (ch === '*' || ch === '×' || ch === '·' || ch === '/')) {
+                if (current.trim()) tokens.push({ term: current.trim(), op: ch });
+                current = '';
+            }
+            else { current += ch; }
+        }
+        if (current.trim()) tokens.push({ term: current.trim() });
+        return tokens.length >= 2 ? tokens : null;
     }
 
     return {

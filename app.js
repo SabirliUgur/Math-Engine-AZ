@@ -2514,3 +2514,148 @@ function matMultiply(A, B, n) {
     }
     return R;
 }
+
+/* ==========================================================
+   10. NUMBER THEORY & COMBINATORICS (v3.1.0)
+   ========================================================== */
+function toSuperscriptNum(n) {
+    const map = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+    return String(n).split('').map(c => map[c] || c).join('');
+}
+
+function formatPrimeFactorization(n) {
+    if (n === 1) return '1 = 1';
+    const factors = (window.MathCore && MathCore.primeFactorize) ? MathCore.primeFactorize(n) : [];
+    if (!factors.length) return `${n} = ${n}`;
+    const rhs = factors.map(f => f.power > 1 ? `${f.prime}${toSuperscriptNum(f.power)}` : `${f.prime}`).join(' × ');
+    return `${n} = ${rhs}`;
+}
+
+function calcGcdLcm() {
+    const raw = document.getElementById('gcdLcmInput').value.trim();
+    const out = document.getElementById('gcdLcmResult');
+    const isEn = isEnglish();
+
+    if (!raw) {
+        out.innerHTML = `<span class="error">${isEn ? 'Please enter 2 or more positive integers.' : 'Zəhmət olmasa 2 və ya daha çox müsbət tam ədəd daxil edin.'}</span>`;
+        return;
+    }
+
+    const parts = raw.split(',').map(s => s.trim()).filter(s => s !== '');
+    if (parts.length < 2) {
+        out.innerHTML = `<span class="error">${isEn ? 'Please enter at least 2 comma-separated positive integers.' : 'Vergüllə ayrılmış ən azı 2 müsbət tam ədəd daxil edin.'}</span>`;
+        return;
+    }
+
+    const nums = [];
+    for (const p of parts) {
+        if (!/^\d+$/.test(p)) {
+            out.innerHTML = `<span class="error">${isEn ? 'All values must be positive integers.' : 'Bütün qiymətlər müsbət tam ədəd olmalıdır.'}</span>`;
+            return;
+        }
+        const val = parseInt(p, 10);
+        if (val <= 0) {
+            out.innerHTML = `<span class="error">${isEn ? 'All integers must be greater than 0.' : 'Bütün tam ədədlər 0-dan böyük olmalıdır.'}</span>`;
+            return;
+        }
+        nums.push(val);
+    }
+
+    const gcdVal = MathCore.gcdMulti(nums);
+    const lcmVal = MathCore.lcmMulti(nums);
+    const gcdLabel = isEn ? 'GCD' : 'ƏBOB';
+    const lcmLabel = isEn ? 'LCM' : 'ƏKOB';
+    const primeLabel = isEn ? 'Prime Factorization:' : 'Sadə vuruqlara ayırma:';
+    const factorLines = nums.map(n => `<div class="formula">${formatPrimeFactorization(n)}</div>`).join('');
+
+    out.innerHTML = `
+        <div><span class="label">${gcdLabel}(${nums.join(', ')}) = </span><span class="value">${formatNumber(gcdVal)}</span></div>
+        <div><span class="label">${lcmLabel}(${nums.join(', ')}) = </span><span class="value">${formatNumber(lcmVal)}</span></div>
+        <div class="mt-2"><span class="label">${primeLabel}</span></div>
+        ${factorLines}
+    `;
+
+    addToHistory(
+        isEn ? 'Statistics' : 'Statistika',
+        `${gcdLabel}/${lcmLabel}(${nums.join(', ')})`,
+        `${gcdLabel}=${formatNumber(gcdVal)}, ${lcmLabel}=${formatNumber(lcmVal)}`
+    );
+}
+
+function readNtCombInputs(requireK) {
+    const nRaw = document.getElementById('ntCombN').value.trim();
+    const kRaw = document.getElementById('ntCombK').value.trim();
+    const isEn = isEnglish();
+
+    if (!/^\d+$/.test(nRaw)) {
+        return { error: isEn ? 'n must be a non-negative integer.' : 'n mənfi olmayan tam ədəd olmalıdır.' };
+    }
+    const n = parseInt(nRaw, 10);
+    if (!requireK) {
+        if (n > 170) return { error: isEn ? 'n must be ≤ 170 to avoid overflow.' : 'Daşmanın qarşısını almaq üçün n ≤ 170 olmalıdır.' };
+        return { n, k: 0 };
+    }
+
+    if (!/^\d+$/.test(kRaw)) {
+        return { error: isEn ? 'n and k must be non-negative integers.' : 'n və k mənfi olmayan tam ədəd olmalıdır.' };
+    }
+    const k = parseInt(kRaw, 10);
+    if (k < 0 || k > n) {
+        return { error: isEn ? '0 ≤ k ≤ n is required.' : '0 ≤ k ≤ n şərti ödənilməlidir.' };
+    }
+    if (n > 170) {
+        return { error: isEn ? 'n must be ≤ 170 to avoid overflow.' : 'Daşmanın qarşısını almaq üçün n ≤ 170 olmalıdır.' };
+    }
+    return { n, k };
+}
+
+function calcFullPermutation() {
+    const out = document.getElementById('ntCombResult');
+    const isEn = isEnglish();
+    const parsed = readNtCombInputs(false);
+    if (parsed.error) {
+        out.innerHTML = `<span class="error">${parsed.error}</span>`;
+        return;
+    }
+    const { n } = parsed;
+    const res = MathCore.permutation(n);
+    out.innerHTML = `
+        <div><span class="label">${isEn ? 'Permutation' : 'Permutasiya'} P(${n}) = </span><span class="value">${formatNumber(res)}</span></div>
+        <span class="formula">Pₙ = n! = ${n}! = ${formatNumber(res)}</span>
+    `;
+    addToHistory(isEn ? 'Statistics' : 'Statistika', `P(${n})`, formatNumber(res));
+}
+
+function calcArrangement() {
+    const out = document.getElementById('ntCombResult');
+    const isEn = isEnglish();
+    const parsed = readNtCombInputs(true);
+    if (parsed.error) {
+        out.innerHTML = `<span class="error">${parsed.error}</span>`;
+        return;
+    }
+    const { n, k } = parsed;
+    const res = MathCore.arrangement(n, k);
+    out.innerHTML = `
+        <div><span class="label">${isEn ? 'Arrangement' : 'Aranjeman'} A(${n}, ${k}) = </span><span class="value">${formatNumber(res)}</span></div>
+        <span class="formula">Aₙᵏ = n! / (n − k)! = ${n}! / ${n - k}! = ${formatNumber(res)}</span>
+    `;
+    addToHistory(isEn ? 'Statistics' : 'Statistika', `A(${n},${k})`, formatNumber(res));
+}
+
+function calcFullCombination() {
+    const out = document.getElementById('ntCombResult');
+    const isEn = isEnglish();
+    const parsed = readNtCombInputs(true);
+    if (parsed.error) {
+        out.innerHTML = `<span class="error">${parsed.error}</span>`;
+        return;
+    }
+    const { n, k } = parsed;
+    const res = MathCore.combination(n, k);
+    out.innerHTML = `
+        <div><span class="label">${isEn ? 'Combination' : 'Kombinezon'} C(${n}, ${k}) = </span><span class="value">${formatNumber(res)}</span></div>
+        <span class="formula">Cₙᵏ = n! / (k!(n − k)!) = ${n}! / (${k}! · ${n - k}!) = ${formatNumber(res)}</span>
+    `;
+    addToHistory(isEn ? 'Statistics' : 'Statistika', `C(${n},${k})`, formatNumber(res));
+}

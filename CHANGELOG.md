@@ -5,6 +5,26 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [3.1.0] - 2026-11-25 — "Number Theory, Combinatorics & Multi-Factor Step Solver"
+
+### 🔢 Ədədlər Nəzəriyyəsi və Kombinatorika (`Statistika` bölməsi)
+- **Yeni Alt-Vərəq (`Ədədlər və Kombinatorika` / `Number Theory & Combinatorics`)**:
+  - **ƏBOB və ƏKOB (`GCD & LCM`)**: Vergüllə ayrılmış 2 və ya daha çox müsbət tam ədəd üçün dəqiq **ƏBOB (`GCD`)**, **ƏKOB (`LCM`)** və hər bir ədəd üçün **Sadə Vuruqlara Ayırma (`Prime Factorization`)** (məs: `24 = 2³ × 3`).
+  - **Kombinatorika (`Permutasiya, Aranjeman, Kombinezon`)**: `0 ≤ k ≤ n` tam ədəd yoxlaması ilə:
+    - Permutasiya: $P_n = n!$
+    - Aranjeman: $A_n^k = \frac{n!}{(n-k)!}$
+    - Kombinezon: $C_n^k = \frac{n!}{k!(n-k)!}$
+  - Bütün hesablamalar `MathCore.HistoryStore`-a ikidilli (`AZ`/`EN`) etiketlərlə qeyd olunur.
+
+### 🧩 Çoxvuruqlu İfadələrdə Tam Kontekstli Həll Addımları (`js/step-solver.js`)
+- **Tam Sol Tərəf Konteksti**: `√5 × 3 2/3` və ya `2 * (1/3) + 4` kimi mürəkkəb çoxvuruqlu ifadələrdə aralıq addım kartları əvvəlki vuruqları itirmədən tam ifadəni sol tərəfdə qoruyur (məs: `√5 × (11/3) = 8.1989159175`).
+
+### 🌐 Tam İkidilli Dəstək və PWA Keş
+- Bütün yeni başlıqlar, düymələr, formullar və xəta mesajları `AZ` və `EN` dillərində 100% lokallaşdırıldı.
+- `sw.js` keş adı `'math-engine-az-v3.1.0'` olaraq yeniləndi.
+
+---
+
 ## [3.0.1] - 2026-11-25 — "100% Bilingual AZ/EN Localization & Label Cleanup"
 
 ### 🌐 Tam İkidilli Lokalizasiya və Etiket Təmizliyi (`AZ` / `EN`)

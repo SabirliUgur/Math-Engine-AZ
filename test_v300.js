@@ -283,19 +283,19 @@ it('Translates historyEmpty correctly in AZ and EN', () => {
 });
 
 // -------------------------------------------------------------
-// 6. index.html & sw.js v3.0.1 Verification
+// 6. index.html & sw.js v3.1.0 Verification
 // -------------------------------------------------------------
 console.log('\n[6] HTML & Service Worker Verification Tests');
 
-it('index.html references all scripts with v3.0.1 query string', () => {
+it('index.html references all scripts with v3.1.0 query string', () => {
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(html.includes('style.css?v=3.0.1'), 'style.css should have v=3.0.1');
-    assert.ok(html.includes('js/math-core.js?v=3.0.1'), 'math-core.js should have v=3.0.1');
-    assert.ok(html.includes('js/math-editor.js?v=3.0.1'), 'math-editor.js should have v=3.0.1');
-    assert.ok(html.includes('js/visual-charts.js?v=3.0.1'), 'visual-charts.js should have v=3.0.1');
-    assert.ok(html.includes('js/i18n.js?v=3.0.1'), 'i18n.js should have v=3.0.1');
-    assert.ok(html.includes('js/step-solver.js?v=3.0.1'), 'step-solver.js should have v=3.0.1');
-    assert.ok(html.includes('app.js?v=3.0.1'), 'app.js should have v=3.0.1');
+    assert.ok(html.includes('style.css?v=3.1.0'), 'style.css should have v=3.1.0');
+    assert.ok(html.includes('js/math-core.js?v=3.1.0'), 'math-core.js should have v=3.1.0');
+    assert.ok(html.includes('js/math-editor.js?v=3.1.0'), 'math-editor.js should have v=3.1.0');
+    assert.ok(html.includes('js/visual-charts.js?v=3.1.0'), 'visual-charts.js should have v=3.1.0');
+    assert.ok(html.includes('js/i18n.js?v=3.1.0'), 'i18n.js should have v=3.1.0');
+    assert.ok(html.includes('js/step-solver.js?v=3.1.0'), 'step-solver.js should have v=3.1.0');
+    assert.ok(html.includes('app.js?v=3.1.0'), 'app.js should have v=3.1.0');
 });
 
 it('index.html has removed "F(X) • ENGINE" header badge', () => {
@@ -319,11 +319,11 @@ it('index.html isolates Parametrlər with sidebar separator', () => {
     assert.ok(html.includes('sidebar-nav-divider'), 'sidebar-nav-divider should exist before settings');
 });
 
-it('sw.js cache name is updated to math-engine-az-v3.0.1', () => {
+it('sw.js cache name is updated to math-engine-az-v3.1.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.0.1'"), 'CACHE_NAME should be math-engine-az-v3.0.1');
-    assert.ok(sw.includes('./js/math-editor.js?v=3.0.1'), 'sw.js should precache math-editor.js?v=3.0.1');
-    assert.ok(sw.includes('./js/visual-charts.js?v=3.0.1'), 'sw.js should precache visual-charts.js?v=3.0.1');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.1.0'"), 'CACHE_NAME should be math-engine-az-v3.1.0');
+    assert.ok(sw.includes('./js/math-editor.js?v=3.1.0'), 'sw.js should precache math-editor.js?v=3.1.0');
+    assert.ok(sw.includes('./js/visual-charts.js?v=3.1.0'), 'sw.js should precache visual-charts.js?v=3.1.0');
 });
 
 // -------------------------------------------------------------
@@ -389,6 +389,57 @@ it('StepSolver PEMDAS substep uses clean Unicode arrows', () => {
     const sol = StepSolver.solve('5 + 3', 'DEG');
     assert.strictEqual(sol.steps[0].substeps[0].formula, 'PEMDAS: P → E → MD → AS');
     I18n.setLanguage('az');
+});
+
+// -------------------------------------------------------------
+// 8. v3.1.0 Number Theory, Combinatorics & Multi-Factor Step Solver
+// -------------------------------------------------------------
+console.log('\n[8] v3.1.0 Number Theory, Combinatorics & Multi-Factor Step Solver');
+
+it('MathCore computes GCD(24, 36, 60) === 12 and LCM(24, 36, 60) === 360', () => {
+    assert.strictEqual(MathCore.gcdMulti([24, 36, 60]), 12);
+    assert.strictEqual(MathCore.lcmMulti([24, 36, 60]), 360);
+});
+
+it('MathCore computes prime factorization of 24 and 60', () => {
+    assert.deepStrictEqual(MathCore.primeFactorize(24), [
+        { prime: 2, power: 3 },
+        { prime: 3, power: 1 }
+    ]);
+    assert.deepStrictEqual(MathCore.primeFactorize(60), [
+        { prime: 2, power: 2 },
+        { prime: 3, power: 1 },
+        { prime: 5, power: 1 }
+    ]);
+});
+
+it('MathCore computes C(5, 2) === 10, A(5, 2) === 20, P(5) === 120', () => {
+    assert.strictEqual(MathCore.combination(5, 2), 10);
+    assert.strictEqual(MathCore.arrangement(5, 2), 20);
+    assert.strictEqual(MathCore.permutation(5), 120);
+});
+
+it('StepSolver preserves all factors in compound expressions (√5 × 3 2/3 & 2 * (1/3) + 4)', () => {
+    I18n.setLanguage('en');
+    const sol1 = StepSolver.solve('√5 × 3 2/3', 'DEG');
+    assert.ok(sol1.steps.length >= 2, 'Should produce multiple steps');
+    const step2Formula = sol1.steps[1].formula;
+    assert.ok(step2Formula.includes('√5'), `Step 2 formula should preserve √5, got: ${step2Formula}`);
+    assert.ok(step2Formula.includes('11') && step2Formula.includes('3'), `Step 2 should contain improper fraction 11/3, got: ${step2Formula}`);
+
+    const sol2 = StepSolver.solve('2 * (1/3) + 4', 'DEG');
+    assert.ok(sol2.steps.length >= 2, 'Should produce multiple steps for 2 * (1/3) + 4');
+    const finalFormula = sol2.steps[sol2.steps.length - 1].formula;
+    assert.ok(finalFormula.includes('2 * (1/3) + 4'), `Final step should preserve full LHS context, got: ${finalFormula}`);
+    I18n.setLanguage('az');
+});
+
+it('Service Worker & index.html cache versions are bumped to v3.1.0', () => {
+    const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
+    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.1.0';"), 'sw.js CACHE_NAME should be v3.1.0');
+    assert.ok(html.includes('app.js?v=3.1.0'), 'index.html should reference ?v=3.1.0');
+    assert.ok(!html.includes('?v=3.0.1'), 'index.html should not have stale ?v=3.0.1 queries');
 });
 
 console.log(`\n========================================`);

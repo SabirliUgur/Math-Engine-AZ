@@ -1,5 +1,5 @@
 /**
- * i18n Translation Engine for Math Engine AZ (v3.0.1)
+ * i18n Translation Engine for Math Engine AZ (v3.1.0)
  * Zero-dependency bilingual support: Azerbaijani ('az') & English ('en')
  */
 
@@ -109,17 +109,17 @@
             hapticEnabled: "Aktiv",
             hapticDisabled: "Deaktiv",
             hapticNote: "Vibrasiya dəstəklənən mobil brauzerlərdə (Android Chrome, Samsung Internet) işləyir, masaüstü və iOS Safari cihazlarında nəzərə alınmır.",
-            versionInfo: "Versiya 3.0.1 · Structured Math & Interactive Visualizations",
+            versionInfo: "Versiya 3.1.0 · Number Theory, Combinatorics & Multi-Factor Solver",
 
             // Settings Right Info Card
             sysInfoTitle: "Sistem Məlumatı",
             sysInfoSubtitle: "PWA mühərriki və cihaz konfiqurasiyası",
             appVersionLabel: "Tətbiq Versiyası",
             appVersion: "Tətbiq Versiyası",
-            appVersionVal: "v3.0.1 (Structured Math Editor)",
+            appVersionVal: "v3.1.0 (Number Theory & Multi-Factor Solver)",
             pwaCacheLabel: "Oflayn Keş Statusu",
             pwaCacheStatus: "Oflayn Keş Statusu",
-            pwaCacheActive: "Aktiv (math-engine-az-v3.0.1)",
+            pwaCacheActive: "Aktiv (math-engine-az-v3.1.0)",
             shortcutsTitle: "Qısayol Düymələri",
             shortcutDigits: "Rəqəmlər",
             shortcutOps: "Əsas əməllər",
@@ -220,7 +220,23 @@
             matrixOpMul: "Vurma (A × B)",
             matrixOpDet: "Determinant |A|",
             matrixALabel: "Matris A",
-            matrixBLabel: "Matris B"
+            matrixBLabel: "Matris B",
+
+            // Number Theory & Combinatorics
+            subTabNumberTheory: "Ədədlər və Kombinatorika",
+            ntGcdLcmTitle: "ƏBOB və ƏKOB",
+            ntGcdLcmInputLabel: "Ədədləri vergüllə ayırın:",
+            ntGcdLcmPlaceholder: "Məsələn: 24, 36, 60",
+            ntCombTitle: "Permutasiya, Aranjeman, Kombinezon",
+            ntBtnPerm: "Pₙ = n!",
+            ntBtnArr: "Aₙᵏ",
+            ntBtnComb: "Cₙᵏ",
+            ntGcdLabel: "ƏBOB:",
+            ntLcmLabel: "ƏKOB:",
+            ntPrimeFactorsLabel: "Sadə vuruqlara ayırma:",
+            ntPermLabel: "Permutasiya (Pₙ):",
+            ntArrLabel: "Aranjeman (Aₙᵏ):",
+            ntCombLabel: "Kombinezon (Cₙᵏ):"
         },
         en: {
             // Brand & Navigation
@@ -314,17 +330,17 @@
             hapticEnabled: "Enabled",
             hapticDisabled: "Disabled",
             hapticNote: "Haptic feedback works on supported mobile browsers (Android Chrome, Samsung Internet) and is safely ignored on desktop and iOS Safari.",
-            versionInfo: "Version 3.0.1 · Structured Math & Interactive Visualizations",
+            versionInfo: "Version 3.1.0 · Number Theory, Combinatorics & Multi-Factor Solver",
 
             // Settings Right Info Card
             sysInfoTitle: "System Information",
             sysInfoSubtitle: "PWA runtime and device configuration",
             appVersionLabel: "Application Version",
             appVersion: "Application Version",
-            appVersionVal: "v3.0.1 (Structured Math Editor)",
+            appVersionVal: "v3.1.0 (Number Theory & Multi-Factor Solver)",
             pwaCacheLabel: "Offline Cache Status",
             pwaCacheStatus: "Offline Cache Status",
-            pwaCacheActive: "Active (math-engine-az-v3.0.1)",
+            pwaCacheActive: "Active (math-engine-az-v3.1.0)",
             shortcutsTitle: "Keyboard Shortcuts",
             shortcutDigits: "Digits",
             shortcutOps: "Basic Operators",
@@ -425,7 +441,23 @@
             matrixOpMul: "Multiplication (A × B)",
             matrixOpDet: "Determinant |A|",
             matrixALabel: "Matrix A",
-            matrixBLabel: "Matrix B"
+            matrixBLabel: "Matrix B",
+
+            // Number Theory & Combinatorics
+            subTabNumberTheory: "Number Theory & Combinatorics",
+            ntGcdLcmTitle: "GCD & LCM",
+            ntGcdLcmInputLabel: "Separate integers with commas:",
+            ntGcdLcmPlaceholder: "Example: 24, 36, 60",
+            ntCombTitle: "Permutations & Combinations",
+            ntBtnPerm: "Pₙ = n!",
+            ntBtnArr: "Aₙᵏ",
+            ntBtnComb: "Cₙᵏ",
+            ntGcdLabel: "GCD:",
+            ntLcmLabel: "LCM:",
+            ntPrimeFactorsLabel: "Prime Factorization:",
+            ntPermLabel: "Permutation (Pₙ):",
+            ntArrLabel: "Arrangement (Aₙᵏ):",
+            ntCombLabel: "Combination (Cₙᵏ):"
         }
     };
 
