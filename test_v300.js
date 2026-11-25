@@ -283,19 +283,19 @@ it('Translates historyEmpty correctly in AZ and EN', () => {
 });
 
 // -------------------------------------------------------------
-// 6. index.html & sw.js v3.2.0 Verification
+// 6. index.html & sw.js v3.3.0 Verification
 // -------------------------------------------------------------
 console.log('\n[6] HTML & Service Worker Verification Tests');
 
-it('index.html references all scripts with v3.2.0 query string', () => {
+it('index.html references all scripts with v3.3.0 query string', () => {
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(html.includes('style.css?v=3.2.0'), 'style.css should have v=3.2.0');
-    assert.ok(html.includes('js/math-core.js?v=3.2.0'), 'math-core.js should have v=3.2.0');
-    assert.ok(html.includes('js/math-editor.js?v=3.2.0'), 'math-editor.js should have v=3.2.0');
-    assert.ok(html.includes('js/visual-charts.js?v=3.2.0'), 'visual-charts.js should have v=3.2.0');
-    assert.ok(html.includes('js/i18n.js?v=3.2.0'), 'i18n.js should have v=3.2.0');
-    assert.ok(html.includes('js/step-solver.js?v=3.2.0'), 'step-solver.js should have v=3.2.0');
-    assert.ok(html.includes('app.js?v=3.2.0'), 'app.js should have v=3.2.0');
+    assert.ok(html.includes('style.css?v=3.3.0'), 'style.css should have v=3.3.0');
+    assert.ok(html.includes('js/math-core.js?v=3.3.0'), 'math-core.js should have v=3.3.0');
+    assert.ok(html.includes('js/math-editor.js?v=3.3.0'), 'math-editor.js should have v=3.3.0');
+    assert.ok(html.includes('js/visual-charts.js?v=3.3.0'), 'visual-charts.js should have v=3.3.0');
+    assert.ok(html.includes('js/i18n.js?v=3.3.0'), 'i18n.js should have v=3.3.0');
+    assert.ok(html.includes('js/step-solver.js?v=3.3.0'), 'step-solver.js should have v=3.3.0');
+    assert.ok(html.includes('app.js?v=3.3.0'), 'app.js should have v=3.3.0');
 });
 
 it('index.html has removed "F(X) • ENGINE" header badge', () => {
@@ -319,11 +319,11 @@ it('index.html isolates Parametrlər with sidebar separator', () => {
     assert.ok(html.includes('sidebar-nav-divider'), 'sidebar-nav-divider should exist before settings');
 });
 
-it('sw.js cache name is updated to math-engine-az-v3.2.0', () => {
+it('sw.js cache name is updated to math-engine-az-v3.3.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.2.0'"), 'CACHE_NAME should be math-engine-az-v3.2.0');
-    assert.ok(sw.includes('./js/math-editor.js?v=3.2.0'), 'sw.js should precache math-editor.js?v=3.2.0');
-    assert.ok(sw.includes('./js/visual-charts.js?v=3.2.0'), 'sw.js should precache visual-charts.js?v=3.2.0');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.3.0'"), 'CACHE_NAME should be math-engine-az-v3.3.0');
+    assert.ok(sw.includes('./js/math-editor.js?v=3.3.0'), 'sw.js should precache math-editor.js?v=3.3.0');
+    assert.ok(sw.includes('./js/visual-charts.js?v=3.3.0'), 'sw.js should precache visual-charts.js?v=3.3.0');
 });
 
 // -------------------------------------------------------------
@@ -434,12 +434,12 @@ it('StepSolver preserves all factors in compound expressions (√5 × 3 2/3 & 2 
     I18n.setLanguage('az');
 });
 
-it('Service Worker & index.html cache versions are bumped to v3.2.0', () => {
+it('Service Worker & index.html cache versions are bumped to v3.3.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.2.0';"), 'sw.js CACHE_NAME should be v3.2.0');
-    assert.ok(html.includes('app.js?v=3.2.0'), 'index.html should reference ?v=3.2.0');
-    assert.ok(!html.includes('?v=3.1.0'), 'index.html should not have stale ?v=3.1.0 queries');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.3.0';"), 'sw.js CACHE_NAME should be v3.3.0');
+    assert.ok(html.includes('app.js?v=3.3.0'), 'index.html should reference ?v=3.3.0');
+    assert.ok(!html.includes('?v=3.2.0'), 'index.html should not have stale ?v=3.2.0 queries');
 });
 
 // -------------------------------------------------------------
@@ -496,6 +496,65 @@ it('v3.1.0 EN localization fixes (Prime factorization & HISTORY_LABEL_MAP) are p
     const appSrc = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8');
     assert.ok(appSrc.includes("['ƏBOB', 'GCD']") && appSrc.includes("['ƏKOB', 'LCM']"));
     assert.ok(appSrc.includes("['Permutasiya', 'Permutation']") && appSrc.includes("['Kombinezon', 'Combination']"));
+});
+
+// -------------------------------------------------------------
+// 10. v3.3.0 3D Solid Geometry & Wireframe Diagrams
+// -------------------------------------------------------------
+console.log('\n[10] v3.3.0 3D Solid Geometry & Wireframe Diagrams');
+
+it('MathCore.solidCube(3) & MathCore.solidCuboid(2, 3, 6) compute exact formulas', () => {
+    const cube = MathCore.solidCube(3);
+    assert.strictEqual(cube.volume, 27);
+    assert.strictEqual(cube.totalArea, 54);
+    assert.ok(Math.abs(cube.faceDiagonal - 3 * Math.sqrt(2)) < 1e-9);
+    assert.ok(Math.abs(cube.spaceDiagonal - 3 * Math.sqrt(3)) < 1e-9);
+
+    const cuboid = MathCore.solidCuboid(2, 3, 6);
+    assert.strictEqual(cuboid.volume, 36);
+    assert.strictEqual(cuboid.lateralArea, 60);
+    assert.strictEqual(cuboid.totalArea, 72);
+    assert.strictEqual(cuboid.spaceDiagonal, 7);
+});
+
+it('MathCore.solidCylinder(3, 5) & MathCore.solidCone(3, 4) compute exact formulas including Base Area', () => {
+    const cyl = MathCore.solidCylinder(3, 5);
+    assert.ok(Math.abs(cyl.baseArea - 9 * Math.PI) < 1e-9);
+    assert.ok(Math.abs(cyl.lateralArea - 30 * Math.PI) < 1e-9);
+    assert.ok(Math.abs(cyl.totalArea - 48 * Math.PI) < 1e-9);
+    assert.ok(Math.abs(cyl.volume - 45 * Math.PI) < 1e-9);
+
+    const cone = MathCore.solidCone(3, 4);
+    assert.strictEqual(cone.slantHeight, 5);
+    assert.ok(Math.abs(cone.baseArea - 9 * Math.PI) < 1e-9);
+    assert.ok(Math.abs(cone.lateralArea - 15 * Math.PI) < 1e-9);
+    assert.ok(Math.abs(cone.totalArea - 24 * Math.PI) < 1e-9);
+    assert.ok(Math.abs(cone.volume - 12 * Math.PI) < 1e-9);
+});
+
+it('MathCore.solidPyramid(6, 4) & MathCore.solidFrustum(5, 2, 4) compute exact formulas', () => {
+    const pyr = MathCore.solidPyramid(6, 4);
+    assert.strictEqual(pyr.slantHeight, 5);
+    assert.strictEqual(pyr.baseArea, 36);
+    assert.strictEqual(pyr.lateralArea, 60);
+    assert.strictEqual(pyr.totalArea, 96);
+    assert.strictEqual(pyr.volume, 48);
+
+    const fru = MathCore.solidFrustum(5, 2, 4);
+    assert.strictEqual(fru.slantHeight, 5);
+    assert.ok(Math.abs(fru.lateralArea - 35 * Math.PI) < 1e-9);
+    assert.ok(Math.abs(fru.totalArea - 64 * Math.PI) < 1e-9);
+    assert.ok(Math.abs(fru.volume - 52 * Math.PI) < 1e-9);
+    assert.strictEqual(MathCore.solidFrustum(2, 5, 4), null, 'R <= r must return null');
+});
+
+it('VisualCharts renders wireframe SVG diagrams for cuboid, pyramid & frustum in AZ and EN', () => {
+    const cuboidEn = VisualCharts.renderGeometry('cuboid', 'abc', { a: 2, b: 3, c: 6 }, 'en');
+    assert.ok(cuboidEn.includes('Rectangular Prism') && cuboidEn.includes('stroke-dasharray'));
+    const pyrAz = VisualCharts.renderGeometry('pyramid', 'ah', { a: 6, h: 4 }, 'az');
+    assert.ok(pyrAz.includes('Düzgün Dördbucaqlı Piramida') && pyrAz.includes('stroke-dasharray'));
+    const fruEn = VisualCharts.renderGeometry('frustum', 'Rrh', { R: 5, r: 2, h: 4 }, 'en');
+    assert.ok(fruEn.includes('Conical Frustum') && fruEn.includes('R = 5') && fruEn.includes('r = 2'));
 });
 
 console.log(`\n========================================`);

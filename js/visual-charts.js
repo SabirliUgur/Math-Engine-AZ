@@ -195,15 +195,45 @@
             case 'cube': {
                 const aVal = formatVal(vals.a) || 'a';
                 content = `
+                    <!-- Hidden back edges (dashed wireframe) -->
+                    <line x1="170" y1="60" x2="170" y2="160" stroke="${accent}" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.55" />
+                    <line x1="130" y1="200" x2="170" y2="160" stroke="${accent}" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.55" />
+                    <line x1="170" y1="160" x2="270" y2="160" stroke="${accent}" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.55" />
                     <!-- Front face -->
                     <rect x="130" y="100" width="100" height="100" fill="${accentFill}" stroke="${accent}" stroke-width="2" />
                     <!-- Top face -->
                     <polygon points="130,100 170,60 270,60 230,100" fill="rgba(79, 70, 229, 0.08)" stroke="${accent}" stroke-width="2" />
                     <!-- Right face -->
                     <polygon points="230,100 270,60 270,160 230,200" fill="rgba(79, 70, 229, 0.16)" stroke="${accent}" stroke-width="2" />
+                    <!-- Space diagonal -->
+                    <line x1="130" y1="200" x2="270" y2="60" stroke="${guideCol}" stroke-width="1.6" stroke-dasharray="3 3" />
                     <!-- Side Label -->
                     <text x="180" y="222" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">a = ${aVal}</text>
                     <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Cube' : 'Kub'}: V = a³ · S = 6a²</text>
+                `;
+                break;
+            }
+
+            case 'cuboid': {
+                const aVal = formatVal(vals.a) || 'a';
+                const bVal = formatVal(vals.b) || 'b';
+                const cVal = formatVal(vals.c) || 'c';
+                content = `
+                    <!-- Hidden back edges -->
+                    <line x1="155" y1="65" x2="155" y2="165" stroke="${accent}" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.55" />
+                    <line x1="110" y1="200" x2="155" y2="165" stroke="${accent}" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.55" />
+                    <line x1="155" y1="165" x2="295" y2="165" stroke="${accent}" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.55" />
+                    <!-- Front face -->
+                    <rect x="110" y="100" width="140" height="100" fill="${accentFill}" stroke="${accent}" stroke-width="2" />
+                    <!-- Top face -->
+                    <polygon points="110,100 155,65 295,65 250,100" fill="rgba(79, 70, 229, 0.08)" stroke="${accent}" stroke-width="2" />
+                    <!-- Right face -->
+                    <polygon points="250,100 295,65 295,165 250,200" fill="rgba(79, 70, 229, 0.16)" stroke="${accent}" stroke-width="2" />
+                    <!-- Labels -->
+                    <text x="180" y="220" fill="${textCol}" font-family="${fontMono}" font-size="12" font-weight="600" text-anchor="middle">a = ${aVal}</text>
+                    <text x="284" y="190" fill="${textCol}" font-family="${fontMono}" font-size="12" font-weight="600">b = ${bVal}</text>
+                    <text x="95" y="154" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600" text-anchor="end">c = ${cVal}</text>
+                    <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Rectangular Prism' : 'Düzbucaqlı Paralelepiped'}: V = abc</text>
                 `;
                 break;
             }
@@ -248,8 +278,9 @@
                 content = `
                     <!-- Cone body -->
                     <polygon points="200,60 135,190 265,190" fill="${accentFill}" stroke="${accent}" stroke-width="2" stroke-linejoin="round" />
-                    <!-- Bottom ellipse -->
-                    <ellipse cx="200" cy="190" rx="65" ry="18" fill="rgba(79, 70, 229, 0.15)" stroke="${accent}" stroke-width="2" />
+                    <!-- Bottom ellipse (front arc solid, back arc dashed) -->
+                    <path d="M 135 190 A 65 18 0 0 1 265 190" fill="none" stroke="${accent}" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6" />
+                    <path d="M 135 190 A 65 18 0 0 0 265 190" fill="rgba(79, 70, 229, 0.15)" stroke="${accent}" stroke-width="2" />
                     <!-- Height line -->
                     <line x1="200" y1="60" x2="200" y2="190" stroke="${guideCol}" stroke-width="2" stroke-dasharray="4 3" />
                     <text x="208" y="130" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600">h = ${hVal}</text>
@@ -257,6 +288,57 @@
                     <line x1="200" y1="190" x2="265" y2="190" stroke="${guideCol}" stroke-width="2" />
                     <text x="235" y="206" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600">r = ${rVal}</text>
                     <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Cone' : 'Konus'}: V = (1/3)πr²h</text>
+                `;
+                break;
+            }
+
+            case 'pyramid': {
+                const aVal = formatVal(vals.a) || 'a';
+                const hVal = formatVal(vals.h) || 'h';
+                content = `
+                    <!-- Hidden back edges of square base & apex -->
+                    <polygon points="105,205 160,165 295,165 240,205" fill="${accentFill}" stroke="none" />
+                    <line x1="105" y1="205" x2="160" y2="165" stroke="${accent}" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6" />
+                    <line x1="160" y1="165" x2="295" y2="165" stroke="${accent}" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6" />
+                    <line x1="200" y1="55" x2="160" y2="165" stroke="${accent}" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6" />
+                    <!-- Visible edges -->
+                    <polyline points="105,205 240,205 295,165" fill="none" stroke="${accent}" stroke-width="2" stroke-linejoin="round" />
+                    <line x1="200" y1="55" x2="105" y2="205" stroke="${accent}" stroke-width="2" />
+                    <line x1="200" y1="55" x2="240" y2="205" stroke="${accent}" stroke-width="2" />
+                    <line x1="200" y1="55" x2="295" y2="165" stroke="${accent}" stroke-width="2" />
+                    <!-- Height h -->
+                    <line x1="200" y1="55" x2="200" y2="185" stroke="${guideCol}" stroke-width="2" stroke-dasharray="4 3" />
+                    <circle cx="200" cy="185" r="3" fill="${guideCol}" />
+                    <text x="208" y="132" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600">h = ${hVal}</text>
+                    <text x="172" y="224" fill="${textCol}" font-family="${fontMono}" font-size="12" font-weight="600" text-anchor="middle">a = ${aVal}</text>
+                    <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Square Pyramid' : 'Düzgün Dördbucaqlı Piramida'}: V = (1/3)a²h</text>
+                `;
+                break;
+            }
+
+            case 'frustum': {
+                const RVal = formatVal(vals.R) || 'R';
+                const rVal = formatVal(vals.r) || 'r';
+                const hVal = formatVal(vals.h) || 'h';
+                content = `
+                    <!-- Frustum body -->
+                    <polygon points="155,80 245,80 285,195 115,195" fill="${accentFill}" stroke="none" />
+                    <line x1="155" y1="80" x2="115" y2="195" stroke="${accent}" stroke-width="2" />
+                    <line x1="245" y1="80" x2="285" y2="195" stroke="${accent}" stroke-width="2" />
+                    <!-- Top ellipse -->
+                    <ellipse cx="200" cy="80" rx="45" ry="13" fill="rgba(79, 70, 229, 0.12)" stroke="${accent}" stroke-width="2" />
+                    <!-- Bottom ellipse (back dashed, front solid) -->
+                    <path d="M 115 195 A 85 20 0 0 1 285 195" fill="none" stroke="${accent}" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.6" />
+                    <path d="M 115 195 A 85 20 0 0 0 285 195" fill="rgba(79, 70, 229, 0.15)" stroke="${accent}" stroke-width="2" />
+                    <!-- Height h -->
+                    <line x1="200" y1="80" x2="200" y2="195" stroke="${guideCol}" stroke-width="2" stroke-dasharray="4 3" />
+                    <text x="206" y="142" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600">h = ${hVal}</text>
+                    <!-- Radii r & R -->
+                    <line x1="200" y1="80" x2="245" y2="80" stroke="${guideCol}" stroke-width="1.8" />
+                    <text x="223" y="74" fill="${guideCol}" font-family="${fontMono}" font-size="11" font-weight="600">r = ${rVal}</text>
+                    <line x1="200" y1="195" x2="285" y2="195" stroke="${guideCol}" stroke-width="1.8" />
+                    <text x="245" y="210" fill="${guideCol}" font-family="${fontMono}" font-size="11" font-weight="600">R = ${RVal}</text>
+                    <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Conical Frustum' : 'Kəsik Konus'}: V = (1/3)πh(R²+Rr+r²)</text>
                 `;
                 break;
             }

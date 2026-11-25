@@ -809,6 +809,7 @@ const HISTORY_LABEL_MAP = [
     ['Matris', 'Matrix'],
     ['Tam səthi', 'Total Surface Area'],
     ['Yan səthi', 'Lateral Surface Area'],
+    ['Oturacağın sahəsi', 'Base Area'],
     ['Üz diaqonalı', 'Face Diagonal'],
     ['Fəza diaqonalı', 'Space Diagonal'],
     ['Çəpər hündürlük', 'Slant Height'],
@@ -1548,7 +1549,21 @@ const shapes = {
     cube: {
         name: { az: 'Kub', en: 'Cube' },
         modes: [
-            { id: 'a', label: { az: 'Tərəf verilir', en: 'Given side' }, inputs: [{id:'a', label:{ az: 'Tərəf (a)', en: 'Side (a)' }}] }
+            { id: 'a', label: { az: 'Tərəf verilir', en: 'Given edge' }, inputs: [{id:'a', label:{ az: 'Til (a)', en: 'Edge (a)' }}] }
+        ]
+    },
+    cuboid: {
+        name: { az: 'Düzbucaqlı Paralelepiped', en: 'Rectangular Prism' },
+        modes: [
+            {
+                id: 'abc',
+                label: { az: 'Ölçülər (a, b, c)', en: 'Dimensions (a, b, c)' },
+                inputs: [
+                    { id: 'a', label: { az: 'Uzunluq (a)', en: 'Length (a)' } },
+                    { id: 'b', label: { az: 'En (b)', en: 'Width (b)' } },
+                    { id: 'c', label: { az: 'Hündürlük (c)', en: 'Height (c)' } }
+                ]
+            }
         ]
     },
     cylinder: {
@@ -1567,6 +1582,33 @@ const shapes = {
         name: { az: 'Konus', en: 'Cone' },
         modes: [
             { id: 'rh', label: { az: 'Radius və hündürlük', en: 'Radius & height' }, inputs: [{id:'r', label:{ az: 'Radius (r)', en: 'Radius (r)' }}, {id:'h', label:{ az: 'Hündürlük (h)', en: 'Height (h)' }}] }
+        ]
+    },
+    pyramid: {
+        name: { az: 'Düzgün Dördbucaqlı Piramida', en: 'Square Pyramid' },
+        modes: [
+            {
+                id: 'ah',
+                label: { az: 'Oturacaq tərəfi və hündürlük', en: 'Base side & height' },
+                inputs: [
+                    { id: 'a', label: { az: 'Oturacağın tərəfi (a)', en: 'Base side (a)' } },
+                    { id: 'h', label: { az: 'Hündürlük (h)', en: 'Height (h)' } }
+                ]
+            }
+        ]
+    },
+    frustum: {
+        name: { az: 'Kəsik Konus', en: 'Conical Frustum' },
+        modes: [
+            {
+                id: 'Rrh',
+                label: { az: 'Alt radius (R), üst radius (r) və hündürlük (h)', en: 'Bottom radius (R), top radius (r) & height (h)' },
+                inputs: [
+                    { id: 'R', label: { az: 'Alt radius (R)', en: 'Bottom radius (R)' } },
+                    { id: 'r', label: { az: 'Üst radius (r)', en: 'Top radius (r)' } },
+                    { id: 'h', label: { az: 'Hündürlük (h)', en: 'Height (h)' } }
+                ]
+            }
         ]
     },
     polygon: {
@@ -1839,18 +1881,27 @@ function calculateGeometry() {
             break;
         }
         case 'cube': {
-            const a = vals.a;
-            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = a³', value: clean(a * a * a) });
-            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S = 6 · a²', value: clean(6 * a * a) });
-            results.push({ label: isEn ? 'Face Diagonal' : 'Üz diaqonalı', formula: 'd_f = a · √2', value: clean(a * Math.sqrt(2)) });
-            results.push({ label: isEn ? 'Space Diagonal' : 'Fəza diaqonalı', formula: 'd = a · √3', value: clean(a * Math.sqrt(3)) });
+            const res = MathCore.solidCube(vals.a);
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = a³', value: res.volume });
+            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S_tam = 6 · a²', value: res.totalArea });
+            results.push({ label: isEn ? 'Face Diagonal' : 'Üz diaqonalı', formula: 'd₁ = a · √2', value: res.faceDiagonal });
+            results.push({ label: isEn ? 'Space Diagonal' : 'Fəza diaqonalı', formula: 'd₂ = a · √3', value: res.spaceDiagonal });
+            break;
+        }
+        case 'cuboid': {
+            const res = MathCore.solidCuboid(vals.a, vals.b, vals.c);
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = a · b · c', value: res.volume });
+            results.push({ label: isEn ? 'Lateral Surface Area' : 'Yan səthi', formula: 'S_yan = 2 · (a + b) · c', value: res.lateralArea });
+            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S_tam = 2 · (ab + bc + ac)', value: res.totalArea });
+            results.push({ label: isEn ? 'Space Diagonal' : 'Fəza diaqonalı', formula: 'd = √(a² + b² + c²)', value: res.spaceDiagonal });
             break;
         }
         case 'cylinder': {
-            const r = vals.r, h = vals.h;
-            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = π · r² · h', value: clean(π * r * r * h) });
-            results.push({ label: isEn ? 'Lateral Surface Area' : 'Yan səthi', formula: 'S_lat = 2 · π · r · h', value: clean(2 * π * r * h) });
-            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S = 2 · π · r · (r + h)', value: clean(2 * π * r * (r + h)) });
+            const res = MathCore.solidCylinder(vals.r, vals.h);
+            results.push({ label: isEn ? 'Base Area' : 'Oturacağın sahəsi', formula: 'S_ot = π · r²', value: res.baseArea });
+            results.push({ label: isEn ? 'Lateral Surface Area' : 'Yan səthi', formula: 'S_yan = 2 · π · r · h', value: res.lateralArea });
+            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S_tam = 2 · π · r · (r + h)', value: res.totalArea });
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = π · r² · h', value: res.volume });
             break;
         }
         case 'sphere': {
@@ -1860,12 +1911,33 @@ function calculateGeometry() {
             break;
         }
         case 'cone': {
-            const r = vals.r, h = vals.h;
-            const l = Math.sqrt(r*r + h*h);
-            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = (1/3) · π · r² · h', value: clean((1/3) * π * r * r * h) });
-            results.push({ label: isEn ? 'Slant Height' : 'Çəpər hündürlük', formula: 'l = √(r² + h²)', value: clean(l) });
-            results.push({ label: isEn ? 'Lateral Surface Area' : 'Yan səthi', formula: 'S_lat = π · r · l', value: clean(π * r * l) });
-            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S = π · r · (r + l)', value: clean(π * r * (r + l)) });
+            const res = MathCore.solidCone(vals.r, vals.h);
+            results.push({ label: isEn ? 'Slant Height' : 'Çəpər hündürlük', formula: 'l = √(r² + h²)', value: res.slantHeight });
+            results.push({ label: isEn ? 'Base Area' : 'Oturacağın sahəsi', formula: 'S_ot = π · r²', value: res.baseArea });
+            results.push({ label: isEn ? 'Lateral Surface Area' : 'Yan səthi', formula: 'S_yan = π · r · l', value: res.lateralArea });
+            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S_tam = π · r · (r + l)', value: res.totalArea });
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = (1/3) · π · r² · h', value: res.volume });
+            break;
+        }
+        case 'pyramid': {
+            const res = MathCore.solidPyramid(vals.a, vals.h);
+            results.push({ label: isEn ? 'Slant Height' : 'Çəpər hündürlük', formula: 'l = √(h² + (a/2)²)', value: res.slantHeight });
+            results.push({ label: isEn ? 'Base Area' : 'Oturacağın sahəsi', formula: 'S_ot = a²', value: res.baseArea });
+            results.push({ label: isEn ? 'Lateral Surface Area' : 'Yan səthi', formula: 'S_yan = 2 · a · l', value: res.lateralArea });
+            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S_tam = a² + 2 · a · l', value: res.totalArea });
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = (1/3) · a² · h', value: res.volume });
+            break;
+        }
+        case 'frustum': {
+            if (vals.R <= vals.r) {
+                showGeoResult(`<span class="error">${isEn ? 'Bottom radius (R) must be greater than top radius (r): R > r.' : 'Alt radius (R) üst radiusdan (r) böyük olmalıdır: R > r.'}</span>`);
+                return;
+            }
+            const res = MathCore.solidFrustum(vals.R, vals.r, vals.h);
+            results.push({ label: isEn ? 'Slant Height' : 'Çəpər hündürlük', formula: 'l = √(h² + (R − r)²)', value: res.slantHeight });
+            results.push({ label: isEn ? 'Lateral Surface Area' : 'Yan səthi', formula: 'S_yan = π · (R + r) · l', value: res.lateralArea });
+            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S_tam = π · (R² + r² + (R + r) · l)', value: res.totalArea });
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = (1/3) · π · h · (R² + Rr + r²)', value: res.volume });
             break;
         }
         case 'polygon': {

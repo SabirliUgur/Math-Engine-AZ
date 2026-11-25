@@ -1,10 +1,10 @@
-# 🧮 Math-Engine-AZ (v3.2.0 — "2D Geometry Expansion, Coordinate Method, Plane Vectors & i18n Fixes")
+# 🧮 Math-Engine-AZ (v3.3.0 — "3D Solid Geometry: Polyhedra & Solids of Revolution")
 
-Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), 2D həndəsə çertyojlu, koordinatlar metodu, müstəvi vektorları, statistik paylanma qrafikli, ədədlər nəzəriyyəsi və kombinatorika modullu, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
+Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), 2D/3D həndəsə çertyojlu, koordinatlar metodu, müstəvi vektorları, statistik paylanma qrafikli, ədədlər nəzəriyyəsi və kombinatorika modullu, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
 
 [![Canlı Demo](https://img.shields.io/badge/Demo-Canlı%20Sayt-6366f1?style=for-the-badge&logo=githubpages&logoColor=white)](https://sabirliugur.github.io/Math-Engine-AZ/)
 [![Lisenziya](https://img.shields.io/badge/Lisenziya-MIT-green?style=for-the-badge)](LICENSE)
-[![Versiya](https://img.shields.io/badge/Versiya-v3.2.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Versiya](https://img.shields.io/badge/Versiya-v3.3.0-blue?style=for-the-badge)](CHANGELOG.md)
 [![PWA Dəstəyi](https://img.shields.io/badge/PWA-Oflayn%20Dəstəkli-orange?style=for-the-badge)](manifest.json)
 
 ---
@@ -12,6 +12,11 @@ Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vi
 ## 🌐 Canlı Keçid (Live Demo)
 Tətbiqi heç bir quraşdırma tələb olunmadan birbaşa brauzerinizdə istifadə edin:  
 👉 **[https://sabirliugur.github.io/Math-Engine-AZ/](https://sabirliugur.github.io/Math-Engine-AZ/)**
+
+---
+
+## ✨ v3.3.0 Yenilikləri
+- **3D Fəza Fiqurları (`Həndəsə`)**: **Kub**, **Düzbucaqlı Paralelepiped**, **Silindr** ($S_{ot}$ daxil), **Konus** ($S_{ot}$ daxil), **Düzgün Dördbucaqlı Piramida**, **Kəsik Konus** ($R > r$) və **Kürə** üçün tam hesablamalar + qırıq xətli gizli tərəfli izometrik/wireframe 2D SVG diaqramları.
 
 ---
 

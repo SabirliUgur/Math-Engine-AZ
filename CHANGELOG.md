@@ -5,6 +5,18 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [3.3.0] - 2026-11-25 — "3D Solid Geometry: Polyhedra & Solids of Revolution"
+
+### 🧊 3D Fəza Fiqurları və İzometrik Wireframe Diaqramları (`Həndəsə`)
+- **Kub (`Cube`)**: Həcm $V=a^3$, tam səthi $S_{tam}=6a^2$, üz diaqonalı $d_1=a\sqrt{2}$, fəza diaqonalı $d_2=a\sqrt{3}$ və qırıq xətli arxa tərəfli izometrik SVG.
+- **Düzbucaqlı Paralelepiped (`Rectangular Prism`)**: Həcm $V=abc$, yan səthi $S_{yan}=2(a+b)c$, tam səthi $S_{tam}=2(ab+bc+ac)$, fəza diaqonalı $d=\sqrt{a^2+b^2+c^2}$ və izometrik SVG.
+- **Silindr (`Cylinder`) & Konus (`Cone`)**: Oturacağın sahəsi ($S_{ot}=\pi r^2$) əlavə edildi; yan/tam səthi, həcm və çəpər hündürlük hesablamaları.
+- **Düzgün Dördbucaqlı Piramida (`Square Pyramid`)**: Apofem $l=\sqrt{h^2+(a/2)^2}$, oturacaq sahəsi $a^2$, yan səthi $2al$, tam səthi $a^2+2al$, həcm $V=\frac{1}{3}a^2h$ və wireframe SVG.
+- **Kəsik Konus (`Conical Frustum`)**: $R > r$ yoxlaması, doğuran $l=\sqrt{h^2+(R-r)^2}$, yan səthi $\pi(R+r)l$, tam səthi $\pi(R^2+r^2+(R+r)l)$, həcm $V=\frac{1}{3}\pi h(R^2+Rr+r^2)$ və wireframe SVG.
+- **PWA Keş**: `sw.js` keş adı `'math-engine-az-v3.3.0'` olaraq yeniləndi.
+
+---
+
 ## [3.2.0] - 2026-11-25 — "2D Geometry Expansion, Coordinate Method, Plane Vectors & i18n Fixes"
 
 ### 📐 2D Həndəsə Genişləndirməsi, Koordinatlar Metodu və Müstəvi Vektorları

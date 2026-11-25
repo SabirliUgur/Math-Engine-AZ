@@ -1327,6 +1327,89 @@
         return { sum, diff, magU, magV, dot, angleRad, angleDeg };
     }
 
+    // =========================================================
+    // 7D. 3D SOLID GEOMETRY (v3.3.0)
+    // =========================================================
+
+    /** Cube: edge a > 0 */
+    function solidCube(a) {
+        if (!isFinite(a) || a <= 0) return null;
+        return {
+            volume: cleanPrecision(a * a * a),
+            totalArea: cleanPrecision(6 * a * a),
+            faceDiagonal: cleanPrecision(a * Math.sqrt(2)),
+            spaceDiagonal: cleanPrecision(a * Math.sqrt(3))
+        };
+    }
+
+    /** Rectangular Prism / Cuboid: edges a, b, c > 0 */
+    function solidCuboid(a, b, c) {
+        if (!isFinite(a) || a <= 0 || !isFinite(b) || b <= 0 || !isFinite(c) || c <= 0) return null;
+        return {
+            volume: cleanPrecision(a * b * c),
+            lateralArea: cleanPrecision(2 * (a + b) * c),
+            totalArea: cleanPrecision(2 * (a * b + b * c + a * c)),
+            spaceDiagonal: cleanPrecision(Math.sqrt(a * a + b * b + c * c))
+        };
+    }
+
+    /** Cylinder: radius r > 0, height h > 0 */
+    function solidCylinder(r, h) {
+        if (!isFinite(r) || r <= 0 || !isFinite(h) || h <= 0) return null;
+        const π = Math.PI;
+        return {
+            baseArea: cleanPrecision(π * r * r),
+            lateralArea: cleanPrecision(2 * π * r * h),
+            totalArea: cleanPrecision(2 * π * r * (r + h)),
+            volume: cleanPrecision(π * r * r * h)
+        };
+    }
+
+    /** Cone: radius r > 0, height h > 0 */
+    function solidCone(r, h) {
+        if (!isFinite(r) || r <= 0 || !isFinite(h) || h <= 0) return null;
+        const π = Math.PI;
+        const l = Math.sqrt(r * r + h * h);
+        return {
+            slantHeight: cleanPrecision(l),
+            baseArea: cleanPrecision(π * r * r),
+            lateralArea: cleanPrecision(π * r * l),
+            totalArea: cleanPrecision(π * r * (r + l)),
+            volume: cleanPrecision((1 / 3) * π * r * r * h)
+        };
+    }
+
+    /** Regular Square Pyramid: base side a > 0, height h > 0 */
+    function solidPyramid(a, h) {
+        if (!isFinite(a) || a <= 0 || !isFinite(h) || h <= 0) return null;
+        const l = Math.sqrt(h * h + (a / 2) * (a / 2));
+        const baseArea = a * a;
+        const lateralArea = 2 * a * l;
+        return {
+            slantHeight: cleanPrecision(l),
+            baseArea: cleanPrecision(baseArea),
+            lateralArea: cleanPrecision(lateralArea),
+            totalArea: cleanPrecision(baseArea + lateralArea),
+            volume: cleanPrecision((1 / 3) * baseArea * h)
+        };
+    }
+
+    /** Conical Frustum: bottom radius R > top radius r > 0, height h > 0 */
+    function solidFrustum(R, r, h) {
+        if (!isFinite(R) || R <= 0 || !isFinite(r) || r <= 0 || !isFinite(h) || h <= 0 || R <= r) return null;
+        const π = Math.PI;
+        const l = Math.sqrt(h * h + (R - r) * (R - r));
+        const lateralArea = π * (R + r) * l;
+        const totalArea = π * (R * R + r * r + (R + r) * l);
+        const volume = (1 / 3) * π * h * (R * R + R * r + r * r);
+        return {
+            slantHeight: cleanPrecision(l),
+            lateralArea: cleanPrecision(lateralArea),
+            totalArea: cleanPrecision(totalArea),
+            volume: cleanPrecision(volume)
+        };
+    }
+
     // Auto-init ans from existing storage if available
     HistoryStore.initAns();
 
@@ -1352,6 +1435,12 @@
         regularPolygon,
         coordinateGeometry,
         planeVectors,
+        solidCube,
+        solidCuboid,
+        solidCylinder,
+        solidCone,
+        solidPyramid,
+        solidFrustum,
         HistoryStore,
         ERRORS,
         CONSTANTS,
