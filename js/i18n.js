@@ -1,5 +1,5 @@
 /**
- * i18n Translation Engine for Math Engine AZ (v3.1.0)
+ * i18n Translation Engine for Math Engine AZ (v3.2.0)
  * Zero-dependency bilingual support: Azerbaijani ('az') & English ('en')
  */
 
@@ -109,17 +109,17 @@
             hapticEnabled: "Aktiv",
             hapticDisabled: "Deaktiv",
             hapticNote: "Vibrasiya dəstəklənən mobil brauzerlərdə (Android Chrome, Samsung Internet) işləyir, masaüstü və iOS Safari cihazlarında nəzərə alınmır.",
-            versionInfo: "Versiya 3.1.0 · Number Theory, Combinatorics & Multi-Factor Solver",
+            versionInfo: "Versiya 3.2.0 · 2D Geometry, Coordinate Method & Plane Vectors",
 
             // Settings Right Info Card
             sysInfoTitle: "Sistem Məlumatı",
             sysInfoSubtitle: "PWA mühərriki və cihaz konfiqurasiyası",
             appVersionLabel: "Tətbiq Versiyası",
             appVersion: "Tətbiq Versiyası",
-            appVersionVal: "v3.1.0 (Number Theory & Multi-Factor Solver)",
+            appVersionVal: "v3.2.0 (2D Geometry & Vectors)",
             pwaCacheLabel: "Oflayn Keş Statusu",
             pwaCacheStatus: "Oflayn Keş Statusu",
-            pwaCacheActive: "Aktiv (math-engine-az-v3.1.0)",
+            pwaCacheActive: "Aktiv (math-engine-az-v3.2.0)",
             shortcutsTitle: "Qısayol Düymələri",
             shortcutDigits: "Rəqəmlər",
             shortcutOps: "Əsas əməllər",
@@ -154,6 +154,9 @@
             geoRectangle: "Düzbucaqlı",
             geoTriangle: "Üçbucaq",
             geoTrapezoid: "Trapesiya",
+            geoPolygon: "Düzgün Çoxbucaqlılar",
+            geoCoordinate: "Koordinatlar Metodu",
+            geoVector: "Müstəvi Vektorları",
             geoCube: "Kub",
             geoCylinder: "Silindr",
             geoSphere: "Kürə",
@@ -330,17 +333,17 @@
             hapticEnabled: "Enabled",
             hapticDisabled: "Disabled",
             hapticNote: "Haptic feedback works on supported mobile browsers (Android Chrome, Samsung Internet) and is safely ignored on desktop and iOS Safari.",
-            versionInfo: "Version 3.1.0 · Number Theory, Combinatorics & Multi-Factor Solver",
+            versionInfo: "Version 3.2.0 · 2D Geometry, Coordinate Method & Plane Vectors",
 
             // Settings Right Info Card
             sysInfoTitle: "System Information",
             sysInfoSubtitle: "PWA runtime and device configuration",
             appVersionLabel: "Application Version",
             appVersion: "Application Version",
-            appVersionVal: "v3.1.0 (Number Theory & Multi-Factor Solver)",
+            appVersionVal: "v3.2.0 (2D Geometry & Vectors)",
             pwaCacheLabel: "Offline Cache Status",
             pwaCacheStatus: "Offline Cache Status",
-            pwaCacheActive: "Active (math-engine-az-v3.1.0)",
+            pwaCacheActive: "Active (math-engine-az-v3.2.0)",
             shortcutsTitle: "Keyboard Shortcuts",
             shortcutDigits: "Digits",
             shortcutOps: "Basic Operators",
@@ -375,6 +378,9 @@
             geoRectangle: "Rectangle",
             geoTriangle: "Triangle",
             geoTrapezoid: "Trapezoid",
+            geoPolygon: "Regular Polygons",
+            geoCoordinate: "Coordinate Method",
+            geoVector: "2D Plane Vectors",
             geoCube: "Cube",
             geoCylinder: "Cylinder",
             geoSphere: "Sphere",
@@ -454,7 +460,7 @@
             ntBtnComb: "Cₙᵏ",
             ntGcdLabel: "GCD:",
             ntLcmLabel: "LCM:",
-            ntPrimeFactorsLabel: "Prime Factorization:",
+            ntPrimeFactorsLabel: "Prime factorization:",
             ntPermLabel: "Permutation (Pₙ):",
             ntArrLabel: "Arrangement (Aₙᵏ):",
             ntCombLabel: "Combination (Cₙᵏ):"

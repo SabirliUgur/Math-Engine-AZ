@@ -1,10 +1,10 @@
-# 🧮 Math-Engine-AZ (v3.1.0 — "Number Theory, Combinatorics & Multi-Factor Step Solver")
+# 🧮 Math-Engine-AZ (v3.2.0 — "2D Geometry Expansion, Coordinate Method, Plane Vectors & i18n Fixes")
 
-Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), 2D həndəsə çertyojlu, statistik paylanma qrafikli, ədədlər nəzəriyyəsi və kombinatorika modullu, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
+Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), 2D həndəsə çertyojlu, koordinatlar metodu, müstəvi vektorları, statistik paylanma qrafikli, ədədlər nəzəriyyəsi və kombinatorika modullu, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
 
 [![Canlı Demo](https://img.shields.io/badge/Demo-Canlı%20Sayt-6366f1?style=for-the-badge&logo=githubpages&logoColor=white)](https://sabirliugur.github.io/Math-Engine-AZ/)
 [![Lisenziya](https://img.shields.io/badge/Lisenziya-MIT-green?style=for-the-badge)](LICENSE)
-[![Versiya](https://img.shields.io/badge/Versiya-v3.1.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Versiya](https://img.shields.io/badge/Versiya-v3.2.0-blue?style=for-the-badge)](CHANGELOG.md)
 [![PWA Dəstəyi](https://img.shields.io/badge/PWA-Oflayn%20Dəstəkli-orange?style=for-the-badge)](manifest.json)
 
 ---
@@ -12,6 +12,14 @@ Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vi
 ## 🌐 Canlı Keçid (Live Demo)
 Tətbiqi heç bir quraşdırma tələb olunmadan birbaşa brauzerinizdə istifadə edin:  
 👉 **[https://sabirliugur.github.io/Math-Engine-AZ/](https://sabirliugur.github.io/Math-Engine-AZ/)**
+
+---
+
+## ✨ v3.2.0 Yenilikləri
+- **Düzgün Çoxbucaqlılar (`Həndəsə`)**: Daxili/xarici bucaqlar, diaqonalların sayı, perimetr, sahə və canlı 2D SVG çertyoju.
+- **Koordinatlar Metodu (`Həndəsə`)**: İki nöqtə arası məsafə $|AB|$, orta nöqtə $M$, bucaq əmsalı $k$, düz xətt tənliyi və koordinat müstəvisi çertyoju.
+- **Müstəvi Vektorları (`Həndəsə`)**: $\vec{u}+\vec{v}$, $\vec{u}-\vec{v}$, modullar, skalyar hasil $\vec{u}\cdot\vec{v}$, bucaq $\theta$ (`DEG`/`RAD`) və ox uclu vektor diaqramı.
+- **Tam `AZ`/`EN` Tarixçə və Kombinatorika Lokalizasiyası**: `GCD`/`LCM`, `"Prime factorization:"`, `Permutation`/`Arrangement`/`Combination` tərcümələri.
 
 ---
 

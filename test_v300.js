@@ -283,19 +283,19 @@ it('Translates historyEmpty correctly in AZ and EN', () => {
 });
 
 // -------------------------------------------------------------
-// 6. index.html & sw.js v3.1.0 Verification
+// 6. index.html & sw.js v3.2.0 Verification
 // -------------------------------------------------------------
 console.log('\n[6] HTML & Service Worker Verification Tests');
 
-it('index.html references all scripts with v3.1.0 query string', () => {
+it('index.html references all scripts with v3.2.0 query string', () => {
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(html.includes('style.css?v=3.1.0'), 'style.css should have v=3.1.0');
-    assert.ok(html.includes('js/math-core.js?v=3.1.0'), 'math-core.js should have v=3.1.0');
-    assert.ok(html.includes('js/math-editor.js?v=3.1.0'), 'math-editor.js should have v=3.1.0');
-    assert.ok(html.includes('js/visual-charts.js?v=3.1.0'), 'visual-charts.js should have v=3.1.0');
-    assert.ok(html.includes('js/i18n.js?v=3.1.0'), 'i18n.js should have v=3.1.0');
-    assert.ok(html.includes('js/step-solver.js?v=3.1.0'), 'step-solver.js should have v=3.1.0');
-    assert.ok(html.includes('app.js?v=3.1.0'), 'app.js should have v=3.1.0');
+    assert.ok(html.includes('style.css?v=3.2.0'), 'style.css should have v=3.2.0');
+    assert.ok(html.includes('js/math-core.js?v=3.2.0'), 'math-core.js should have v=3.2.0');
+    assert.ok(html.includes('js/math-editor.js?v=3.2.0'), 'math-editor.js should have v=3.2.0');
+    assert.ok(html.includes('js/visual-charts.js?v=3.2.0'), 'visual-charts.js should have v=3.2.0');
+    assert.ok(html.includes('js/i18n.js?v=3.2.0'), 'i18n.js should have v=3.2.0');
+    assert.ok(html.includes('js/step-solver.js?v=3.2.0'), 'step-solver.js should have v=3.2.0');
+    assert.ok(html.includes('app.js?v=3.2.0'), 'app.js should have v=3.2.0');
 });
 
 it('index.html has removed "F(X) • ENGINE" header badge', () => {
@@ -319,11 +319,11 @@ it('index.html isolates Parametrlər with sidebar separator', () => {
     assert.ok(html.includes('sidebar-nav-divider'), 'sidebar-nav-divider should exist before settings');
 });
 
-it('sw.js cache name is updated to math-engine-az-v3.1.0', () => {
+it('sw.js cache name is updated to math-engine-az-v3.2.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.1.0'"), 'CACHE_NAME should be math-engine-az-v3.1.0');
-    assert.ok(sw.includes('./js/math-editor.js?v=3.1.0'), 'sw.js should precache math-editor.js?v=3.1.0');
-    assert.ok(sw.includes('./js/visual-charts.js?v=3.1.0'), 'sw.js should precache visual-charts.js?v=3.1.0');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.2.0'"), 'CACHE_NAME should be math-engine-az-v3.2.0');
+    assert.ok(sw.includes('./js/math-editor.js?v=3.2.0'), 'sw.js should precache math-editor.js?v=3.2.0');
+    assert.ok(sw.includes('./js/visual-charts.js?v=3.2.0'), 'sw.js should precache visual-charts.js?v=3.2.0');
 });
 
 // -------------------------------------------------------------
@@ -434,12 +434,68 @@ it('StepSolver preserves all factors in compound expressions (√5 × 3 2/3 & 2 
     I18n.setLanguage('az');
 });
 
-it('Service Worker & index.html cache versions are bumped to v3.1.0', () => {
+it('Service Worker & index.html cache versions are bumped to v3.2.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.1.0';"), 'sw.js CACHE_NAME should be v3.1.0');
-    assert.ok(html.includes('app.js?v=3.1.0'), 'index.html should reference ?v=3.1.0');
-    assert.ok(!html.includes('?v=3.0.1'), 'index.html should not have stale ?v=3.0.1 queries');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.2.0';"), 'sw.js CACHE_NAME should be v3.2.0');
+    assert.ok(html.includes('app.js?v=3.2.0'), 'index.html should reference ?v=3.2.0');
+    assert.ok(!html.includes('?v=3.1.0'), 'index.html should not have stale ?v=3.1.0 queries');
+});
+
+// -------------------------------------------------------------
+// 9. v3.2.0 2D Geometry, Coordinate Method, Plane Vectors & i18n Fixes
+// -------------------------------------------------------------
+console.log('\n[9] v3.2.0 2D Geometry, Coordinate Method, Plane Vectors & i18n Fixes');
+
+it('MathCore.regularPolygon computes hexagon (n=6, a=4) accurately', () => {
+    const poly = MathCore.regularPolygon(6, 4);
+    assert.strictEqual(poly.interiorSum, 720);
+    assert.strictEqual(poly.interiorAngle, 120);
+    assert.strictEqual(poly.exteriorAngle, 60);
+    assert.strictEqual(poly.diagonals, 9);
+    assert.strictEqual(poly.perimeter, 24);
+    assert.ok(Math.abs(poly.area - (24 * Math.sqrt(3))) < 1e-9, `Expected 24√3, got ${poly.area}`);
+});
+
+it('MathCore.coordinateGeometry computes distance, midpoint, slope & equation for A(1,2), B(4,6)', () => {
+    const coord = MathCore.coordinateGeometry(1, 2, 4, 6);
+    assert.strictEqual(coord.distance, 5);
+    assert.deepStrictEqual(coord.midpoint, { x: 2.5, y: 4 });
+    assert.ok(Math.abs(coord.slope - 4 / 3) < 1e-9);
+    assert.strictEqual(coord.isVertical, false);
+
+    const vert = MathCore.coordinateGeometry(3, -1, 3, 5);
+    assert.strictEqual(vert.distance, 6);
+    assert.strictEqual(vert.isVertical, true);
+    assert.strictEqual(vert.slope, null);
+    assert.strictEqual(vert.equation, 'x = 3');
+});
+
+it('MathCore.planeVectors computes sum, diff, magnitudes, dot product & angle for orthogonal u(3,0), v(0,4)', () => {
+    const vec = MathCore.planeVectors(3, 0, 0, 4);
+    assert.deepStrictEqual(vec.sum, { x: 3, y: 4 });
+    assert.deepStrictEqual(vec.diff, { x: 3, y: -4 });
+    assert.strictEqual(vec.magU, 3);
+    assert.strictEqual(vec.magV, 4);
+    assert.strictEqual(vec.dot, 0);
+    assert.strictEqual(vec.angleDeg, 90);
+    assert.ok(Math.abs(vec.angleRad - Math.PI / 2) < 1e-9);
+});
+
+it('VisualCharts renders 2D SVG diagrams for polygon, coordinate & vector in AZ and EN', () => {
+    const polyEn = VisualCharts.renderGeometry('polygon', 'na', { n: 6, a: 4 }, 'en');
+    assert.ok(polyEn.includes('<polygon') && polyEn.includes('Regular 6-gon'));
+    const coordAz = VisualCharts.renderGeometry('coordinate', 'pts', { x1: 1, y1: 2, x2: 4, y2: 6 }, 'az');
+    assert.ok(coordAz.includes('Koordinatlar Metodu') && coordAz.includes('M(2.5,4)'));
+    const vecEn = VisualCharts.renderGeometry('vector', 'uv', { x1: 3, y1: 0, x2: 0, y2: 4 }, 'en');
+    assert.ok(vecEn.includes('2D Plane Vectors') && vecEn.includes('vecArrowU'));
+});
+
+it('v3.1.0 EN localization fixes (Prime factorization & HISTORY_LABEL_MAP) are present', () => {
+    assert.strictEqual(I18n.TRANSLATIONS.en.ntPrimeFactorsLabel, 'Prime factorization:');
+    const appSrc = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8');
+    assert.ok(appSrc.includes("['ƏBOB', 'GCD']") && appSrc.includes("['ƏKOB', 'LCM']"));
+    assert.ok(appSrc.includes("['Permutasiya', 'Permutation']") && appSrc.includes("['Kombinezon', 'Combination']"));
 });
 
 console.log(`\n========================================`);

@@ -830,7 +830,22 @@ const HISTORY_LABEL_MAP = [
     ['vurma', 'multiplication'],
     ['nəticə', 'result'],
     ['Ədədi', 'Arithmetic'],
-    ['Həndəsi', 'Geometric']
+    ['Həndəsi', 'Geometric'],
+    ['ƏBOB', 'GCD'],
+    ['ƏKOB', 'LCM'],
+    ['Permutasiya', 'Permutation'],
+    ['Aranjeman', 'Arrangement'],
+    ['Kombinezon', 'Combination'],
+    ['Daxili bucaqların cəmi', 'Sum of interior angles'],
+    ['Bir daxili bucaq', 'Single interior angle'],
+    ['Bir xarici bucaq', 'Single exterior angle'],
+    ['Diaqonalların sayı', 'Number of diagonals'],
+    ['Məsafə |AB|', 'Distance |AB|'],
+    ['Orta nöqtə M', 'Midpoint M'],
+    ['Bucaq əmsalı (k)', 'Slope (k)'],
+    ['Düz xətt tənliyi', 'Line equation'],
+    ['Skalyar hasil (u·v)', 'Dot product (u·v)'],
+    ['Bucaq θ', 'Angle θ']
 ];
 
 function translateHistoryField(str, isEn) {
@@ -1553,6 +1568,49 @@ const shapes = {
         modes: [
             { id: 'rh', label: { az: 'Radius və hündürlük', en: 'Radius & height' }, inputs: [{id:'r', label:{ az: 'Radius (r)', en: 'Radius (r)' }}, {id:'h', label:{ az: 'Hündürlük (h)', en: 'Height (h)' }}] }
         ]
+    },
+    polygon: {
+        name: { az: 'Düzgün Çoxbucaqlılar', en: 'Regular Polygons' },
+        modes: [
+            {
+                id: 'na',
+                label: { az: 'Tərəf sayı (n) və uzunluğu (a)', en: 'Sides (n) & side length (a)' },
+                inputs: [
+                    { id: 'n', label: { az: 'Tərəf sayı (n ≥ 3)', en: 'Number of sides (n ≥ 3)' }, isPolygonN: true },
+                    { id: 'a', label: { az: 'Tərəf (a)', en: 'Side length (a)' } }
+                ]
+            }
+        ]
+    },
+    coordinate: {
+        name: { az: 'Koordinatlar Metodu', en: 'Coordinate Method' },
+        modes: [
+            {
+                id: 'pts',
+                label: { az: 'A(x₁, y₁) və B(x₂, y₂)', en: 'A(x₁, y₁) and B(x₂, y₂)' },
+                inputs: [
+                    { id: 'x1', label: { az: 'x₁ (A nöqtəsi)', en: 'x₁ (Point A)' }, allowZeroOrNeg: true },
+                    { id: 'y1', label: { az: 'y₁ (A nöqtəsi)', en: 'y₁ (Point A)' }, allowZeroOrNeg: true },
+                    { id: 'x2', label: { az: 'x₂ (B nöqtəsi)', en: 'x₂ (Point B)' }, allowZeroOrNeg: true },
+                    { id: 'y2', label: { az: 'y₂ (B nöqtəsi)', en: 'y₂ (Point B)' }, allowZeroOrNeg: true }
+                ]
+            }
+        ]
+    },
+    vector: {
+        name: { az: 'Müstəvi Vektorları', en: '2D Plane Vectors' },
+        modes: [
+            {
+                id: 'uv',
+                label: { az: 'u(x₁, y₁) və v(x₂, y₂)', en: 'u(x₁, y₁) and v(x₂, y₂)' },
+                inputs: [
+                    { id: 'x1', label: { az: 'x₁ (u vektoru)', en: 'x₁ (Vector u)' }, allowZeroOrNeg: true },
+                    { id: 'y1', label: { az: 'y₁ (u vektoru)', en: 'y₁ (Vector u)' }, allowZeroOrNeg: true },
+                    { id: 'x2', label: { az: 'x₂ (v vektoru)', en: 'x₂ (Vector v)' }, allowZeroOrNeg: true },
+                    { id: 'y2', label: { az: 'y₂ (v vektoru)', en: 'y₂ (Vector v)' }, allowZeroOrNeg: true }
+                ]
+            }
+        ]
     }
 };
 
@@ -1684,7 +1742,19 @@ function calculateGeometry() {
             errorMsg = (isEn ? 'Error' : 'Xəta') + ' (' + lbl + '): ' + (e.message || (isEn ? 'Please enter a valid mathematical expression' : 'Düzgün riyazi ifadə daxil edin'));
             return;
         }
-        if (isNaN(v) || !isFinite(v) || v <= 0) {
+        if (inp.isPolygonN) {
+            if (isNaN(v) || !isFinite(v) || !Number.isInteger(v) || v < 3) {
+                valid = false;
+                errorMsg = lbl + (isEn ? ' must be an integer ≥ 3.' : ' ən azı 3 olan tam ədəd olmalıdır.');
+                return;
+            }
+        } else if (inp.allowZeroOrNeg) {
+            if (isNaN(v) || !isFinite(v)) {
+                valid = false;
+                errorMsg = lbl + (isEn ? ' must be a valid finite number or expression.' : ' düzgün sonlu ədəd və ya riyazi ifadə olmalıdır.');
+                return;
+            }
+        } else if (isNaN(v) || !isFinite(v) || v <= 0) {
             valid = false;
             errorMsg = lbl + (isEn ? ' must be a positive number or valid expression (> 0).' : ' müsbət ədəd və ya düzgün riyazi ifadə olmalıdır (> 0).');
             return;
@@ -1798,16 +1868,58 @@ function calculateGeometry() {
             results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S = π · r · (r + l)', value: clean(π * r * (r + l)) });
             break;
         }
+        case 'polygon': {
+            const res = MathCore.regularPolygon(vals.n, vals.a);
+            results.push({ label: isEn ? 'Sum of interior angles' : 'Daxili bucaqların cəmi', formula: 'Σ = (n − 2) · 180°', value: res.interiorSum, unit: '°' });
+            results.push({ label: isEn ? 'Single interior angle' : 'Bir daxili bucaq', formula: 'α = (n − 2) · 180° / n', value: res.interiorAngle, unit: '°' });
+            results.push({ label: isEn ? 'Single exterior angle' : 'Bir xarici bucaq', formula: 'β = 360° / n', value: res.exteriorAngle, unit: '°' });
+            results.push({ label: isEn ? 'Number of diagonals' : 'Diaqonalların sayı', formula: 'D = n(n − 3) / 2', value: res.diagonals });
+            results.push({ label: isEn ? 'Perimeter' : 'Perimetr', formula: 'P = n · a', value: res.perimeter });
+            results.push({ label: isEn ? 'Area' : 'Sahə', formula: 'S = (n · a²) / (4 · tan(π / n))', value: res.area });
+            break;
+        }
+        case 'coordinate': {
+            const res = MathCore.coordinateGeometry(vals.x1, vals.y1, vals.x2, vals.y2);
+            results.push({ label: isEn ? 'Distance |AB|' : 'Məsafə |AB|', formula: '|AB| = √((x₂ − x₁)² + (y₂ − y₁)²)', value: res.distance });
+            results.push({ label: isEn ? 'Midpoint M' : 'Orta nöqtə M', formula: 'M((x₁ + x₂)/2, (y₁ + y₂)/2)', textValue: `(${formatNumber(res.midpoint.x)}, ${formatNumber(res.midpoint.y)})` });
+            results.push({
+                label: isEn ? 'Slope (k)' : 'Bucaq əmsalı (k)',
+                formula: 'k = (y₂ − y₁) / (x₂ − x₁)',
+                textValue: res.isVertical ? (isEn ? 'Undefined (vertical line)' : 'Təyin olunmayıb (şaquli xətt)') : formatNumber(res.slope)
+            });
+            results.push({ label: isEn ? 'Line equation' : 'Düz xətt tənliyi', formula: res.isVertical ? 'x = x₁' : 'y = kx + b', textValue: res.equation });
+            break;
+        }
+        case 'vector': {
+            const res = MathCore.planeVectors(vals.x1, vals.y1, vals.x2, vals.y2);
+            results.push({ label: 'u + v', formula: '(x₁ + x₂, y₁ + y₂)', textValue: `(${formatNumber(res.sum.x)}, ${formatNumber(res.sum.y)})` });
+            results.push({ label: 'u − v', formula: '(x₁ − x₂, y₁ − y₂)', textValue: `(${formatNumber(res.diff.x)}, ${formatNumber(res.diff.y)})` });
+            results.push({ label: '|u|', formula: '|u| = √(x₁² + y₁²)', value: res.magU });
+            results.push({ label: '|v|', formula: '|v| = √(x₂² + y₂²)', value: res.magV });
+            results.push({ label: isEn ? 'Dot product (u·v)' : 'Skalyar hasil (u·v)', formula: 'u · v = x₁x₂ + y₁y₂', value: res.dot });
+            results.push({
+                label: isEn ? 'Angle θ (DEG / RAD)' : 'Bucaq θ (DEG / RAD)',
+                formula: 'cos θ = (u · v) / (|u| · |v|)',
+                textValue: res.angleDeg !== null
+                    ? `${formatNumber(res.angleDeg)}° (${formatNumber(res.angleRad)} rad)`
+                    : (isEn ? 'Undefined (zero vector)' : 'Təyin olunmayıb (sıfır vektor)')
+            });
+            break;
+        }
     }
 
     const html = results.map(r =>
-        `<div><span class="label">${r.label}:</span> <span class="value">${formatNumber(r.value)}${r.unit || ''}</span></div>
+        `<div><span class="label">${r.label}:</span> <span class="value">${r.textValue !== undefined ? escHtml(r.textValue) : formatNumber(r.value)}${r.unit || ''}</span></div>
          <span class="formula">${r.formula}</span>`
     ).join('');
 
     showGeoResult(html);
     updateGeometryDiagram();
-    addToHistory(isEn ? 'Geometry' : 'Həndəsə', `${locLabel(shape.name)} (${locLabel(mode.label)})`, results.map(r => `${r.label} = ${formatNumber(r.value)}`).join(', '));
+    addToHistory(
+        isEn ? 'Geometry' : 'Həndəsə',
+        `${locLabel(shape.name)} (${locLabel(mode.label)})`,
+        results.map(r => `${r.label} = ${r.textValue !== undefined ? r.textValue : formatNumber(r.value)}${r.unit || ''}`).join(', ')
+    );
 }
 
 function showGeoResult(html) {
@@ -2565,7 +2677,7 @@ function calcGcdLcm() {
     const lcmVal = MathCore.lcmMulti(nums);
     const gcdLabel = isEn ? 'GCD' : 'ƏBOB';
     const lcmLabel = isEn ? 'LCM' : 'ƏKOB';
-    const primeLabel = isEn ? 'Prime Factorization:' : 'Sadə vuruqlara ayırma:';
+    const primeLabel = isEn ? 'Prime factorization:' : 'Sadə vuruqlara ayırma:';
     const factorLines = nums.map(n => `<div class="formula">${formatPrimeFactorization(n)}</div>`).join('');
 
     out.innerHTML = `

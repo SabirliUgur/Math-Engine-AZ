@@ -261,6 +261,137 @@
                 break;
             }
 
+            case 'polygon': {
+                const nRaw = parseInt(vals.n, 10);
+                const n = (!isNaN(nRaw) && nRaw >= 3) ? Math.min(nRaw, 12) : 6;
+                const nDisplay = (!isNaN(nRaw) && nRaw >= 3) ? nRaw : 'n';
+                const aVal = formatVal(vals.a) || 'a';
+                const cx = 200;
+                const cy = 132;
+                const R = 78;
+                const pts = [];
+                for (let i = 0; i < n; i++) {
+                    const ang = -Math.PI / 2 + (2 * Math.PI * i) / n + Math.PI / n;
+                    pts.push({
+                        x: +(cx + R * Math.cos(ang)).toFixed(2),
+                        y: +(cy + R * Math.sin(ang)).toFixed(2)
+                    });
+                }
+                const ptsAttr = pts.map(p => `${p.x},${p.y}`).join(' ');
+                const p0 = pts[0];
+                const p1 = pts[1];
+                const intAngle = (!isNaN(nRaw) && nRaw >= 3) ? formatVal(((nRaw - 2) * 180) / nRaw) + '°' : 'α';
+                content = `
+                    <polygon points="${ptsAttr}" fill="${accentFill}" stroke="${accent}" stroke-width="2.5" stroke-linejoin="round" />
+                    <circle cx="${cx}" cy="${cy}" r="3.5" fill="${accent}" />
+                    <text x="${(p0.x + p1.x) / 2 + 12}" y="${(p0.y + p1.y) / 2 + 4}" fill="${textCol}" font-family="${fontMono}" font-size="12" font-weight="600">a = ${aVal}</text>
+                    <text x="${cx}" y="${cy - 8}" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600" text-anchor="middle">α = ${intAngle}</text>
+                    <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? `Regular ${nDisplay}-gon` : `Düzgün ${nDisplay}-bucaqlı`}: P = n·a</text>
+                `;
+                break;
+            }
+
+            case 'coordinate': {
+                const x1 = typeof vals.x1 === 'number' && !isNaN(vals.x1) ? vals.x1 : -2;
+                const y1 = typeof vals.y1 === 'number' && !isNaN(vals.y1) ? vals.y1 : -1;
+                const x2 = typeof vals.x2 === 'number' && !isNaN(vals.x2) ? vals.x2 : 4;
+                const y2 = typeof vals.y2 === 'number' && !isNaN(vals.y2) ? vals.y2 : 3;
+                const mx = (x1 + x2) / 2;
+                const my = (y1 + y2) / 2;
+                const maxAbs = Math.max(Math.abs(x1), Math.abs(y1), Math.abs(x2), Math.abs(y2), 2) * 1.3;
+                const ox = 200;
+                const oy = 135;
+                const scale = 88 / maxAbs;
+                const sx1 = +(ox + x1 * scale).toFixed(1);
+                const sy1 = +(oy - y1 * scale).toFixed(1);
+                const sx2 = +(ox + x2 * scale).toFixed(1);
+                const sy2 = +(oy - y2 * scale).toFixed(1);
+                const smx = +(ox + mx * scale).toFixed(1);
+                const smy = +(oy - my * scale).toFixed(1);
+                content = `
+                    <!-- Axes -->
+                    <line x1="65" y1="${oy}" x2="335" y2="${oy}" stroke="${textSec}" stroke-width="1.2" opacity="0.55" />
+                    <line x1="${ox}" y1="30" x2="${ox}" y2="230" stroke="${textSec}" stroke-width="1.2" opacity="0.55" />
+                    <text x="340" y="${oy + 4}" fill="${textSec}" font-family="${fontMono}" font-size="11">x</text>
+                    <text x="${ox + 6}" y="35" fill="${textSec}" font-family="${fontMono}" font-size="11">y</text>
+                    <!-- Segment AB -->
+                    <line x1="${sx1}" y1="${sy1}" x2="${sx2}" y2="${sy2}" stroke="${accent}" stroke-width="2.5" stroke-linecap="round" />
+                    <!-- Points A, B, M -->
+                    <circle cx="${sx1}" cy="${sy1}" r="4.5" fill="${accent}" />
+                    <circle cx="${sx2}" cy="${sy2}" r="4.5" fill="${accent}" />
+                    <circle cx="${smx}" cy="${smy}" r="4.5" fill="${guideCol}" />
+                    <text x="${sx1 - 6}" y="${sy1 - 8}" fill="${textCol}" font-family="${fontMono}" font-size="11" font-weight="600" text-anchor="end">A(${formatVal(x1)},${formatVal(y1)})</text>
+                    <text x="${sx2 + 6}" y="${sy2 - 8}" fill="${textCol}" font-family="${fontMono}" font-size="11" font-weight="600">B(${formatVal(x2)},${formatVal(y2)})</text>
+                    <text x="${smx + 8}" y="${smy + 14}" fill="${guideCol}" font-family="${fontMono}" font-size="11" font-weight="600">M(${formatVal(mx)},${formatVal(my)})</text>
+                    <text x="200" y="256" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Coordinate Method' : 'Koordinatlar Metodu'}: |AB|</text>
+                `;
+                break;
+            }
+
+            case 'vector': {
+                const x1 = typeof vals.x1 === 'number' && !isNaN(vals.x1) ? vals.x1 : 3;
+                const y1 = typeof vals.y1 === 'number' && !isNaN(vals.y1) ? vals.y1 : 1;
+                const x2 = typeof vals.x2 === 'number' && !isNaN(vals.x2) ? vals.x2 : 1;
+                const y2 = typeof vals.y2 === 'number' && !isNaN(vals.y2) ? vals.y2 : 3;
+                const maxAbs = Math.max(Math.abs(x1), Math.abs(y1), Math.abs(x2), Math.abs(y2), 2) * 1.3;
+                const ox = 200;
+                const oy = 140;
+                const scale = 88 / maxAbs;
+                const ux = +(ox + x1 * scale).toFixed(1);
+                const uy = +(oy - y1 * scale).toFixed(1);
+                const vx = +(ox + x2 * scale).toFixed(1);
+                const vy = +(oy - y2 * scale).toFixed(1);
+
+                // Angle arc between u and v
+                let arcSvg = '';
+                const mu = Math.hypot(x1, y1);
+                const mv = Math.hypot(x2, y2);
+                if (mu > 1e-9 && mv > 1e-9) {
+                    const angU = Math.atan2(-y1, x1);
+                    const angV = Math.atan2(-y2, x2);
+                    const ar = 26;
+                    const ax1 = +(ox + ar * Math.cos(angU)).toFixed(1);
+                    const ay1 = +(oy + ar * Math.sin(angU)).toFixed(1);
+                    const ax2 = +(ox + ar * Math.cos(angV)).toFixed(1);
+                    const ay2 = +(oy + ar * Math.sin(angV)).toFixed(1);
+                    let diffAng = angV - angU;
+                    while (diffAng > Math.PI) diffAng -= 2 * Math.PI;
+                    while (diffAng < -Math.PI) diffAng += 2 * Math.PI;
+                    const sweep = diffAng >= 0 ? 1 : 0;
+                    const midAng = angU + diffAng / 2;
+                    const tx = +(ox + (ar + 12) * Math.cos(midAng)).toFixed(1);
+                    const ty = +(oy + (ar + 12) * Math.sin(midAng)).toFixed(1);
+                    arcSvg = `
+                        <path d="M ${ax1} ${ay1} A ${ar} ${ar} 0 0 ${sweep} ${ax2} ${ay2}" fill="none" stroke="#F59E0B" stroke-width="1.8" />
+                        <text x="${tx}" y="${ty}" fill="#F59E0B" font-family="${fontMono}" font-size="11" font-weight="700" text-anchor="middle">θ</text>
+                    `;
+                }
+
+                content = `
+                    <defs>
+                        <marker id="vecArrowU" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L7,3 z" fill="${accent}" />
+                        </marker>
+                        <marker id="vecArrowV" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L7,3 z" fill="${guideCol}" />
+                        </marker>
+                    </defs>
+                    <!-- Axes -->
+                    <line x1="65" y1="${oy}" x2="335" y2="${oy}" stroke="${textSec}" stroke-width="1.2" opacity="0.5" />
+                    <line x1="${ox}" y1="30" x2="${ox}" y2="230" stroke="${textSec}" stroke-width="1.2" opacity="0.5" />
+                    <circle cx="${ox}" cy="${oy}" r="3.5" fill="${textSec}" />
+                    ${arcSvg}
+                    <!-- Vector u -->
+                    <line x1="${ox}" y1="${oy}" x2="${ux}" y2="${uy}" stroke="${accent}" stroke-width="2.5" marker-end="url(#vecArrowU)" />
+                    <text x="${ux + 6}" y="${uy - 6}" fill="${accent}" font-family="${fontMono}" font-size="12" font-weight="600">u(${formatVal(x1)},${formatVal(y1)})</text>
+                    <!-- Vector v -->
+                    <line x1="${ox}" y1="${oy}" x2="${vx}" y2="${vy}" stroke="${guideCol}" stroke-width="2.5" marker-end="url(#vecArrowV)" />
+                    <text x="${vx + 6}" y="${vy - 6}" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600">v(${formatVal(x2)},${formatVal(y2)})</text>
+                    <text x="200" y="256" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? '2D Plane Vectors' : 'Müstəvi Vektorları'}: u · v</text>
+                `;
+                break;
+            }
+
             default:
                 content = `<text x="200" y="140" fill="${textSec}" font-family="${fontMono}" font-size="13" text-anchor="middle">${isEn ? 'No shape selected' : 'Fiqur seçilməyib'}</text>`;
         }

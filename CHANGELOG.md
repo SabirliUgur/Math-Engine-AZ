@@ -5,6 +5,25 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [3.2.0] - 2026-11-25 — "2D Geometry Expansion, Coordinate Method, Plane Vectors & i18n Fixes"
+
+### 📐 2D Həndəsə Genişləndirməsi, Koordinatlar Metodu və Müstəvi Vektorları
+- **Düzgün Çoxbucaqlılar (`Regular Polygons`)**:
+  - Tərəf sayı `n ≥ 3` və tərəf uzunluğu `a` üzrə daxili bucaqların cəmi $(n-2)\cdot 180^\circ$, bir daxili/xarici bucaq, diaqonalların sayı $\frac{n(n-3)}{2}$, perimetr $P = n \cdot a$ və sahə $S = \frac{n \cdot a^2}{4\tan(\pi/n)}$ hesablamaları.
+  - Sağ paneldə `n`-bucaqlının tərəf və bucaq etiketli canlı 2D SVG çertyoju.
+- **Koordinatlar Metodu (`Coordinate Method`)**:
+  - $A(x_1, y_1)$ və $B(x_2, y_2)$ nöqtələri arasında məsafə $|AB|$, orta nöqtə $M$, bucaq əmsalı $k$ (şaquli xətt $x_1 = x_2$ dəstəyi ilə) və düz xətt tənliyi ($y = kx + b$ və ya $x = x_1$).
+  - Sağ paneldə oxlar, $A$, $B$ nöqtələri, $AB$ parçası və orta nöqtə $M$-in canlı 2D SVG qrafiki.
+- **Müstəvi Vektorları (`2D Plane Vectors`)**:
+  - $\vec{u}(x_1, y_1)$ və $\vec{v}(x_2, y_2)$ vektorlarının cəmi $\vec{u}+\vec{v}$, fərqi $\vec{u}-\vec{v}$, modulları $|\vec{u}|$, $|\vec{v}|$, skalyar hasili $\vec{u}\cdot\vec{v}$ və aralarındakı bucaq $\theta$ (həm `DEG`, həm `RAD`).
+  - Sağ paneldə $(0,0)$ başlanğıcından ox ucları və $\theta$ bucaq qövsü ilə canlı 2D SVG diaqramı.
+
+### 🌐 v3.1.0 İngilis Dili (`EN`) Lokalizasiya Düzəlişləri
+- Tarixçə (`HistoryStore`) və nəticə bloklarında `ƏBOB`/`ƏKOB` → `GCD`/`LCM`, `"Sadə vuruqlara ayırma:"` → `"Prime factorization:"`, `Permutasiya`/`Aranjeman`/`Kombinezon` → `Permutation`/`Arrangement`/`Combination` tərcümələri tam bərpa edildi.
+- `sw.js` keş adı `'math-engine-az-v3.2.0'` olaraq yeniləndi.
+
+---
+
 ## [3.1.0] - 2026-11-25 — "Number Theory, Combinatorics & Multi-Factor Step Solver"
 
 ### 🔢 Ədədlər Nəzəriyyəsi və Kombinatorika (`Statistika` bölməsi)

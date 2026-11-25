@@ -1259,6 +1259,74 @@
         return Math.round(res);
     }
 
+    // =========================================================
+    // 7C. 2D GEOMETRY, COORDINATE METHOD & PLANE VECTORS (v3.2.0)
+    // =========================================================
+
+    /** Compute regular n-gon properties for n >= 3, side length a > 0. */
+    function regularPolygon(n, a) {
+        if (!Number.isInteger(n) || n < 3 || !isFinite(a) || a <= 0) return null;
+        const interiorSum = cleanPrecision((n - 2) * 180);
+        const interiorAngle = cleanPrecision(interiorSum / n);
+        const exteriorAngle = cleanPrecision(360 / n);
+        const diagonals = (n * (n - 3)) / 2;
+        const perimeter = cleanPrecision(n * a);
+        const area = cleanPrecision((n * a * a) / (4 * Math.tan(Math.PI / n)));
+        return { n, a, interiorSum, interiorAngle, exteriorAngle, diagonals, perimeter, area };
+    }
+
+    /** Compute distance, midpoint, slope, and line equation for A(x1,y1) and B(x2,y2). */
+    function coordinateGeometry(x1, y1, x2, y2) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const distance = cleanPrecision(Math.sqrt(dx * dx + dy * dy));
+        const midX = cleanPrecision((x1 + x2) / 2);
+        const midY = cleanPrecision((y1 + y2) / 2);
+        const isVertical = Math.abs(dx) < 1e-12;
+        const slope = isVertical ? null : cleanPrecision(dy / dx);
+        const intercept = isVertical ? null : cleanPrecision(y1 - slope * x1);
+        let equation;
+        if (isVertical) {
+            equation = `x = ${cleanPrecision(x1)}`;
+        } else if (Math.abs(slope) < 1e-12) {
+            equation = `y = ${cleanPrecision(y1)}`;
+        } else {
+            const kStr = slope === 1 ? 'x' : (slope === -1 ? '-x' : `${slope}x`);
+            if (Math.abs(intercept) < 1e-12) {
+                equation = `y = ${kStr}`;
+            } else if (intercept > 0) {
+                equation = `y = ${kStr} + ${intercept}`;
+            } else {
+                equation = `y = ${kStr} - ${Math.abs(intercept)}`;
+            }
+        }
+        return {
+            distance,
+            midpoint: { x: midX, y: midY },
+            slope,
+            intercept,
+            isVertical,
+            equation
+        };
+    }
+
+    /** Compute sum, difference, magnitudes, dot product, and angle for u(x1,y1) and v(x2,y2). */
+    function planeVectors(x1, y1, x2, y2) {
+        const sum = { x: cleanPrecision(x1 + x2), y: cleanPrecision(y1 + y2) };
+        const diff = { x: cleanPrecision(x1 - x2), y: cleanPrecision(y1 - y2) };
+        const magU = cleanPrecision(Math.sqrt(x1 * x1 + y1 * y1));
+        const magV = cleanPrecision(Math.sqrt(x2 * x2 + y2 * y2));
+        const dot = cleanPrecision(x1 * x2 + y1 * y2);
+        let angleRad = null;
+        let angleDeg = null;
+        if (magU > 1e-12 && magV > 1e-12) {
+            const cosTheta = Math.max(-1, Math.min(1, dot / (magU * magV)));
+            angleRad = cleanPrecision(Math.acos(cosTheta));
+            angleDeg = cleanPrecision((angleRad * 180) / Math.PI);
+        }
+        return { sum, diff, magU, magV, dot, angleRad, angleDeg };
+    }
+
     // Auto-init ans from existing storage if available
     HistoryStore.initAns();
 
@@ -1281,6 +1349,9 @@
         permutation,
         arrangement,
         combination,
+        regularPolygon,
+        coordinateGeometry,
+        planeVectors,
         HistoryStore,
         ERRORS,
         CONSTANTS,
