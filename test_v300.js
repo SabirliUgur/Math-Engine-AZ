@@ -287,15 +287,15 @@ it('Translates historyEmpty correctly in AZ and EN', () => {
 // -------------------------------------------------------------
 console.log('\n[6] HTML & Service Worker Verification Tests');
 
-it('index.html references all scripts with v3.4.0 query string', () => {
+it('index.html references all scripts with v3.5.0 query string', () => {
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(html.includes('style.css?v=3.4.0'), 'style.css should have v=3.4.0');
-    assert.ok(html.includes('js/math-core.js?v=3.4.0'), 'math-core.js should have v=3.4.0');
-    assert.ok(html.includes('js/math-editor.js?v=3.4.0'), 'math-editor.js should have v=3.4.0');
-    assert.ok(html.includes('js/visual-charts.js?v=3.4.0'), 'visual-charts.js should have v=3.4.0');
-    assert.ok(html.includes('js/i18n.js?v=3.4.0'), 'i18n.js should have v=3.4.0');
-    assert.ok(html.includes('js/step-solver.js?v=3.4.0'), 'step-solver.js should have v=3.4.0');
-    assert.ok(html.includes('app.js?v=3.4.0'), 'app.js should have v=3.4.0');
+    assert.ok(html.includes('style.css?v=3.5.0'), 'style.css should have v=3.5.0');
+    assert.ok(html.includes('js/math-core.js?v=3.5.0'), 'math-core.js should have v=3.5.0');
+    assert.ok(html.includes('js/math-editor.js?v=3.5.0'), 'math-editor.js should have v=3.5.0');
+    assert.ok(html.includes('js/visual-charts.js?v=3.5.0'), 'visual-charts.js should have v=3.5.0');
+    assert.ok(html.includes('js/i18n.js?v=3.5.0'), 'i18n.js should have v=3.5.0');
+    assert.ok(html.includes('js/step-solver.js?v=3.5.0'), 'step-solver.js should have v=3.5.0');
+    assert.ok(html.includes('app.js?v=3.5.0'), 'app.js should have v=3.5.0');
 });
 
 it('index.html has removed "F(X) • ENGINE" header badge', () => {
@@ -319,11 +319,11 @@ it('index.html isolates Parametrlər with sidebar separator', () => {
     assert.ok(html.includes('sidebar-nav-divider'), 'sidebar-nav-divider should exist before settings');
 });
 
-it('sw.js cache name is updated to math-engine-az-v3.4.0', () => {
+it('sw.js cache name is updated to math-engine-az-v3.5.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.4.0'"), 'CACHE_NAME should be math-engine-az-v3.4.0');
-    assert.ok(sw.includes('./js/math-editor.js?v=3.4.0'), 'sw.js should precache math-editor.js?v=3.4.0');
-    assert.ok(sw.includes('./js/visual-charts.js?v=3.4.0'), 'sw.js should precache visual-charts.js?v=3.4.0');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.5.0'"), 'CACHE_NAME should be math-engine-az-v3.5.0');
+    assert.ok(sw.includes('./js/math-editor.js?v=3.5.0'), 'sw.js should precache math-editor.js?v=3.5.0');
+    assert.ok(sw.includes('./js/visual-charts.js?v=3.5.0'), 'sw.js should precache visual-charts.js?v=3.5.0');
 });
 
 // -------------------------------------------------------------
@@ -434,12 +434,12 @@ it('StepSolver preserves all factors in compound expressions (√5 × 3 2/3 & 2 
     I18n.setLanguage('az');
 });
 
-it('Service Worker & index.html cache versions are bumped to v3.4.0', () => {
+it('Service Worker & index.html cache versions are bumped to v3.5.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.4.0';"), 'sw.js CACHE_NAME should be v3.4.0');
-    assert.ok(html.includes('app.js?v=3.4.0'), 'index.html should reference ?v=3.4.0');
-    assert.ok(!html.includes('?v=3.3.0'), 'index.html should not have stale ?v=3.3.0 queries');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.5.0';"), 'sw.js CACHE_NAME should be v3.5.0');
+    assert.ok(html.includes('app.js?v=3.5.0'), 'index.html should reference ?v=3.5.0');
+    assert.ok(!html.includes('?v=3.4.0'), 'index.html should not have stale ?v=3.4.0 queries');
 });
 
 // -------------------------------------------------------------
@@ -612,6 +612,61 @@ it('VisualCharts renders Argand, Inequality & Geometric Progression SVGs in AZ a
     assert.ok(ineqAz.includes('Həll') && ineqAz.includes('(-∞, 1) ∪ (3, +∞)'));
     const gpEn = VisualCharts.renderGeometricProgression(MathCore.geometricProgression(2, 0.5, 4), 'en');
     assert.ok(gpEn.includes('Geometric Progression') && gpEn.includes('<rect'));
+});
+
+// -------------------------------------------------------------
+// 12. v3.5.0 Function Limits & Interactive Graph 2.0
+// -------------------------------------------------------------
+console.log('\n[12] v3.5.0 Function Limits & Interactive Graph 2.0');
+
+it('MathCore.computeLimit evaluates removable discontinuity (x^2 - 4)/(x - 2) as x -> 2 === 4', () => {
+    const res = MathCore.computeLimit('(x^2 - 4)/(x - 2)', '2');
+    assert.strictEqual(res.status, 'finite');
+    assert.strictEqual(res.twoSided, 4);
+    assert.strictEqual(res.discontinuity, 'removable');
+});
+
+it('MathCore.computeLimit evaluates sin(x)/x as x -> 0 === 1', () => {
+    const res = MathCore.computeLimit('sin(x)/x', '0');
+    assert.strictEqual(res.status, 'finite');
+    assert.strictEqual(res.twoSided, 1);
+});
+
+it('MathCore.computeLimit evaluates (3*x^2 + 1)/(x^2 - 5) as x -> inf === 3', () => {
+    const res = MathCore.computeLimit('(3*x^2 + 1)/(x^2 - 5)', 'inf');
+    assert.strictEqual(res.isInfinity, true);
+    assert.strictEqual(res.status, 'finite');
+    assert.strictEqual(res.twoSided, 3);
+});
+
+it('MathCore.computeLimit evaluates (1 + 1/x)^x as x -> ∞ ≈ e', () => {
+    const res = MathCore.computeLimit('(1 + 1/x)^x', '∞');
+    assert.strictEqual(res.status, 'finite');
+    assert.ok(Math.abs(res.twoSided - Math.E) < 1e-5, `Expected ~e, got ${res.twoSided}`);
+});
+
+it('MathCore.computeLimit detects left/right limit mismatch for 1/x at x -> 0', () => {
+    const res = MathCore.computeLimit('1/x', '0');
+    assert.strictEqual(res.left.kind, 'infinite');
+    assert.strictEqual(res.left.value, -Infinity);
+    assert.strictEqual(res.right.kind, 'infinite');
+    assert.strictEqual(res.right.value, Infinity);
+    assert.strictEqual(res.status, 'dne');
+    assert.strictEqual(res.twoSided, null);
+});
+
+it('MathCore.findRoots & findIntersections detect roots and f(x)=g(x) intersections', () => {
+    const roots = MathCore.findRoots('x^2 - 4', -10, 10);
+    assert.strictEqual(roots.length, 2);
+    assert.strictEqual(roots[0].x, -2);
+    assert.strictEqual(roots[1].x, 2);
+
+    const inter = MathCore.findIntersections('x^2 - 4', 'x + 2', -10, 10);
+    assert.strictEqual(inter.length, 2);
+    assert.strictEqual(inter[0].x, -2);
+    assert.strictEqual(inter[0].y, 0);
+    assert.strictEqual(inter[1].x, 3);
+    assert.strictEqual(inter[1].y, 5);
 });
 
 console.log(`\n========================================`);

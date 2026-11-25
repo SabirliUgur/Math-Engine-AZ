@@ -1581,6 +1581,307 @@
         return { b1, q, n, bn, Sn, converges, infSum, terms };
     }
 
+    // =========================================================
+    // 7F. CALCULUS 2.0: FUNCTION LIMITS, ROOTS & INTERSECTIONS (v3.5.0)
+    // =========================================================
+
+    /**
+     * Parse limit approach target: number, expression (e.g. 'pi/2'), or infinity ('inf', '+inf', '-inf', '∞', '-∞').
+     */
+    function parseLimitTarget(targetInput) {
+        if (typeof targetInput === 'number') {
+            if (!isFinite(targetInput)) {
+                return { value: targetInput, isInfinity: true, sign: targetInput > 0 ? 1 : -1 };
+            }
+            return { value: targetInput, isInfinity: false, sign: 0 };
+        }
+        const raw = String(targetInput ?? '').trim().toLowerCase().replace(/\s+/g, '');
+        if (!raw) throw new Error(ERRORS.EMPTY_EXPRESSION);
+
+        if (raw === 'inf' || raw === '+inf' || raw === 'infinity' || raw === '+infinity' || raw === '∞' || raw === '+∞') {
+            return { value: Infinity, isInfinity: true, sign: 1 };
+        }
+        if (raw === '-inf' || raw === '-infinity' || raw === '-∞') {
+            return { value: -Infinity, isInfinity: true, sign: -1 };
+        }
+
+        const val = evaluate(raw, { angleMode: 'RAD' });
+        if (!isFinite(val)) throw new Error(ERRORS.INVALID_SYNTAX);
+        return { value: val, isInfinity: false, sign: 0 };
+    }
+
+    /**
+     * Evaluate a one-sided sequence of probe points and classify convergence or divergence.
+     * For finite approach: probes x_k = a + dir * delta_k where delta_k = [1e-3, 1e-5, 1e-7, 1e-9].
+     * For infinite approach: probes x_k = sign * M_k where M_k = [1e2, 1e3, 1e4, 1e5, 1e6].
+     */
+    function probeLimitSequence(evalFn, points, isInfinity) {
+        const vals = [];
+        for (let i = 0; i < points.length; i++) {
+            try {
+                const y = evalFn(points[i]);
+                vals.push(typeof y === 'number' && isFinite(y) ? y : null);
+            } catch {
+                vals.push(null);
+            }
+        }
+
+        const validIdx = [];
+        for (let i = 0; i < vals.length; i++) {
+            if (vals[i] !== null) validIdx.push(i);
+        }
+
+        if (validIdx.length < 2) {
+            return { kind: 'undefined', value: null, samples: vals };
+        }
+
+        const last = vals[validIdx[validIdx.length - 1]];
+        const prev = vals[validIdx[validIdx.length - 2]];
+        const prev2 = validIdx.length >= 3 ? vals[validIdx[validIdx.length - 3]] : null;
+
+        // Check monotonic divergence to +-Infinity
+        if (Math.abs(last) > 1e4 && Math.abs(last) > Math.abs(prev) * 3) {
+            if (prev2 === null || Math.abs(prev) > Math.abs(prev2) * 2) {
+                const sameSign = (last > 0 && prev > 0) || (last < 0 && prev < 0);
+                if (sameSign) {
+                    return { kind: 'infinite', value: last > 0 ? Infinity : -Infinity, samples: vals };
+                }
+            }
+        }
+
+        // Check finite convergence using Richardson extrapolation to suppress O(delta) or O(1/M) bias
+        if (isInfinity) {
+            // points are 10^2, 10^3, 10^4, 10^5, 10^6 (ratio = 10)
+            if (validIdx.length >= 3) {
+                const v2 = prev;
+                const v3 = last;
+                const richardson = (10 * v3 - v2) / 9;
+                const scale = Math.max(1, Math.abs(v3), Math.abs(v2));
+                if (Math.abs(v3 - v2) <= 1e-2 * scale && (prev2 === null || Math.abs(v2 - prev2) <= 0.2 * scale)) {
+                    return { kind: 'finite', value: cleanPrecision(richardson, 10), samples: vals };
+                }
+            }
+            const scale = Math.max(1, Math.abs(last));
+            if (Math.abs(last - prev) <= 1e-4 * scale) {
+                return { kind: 'finite', value: cleanPrecision(last, 10), samples: vals };
+            }
+            return { kind: 'dne', value: null, samples: vals };
+        }
+
+        // Finite approach: deltas = [1e-3, 1e-5, 1e-7, 1e-9] (step ratio = 100)
+        // Prefer indices 1 (1e-5) and 2 (1e-7) if index 3 (1e-9) suffers from catastrophic cancellation
+        const v3 = vals[1]; // 1e-5
+        const v4 = vals[2]; // 1e-7
+        const v5 = vals[3]; // 1e-9
+
+        if (v3 !== null && v4 !== null) {
+            const diff34 = Math.abs(v4 - v3);
+            const scale34 = Math.max(1, Math.abs(v4), Math.abs(v3));
+            const richardson = (100 * v4 - v3) / 99;
+
+            if (v5 !== null) {
+                const diff45 = Math.abs(v5 - v4);
+                const scale45 = Math.max(1, Math.abs(v5), Math.abs(v4));
+                // If 1e-9 is even closer than 1e-7, use 1e-9 or Richardson(v4, v5)
+                if (diff45 <= 1e-5 * scale45 && diff45 <= diff34 * 1.5) {
+                    const rich45 = (100 * v5 - v4) / 99;
+                    return { kind: 'finite', value: cleanPrecision(rich45, 10), samples: vals };
+                }
+                // If 1e-7 -> 1e-9 got noisier (cancellation) while 1e-5 -> 1e-7 converged well, trust Richardson(v3, v4)
+                if (diff34 <= 1e-3 * scale34 && diff45 <= 1e-3 * scale45) {
+                    return { kind: 'finite', value: cleanPrecision(richardson, 10), samples: vals };
+                }
+            } else if (diff34 <= 1e-4 * scale34) {
+                return { kind: 'finite', value: cleanPrecision(richardson, 10), samples: vals };
+            }
+        }
+
+        // Fallback check on last two valid points
+        const scale = Math.max(1, Math.abs(last));
+        if (Math.abs(last - prev) <= 1e-4 * scale) {
+            return { kind: 'finite', value: cleanPrecision(last, 10), samples: vals };
+        }
+
+        return { kind: 'dne', value: null, samples: vals };
+    }
+
+    /**
+     * Compute numerical & asymptotic function limit: lim_{x -> a} f(x)
+     * Returns { target, isInfinity, left, right, twoSided, status, discontinuity, directValue }
+     */
+    function computeLimit(expr, targetInput) {
+        if (!expr || typeof expr !== 'string' || !expr.trim()) {
+            throw new Error(ERRORS.EMPTY_EXPRESSION);
+        }
+        const target = parseLimitTarget(targetInput);
+        const evalFn = (xVal) => evaluate(expr, { x: xVal, angleMode: 'RAD' });
+
+        if (target.isInfinity) {
+            const mags = [1e2, 1e3, 1e4, 1e5, 1e6];
+            const pts = mags.map(m => target.sign * m);
+            const res = probeLimitSequence(evalFn, pts, true);
+            return {
+                expr: expr.trim(),
+                target: target.value,
+                isInfinity: true,
+                left: null,
+                right: null,
+                twoSided: res.value,
+                status: res.kind, // 'finite' | 'infinite' | 'dne' | 'undefined'
+                discontinuity: null,
+                directValue: null
+            };
+        }
+
+        const a = target.value;
+        const deltas = [1e-3, 1e-5, 1e-7, 1e-9];
+        const leftPts = deltas.map(d => a - d);
+        const rightPts = deltas.map(d => a + d);
+
+        const leftRes = probeLimitSequence(evalFn, leftPts, false);
+        const rightRes = probeLimitSequence(evalFn, rightPts, false);
+
+        let directValue = null;
+        try {
+            const dv = evalFn(a);
+            if (typeof dv === 'number' && isFinite(dv)) directValue = cleanPrecision(dv, 10);
+        } catch {
+            directValue = null;
+        }
+
+        let twoSided = null;
+        let status = 'dne';
+        let discontinuity = null;
+
+        if (leftRes.kind === 'finite' && rightRes.kind === 'finite') {
+            const tol = 1e-4 * Math.max(1, Math.abs(leftRes.value), Math.abs(rightRes.value));
+            if (Math.abs(leftRes.value - rightRes.value) <= tol) {
+                twoSided = cleanPrecision((leftRes.value + rightRes.value) / 2, 10);
+                status = 'finite';
+                if (directValue === null || Math.abs(directValue - twoSided) > 1e-5) {
+                    discontinuity = 'removable';
+                }
+            } else {
+                status = 'dne';
+                discontinuity = 'jump';
+            }
+        } else if (leftRes.kind === 'infinite' && rightRes.kind === 'infinite') {
+            if (leftRes.value === rightRes.value) {
+                twoSided = leftRes.value;
+                status = 'infinite';
+                discontinuity = 'infinite';
+            } else {
+                status = 'dne';
+                discontinuity = 'asymptotic';
+            }
+        } else if (leftRes.kind === 'infinite' || rightRes.kind === 'infinite') {
+            status = 'dne';
+            discontinuity = 'asymptotic';
+        } else if ((leftRes.kind === 'finite' && rightRes.kind === 'undefined') ||
+                   (rightRes.kind === 'finite' && leftRes.kind === 'undefined')) {
+            status = 'one-sided';
+            discontinuity = 'boundary';
+        }
+
+        return {
+            expr: expr.trim(),
+            target: a,
+            isInfinity: false,
+            left: leftRes,
+            right: rightRes,
+            twoSided,
+            status,
+            discontinuity,
+            directValue
+        };
+    }
+
+    /**
+     * Find real roots f(x) = 0 in [xMin, xMax] using sign-change scan + bisection.
+     */
+    function findRoots(expr, xMin, xMax, steps = 400) {
+        if (!expr || typeof expr !== 'string' || !expr.trim() || xMax <= xMin) return [];
+        const evalFn = (xVal) => {
+            try {
+                const y = evaluate(expr, { x: xVal, angleMode: 'RAD' });
+                return isFinite(y) ? y : NaN;
+            } catch {
+                return NaN;
+            }
+        };
+
+        const roots = [];
+        const dx = (xMax - xMin) / steps;
+        const maxJump = Math.max(50, (xMax - xMin) * 20);
+        let prevX = xMin;
+        let prevY = evalFn(prevX);
+
+        const pushRoot = (rx) => {
+            const cleaned = cleanPrecision(rx, 6);
+            if (roots.every(r => Math.abs(r.x - cleaned) > dx * 0.6)) {
+                roots.push({ x: cleaned, y: 0 });
+            }
+        };
+
+        if (isFinite(prevY) && Math.abs(prevY) < 1e-9) pushRoot(prevX);
+
+        for (let i = 1; i <= steps; i++) {
+            const x = xMin + i * dx;
+            const y = evalFn(x);
+
+            if (isFinite(prevY) && isFinite(y)) {
+                if (Math.abs(y) < 1e-9) {
+                    pushRoot(x);
+                } else if (prevY * y < 0 && Math.abs(y - prevY) < maxJump) {
+                    let lo = prevX, hi = x, flo = prevY;
+                    for (let iter = 0; iter < 32; iter++) {
+                        const mid = 0.5 * (lo + hi);
+                        const fmid = evalFn(mid);
+                        if (!isFinite(fmid)) break;
+                        if (Math.abs(fmid) < 1e-11) { lo = hi = mid; break; }
+                        if (flo * fmid <= 0) {
+                            hi = mid;
+                        } else {
+                            lo = mid;
+                            flo = fmid;
+                        }
+                    }
+                    const rootX = 0.5 * (lo + hi);
+                    const verifyY = evalFn(rootX);
+                    if (isFinite(verifyY) && Math.abs(verifyY) < 1e-3) {
+                        pushRoot(rootX);
+                    }
+                }
+            }
+            prevX = x;
+            prevY = y;
+        }
+        return roots;
+    }
+
+    /**
+     * Find intersection points where f(x) = g(x) in [xMin, xMax].
+     */
+    function findIntersections(expr1, expr2, xMin, xMax, steps = 400) {
+        if (!expr1 || !expr2 || !expr1.trim() || !expr2.trim() || xMax <= xMin) return [];
+        const diffExpr = `(${expr1}) - (${expr2})`;
+        const rawRoots = findRoots(diffExpr, xMin, xMax, steps);
+        const intersections = [];
+        for (const r of rawRoots) {
+            try {
+                const y1 = evaluate(expr1, { x: r.x, angleMode: 'RAD' });
+                const y2 = evaluate(expr2, { x: r.x, angleMode: 'RAD' });
+                if (isFinite(y1) && isFinite(y2) && Math.abs(y1 - y2) < 1e-3) {
+                    intersections.push({
+                        x: cleanPrecision(r.x, 6),
+                        y: cleanPrecision((y1 + y2) / 2, 6)
+                    });
+                }
+            } catch {}
+        }
+        return intersections;
+    }
+
     // Auto-init ans from existing storage if available
     HistoryStore.initAns();
 
@@ -1615,6 +1916,9 @@
         complexOps,
         solveInequality,
         geometricProgression,
+        computeLimit,
+        findRoots,
+        findIntersections,
         HistoryStore,
         ERRORS,
         CONSTANTS,

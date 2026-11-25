@@ -5,6 +5,22 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [3.5.0] - 2026-11-25 — "Mathematical Analysis 2.0: Function Limits & Interactive Dual-Function Graphing"
+
+### 📈 Riyazi Analiz 2.0 (`Analiz`)
+- **Funksiya Limiti Hesablayıcısı (`Limit` / `MathCore.computeLimit`)**:
+  - $\lim_{x \to a} f(x)$, sol limit ($x \to a^-$) və sağ limit ($x \to a^+$) üçün kiçilən $\delta = 10^{-3}, 10^{-5}, 10^{-7}, 10^{-9}$ ardıcıllığı və Richardson ekstrapolyasiyası ilə yüksək dəqiqlikli hesablama.
+  - Ədədlər (`0`, `2`), ifadələr (`pi/2`) və sonsuzluq açar sözləri (`inf`, `+inf`, `-inf`, `∞`, `-∞`) dəstəyi.
+  - Aradan qaldırıla bilən kəsilmə ($\frac{x^2-4}{x-2}$ at $x \to 2$), sıçrayışlı kəsilmə (`Mövcud deyil / Does not exist`) və sonsuzluğa ($+\infty / -\infty$) dağılma aşkarlanması.
+  - Sağ paneldə $f(x)$ qrafikinin avtomatik çəkilməsi və $(a, L)$ limit nöqtəsinin açıq/vurğulanmış dairə ilə işarələnməsi.
+- **İnteraktiv Qrafik 2.0 (`Qrafik` / `Graph`)**:
+  - Eyni koordinat müstəvisində əsas $f(x)$ (indigo) və istəyə bağlı ikinci $g(x)$ (zümrüd) funksiyalarının **ikiqat qrafiki**.
+  - Görünən diapazonda $f(x) = 0$ köklərinin və $f(x) = g(x)$ kəsişmə nöqtələrinin (`MathCore.findRoots`, `MathCore.findIntersections`) avtomatik tapılması və vurğulanması.
+  - Kursor/barmaq hərəkətində **canlı kəsişmə xətləri (crosshair)** və $(x, f(x), g(x))$ koordinat göstərici nişanı.
+- **PWA Keş**: `sw.js` keş adı `'math-engine-az-v3.5.0'` olaraq yeniləndi.
+
+---
+
 ## [3.4.0] - 2026-11-25 — "Algebra Expansion: Complex Numbers, Inequalities, Geometric Progression & Interval Graphs"
 
 ### ✖️ Cəbr Modulları və Vizual Qrafiklər (`Cəbr`)

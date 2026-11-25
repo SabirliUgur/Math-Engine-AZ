@@ -1,10 +1,10 @@
-# 🧮 Math-Engine-AZ (v3.4.0 — "Algebra Expansion: Complex Numbers, Inequalities, Geometric Progression & Interval Graphs")
+# 🧮 Math-Engine-AZ (v3.5.0 — "Mathematical Analysis 2.0: Function Limits & Interactive Dual-Function Graphing")
 
-Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), 2D/3D həndəsə çertyojlu, kompleks Arqan müstəvisi, bərabərsizlik intervalları, həndəsi silsilə qrafikli, koordinatlar metodu, müstəvi vektorları, statistik paylanma qrafikli, ədədlər nəzəriyyəsi və kombinatorika modullu, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
+Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vizual riyazi redaktorlu (WYSIWYG Slot AST), interaktiv həll addımlı (Photomath tipli akkordeon), funksiya limiti hesablayıcılı, ikiqat funksiyalı interaktiv qrafikli (kök/kəsişmə aşkarlanması və canlı crosshair), 2D/3D həndəsə çertyojlu, kompleks Arqan müstəvisi, bərabərsizlik intervalları, həndəsi silsilə qrafikli, koordinatlar metodu, müstəvi vektorları, statistik paylanma qrafikli, ədədlər nəzəriyyəsi və kombinatorika modullu, ikidilli (Azərbaycan / English) **Elmi və Həndəsi Riyazi Mühərrik**.
 
 [![Canlı Demo](https://img.shields.io/badge/Demo-Canlı%20Sayt-6366f1?style=for-the-badge&logo=githubpages&logoColor=white)](https://sabirliugur.github.io/Math-Engine-AZ/)
 [![Lisenziya](https://img.shields.io/badge/Lisenziya-MIT-green?style=for-the-badge)](LICENSE)
-[![Versiya](https://img.shields.io/badge/Versiya-v3.4.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Versiya](https://img.shields.io/badge/Versiya-v3.5.0-blue?style=for-the-badge)](CHANGELOG.md)
 [![PWA Dəstəyi](https://img.shields.io/badge/PWA-Oflayn%20Dəstəkli-orange?style=for-the-badge)](manifest.json)
 
 ---
@@ -12,6 +12,12 @@ Müasir, bölünmüş iş masalı (split-workspace), strukturlaşdırılmış vi
 ## 🌐 Canlı Keçid (Live Demo)
 Tətbiqi heç bir quraşdırma tələb olunmadan birbaşa brauzerinizdə istifadə edin:  
 👉 **[https://sabirliugur.github.io/Math-Engine-AZ/](https://sabirliugur.github.io/Math-Engine-AZ/)**
+
+---
+
+## ✨ v3.5.0 Yenilikləri
+- **Funksiya Limiti (`Analiz` → `Limit`)**: Sol/sağ/ikitərəfli limitlər ($x \to a$, $x \to \pm\infty$), aradan qaldırıla bilən və sıçrayışlı kəsilmələrin aşkarlanması və qrafikdə $(a, L)$ markerinin göstərilməsi.
+- **İnteraktiv Qrafik 2.0 (`Analiz` → `Qrafik`)**: İkiqat funksiya ($f(x)$ və $g(x)$), köklərin ($y=0$) və kəsişmə nöqtələrinin ($f=g$) avtomatik aşkarlanması, həmçinin canlı kursor crosshair koordinatları.
 
 ---
 

@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCalculatorModeToggle();
     initCopyButton();
     initVisualCardZoom();
+    initGraphCrosshair();
     initGeometry();
     initPercentage();
     initMatrix();
@@ -865,7 +866,10 @@ const HISTORY_LABEL_MAP = [
     ['Kompleks', 'Complex'],
     ['Bərabərsizlik', 'Inequality'],
     ['Həndəsi silsilə', 'Geometric prog.'],
-    ['Mövcud deyil', 'Does not converge']
+    ['Limit mövcud deyil', 'Does not exist'],
+    ['Mövcud deyil', 'Does not converge'],
+    ['Sol limit', 'Left-hand limit'],
+    ['Sağ limit', 'Right-hand limit']
 ];
 
 function translateHistoryField(str, isEn) {
@@ -2477,22 +2481,275 @@ function calcIntegral() {
     }
 }
 
-/* ---------- Graph ---------- */
-function plotFunction(customExpr, skipHistory = false) {
+/* ---------- Limit Calculator (v3.5.0) ---------- */
+function formatLimitVal(val, isEn) {
+    if (val === Infinity) return '+∞';
+    if (val === -Infinity) return '−∞';
+    if (val === null || val === undefined || isNaN(val)) {
+        return isEn ? 'Does not exist' : 'Mövcud deyil';
+    }
+    return formatNumber(val);
+}
+
+function formatOneSidedProbe(probe, isEn) {
+    if (!probe || probe.kind === 'undefined') {
+        return isEn ? 'Undefined' : 'Təyin olunmayıb';
+    }
+    if (probe.kind === 'infinite') {
+        return probe.value > 0 ? '+∞' : '−∞';
+    }
+    if (probe.kind === 'finite') {
+        return formatNumber(probe.value);
+    }
+    return isEn ? 'Does not exist' : 'Mövcud deyil';
+}
+
+function calcLimit() {
+    const expr = document.getElementById('limitFunc')?.value.trim();
+    const targetStr = document.getElementById('limitPoint')?.value.trim();
+    const out = document.getElementById('limitResult');
+    const isEn = isEnglish();
+
+    if (!expr) {
+        if (out) out.innerHTML = `<span class="error">${isEn ? 'Please enter a function.' : 'Funksiya daxil edin.'}</span>`;
+        return;
+    }
+    if (!targetStr) {
+        if (out) out.innerHTML = `<span class="error">${isEn ? 'Please enter an approach point.' : 'Yaxınlaşma nöqtəsini daxil edin.'}</span>`;
+        return;
+    }
+
+    try {
+        if (!window.MathCore || typeof MathCore.computeLimit !== 'function') {
+            throw new Error(isEn ? 'Limit engine not found' : 'Limit mühərriki tapılmadı');
+        }
+        const res = MathCore.computeLimit(expr, targetStr);
+        const targetDisp = res.isInfinity ? (res.target > 0 ? '+∞' : '−∞') : formatNumber(res.target);
+        const twoSidedStr = res.status === 'finite' || res.status === 'infinite'
+            ? formatLimitVal(res.twoSided, isEn)
+            : (isEn ? 'Does not exist' : 'Mövcud deyil');
+
+        let note = '';
+        if (res.discontinuity === 'removable') {
+            note = window.I18n ? I18n.t('limitRemovableNote') : (isEn ? 'Removable discontinuity' : 'Aradan qaldırıla bilən kəsilmə');
+        } else if (res.discontinuity === 'jump') {
+            note = window.I18n ? I18n.t('limitJumpNote') : (isEn ? 'Jump discontinuity' : 'Sıçrayışlı kəsilmə');
+        } else if (res.discontinuity === 'asymptotic') {
+            note = window.I18n ? I18n.t('limitAsymptoteNote') : (isEn ? 'Infinite discontinuity / vertical asymptote' : 'Sonsuz kəsilmə / şaquli asimptot');
+        } else if (res.discontinuity === 'boundary') {
+            note = window.I18n ? I18n.t('limitOneSidedNote') : (isEn ? 'Only one-sided approach is in domain' : 'Yalnız birtərəfli yaxınlaşma mövcuddur');
+        }
+
+        let html = `<div><span class="label">${isEn ? 'Two-sided limit:' : 'İkitərəfli limit:'}</span> <span class="value">${escHtml(twoSidedStr)}</span></div>`;
+        html += `<span class="formula">lim (x → ${escHtml(targetDisp)}) [${escHtml(expr)}] = ${escHtml(twoSidedStr)}</span>`;
+
+        if (!res.isInfinity) {
+            const leftStr = formatOneSidedProbe(res.left, isEn);
+            const rightStr = formatOneSidedProbe(res.right, isEn);
+            html += `<div style="margin-top:.35rem"><span class="label">${isEn ? 'Left-hand limit (x → a⁻):' : 'Sol limit (x → a⁻):'}</span> <span class="value">${escHtml(leftStr)}</span></div>`;
+            html += `<div><span class="label">${isEn ? 'Right-hand limit (x → a⁺):' : 'Sağ limit (x → a⁺):'}</span> <span class="value">${escHtml(rightStr)}</span></div>`;
+        }
+        if (note) {
+            html += `<div style="color:var(--text-muted);font-size:.82rem;margin-top:.4rem">${escHtml(note)}</div>`;
+        }
+        if (out) out.innerHTML = html;
+
+        const histRes = (res.status === 'finite' || res.status === 'infinite')
+            ? twoSidedStr
+            : (isEn ? 'Does not exist' : 'Limit mövcud deyil');
+        addToHistory(isEn ? 'Calculus' : 'Analiz', `lim(x→${targetDisp}) ${expr}`, histRes);
+
+        // Plot f(x) and mark the limit point on the right-hand coordinate plane
+        const plotMin = res.isInfinity ? (res.target > 0 ? -2 : -20) : res.target - 5;
+        const plotMax = res.isInfinity ? (res.target > 0 ? 20 : 2) : res.target + 5;
+        const markerY = (res.status === 'finite') ? res.twoSided
+            : (res.right && res.right.kind === 'finite' ? res.right.value
+                : (res.left && res.left.kind === 'finite' ? res.left.value : null));
+
+        plotFunction(expr, true, {
+            xMin: plotMin,
+            xMax: plotMax,
+            skipSecondary: true,
+            limitMarker: {
+                x: res.target,
+                y: markerY,
+                isInfiniteTarget: res.isInfinity,
+                isOpen: res.discontinuity === 'removable' || res.status !== 'finite',
+                targetLabel: targetDisp,
+                valueLabel: twoSidedStr
+            }
+        });
+    } catch (err) {
+        if (out) out.innerHTML = `<span class="error">${isEn ? 'Error' : 'Xəta'}: ${escHtml(err.message)}</span>`;
+    }
+}
+
+/* ---------- Graph 2.0 (Dual Functions, Roots, Intersections & Live Crosshair) ---------- */
+let graphRenderState = null;
+
+function initGraphCrosshair() {
+    const canvas = document.getElementById('graphCanvas');
+    const badge = document.getElementById('graphCrosshairBadge');
+    if (!canvas) return;
+
+    const handlePointer = (clientX, clientY) => {
+        if (!graphRenderState) return;
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return;
+        const px = clientX - rect.left;
+        const py = clientY - rect.top;
+        if (px < 0 || px > rect.width || py < 0 || py > rect.height) return;
+
+        const { xMin, xMax, expr, expr2 } = graphRenderState;
+        const xVal = xMin + (px / rect.width) * (xMax - xMin);
+        let y1 = NaN;
+        let y2 = NaN;
+        try {
+            if (window.MathCore && MathCore.evaluate) {
+                y1 = MathCore.evaluate(expr, { x: xVal, angleMode: 'RAD' });
+                if (expr2) y2 = MathCore.evaluate(expr2, { x: xVal, angleMode: 'RAD' });
+            }
+        } catch {}
+
+        drawGraphScene(graphRenderState, { px, py, x: xVal, y1, y2 });
+
+        if (badge) {
+            const xStr = formatAxis(xVal);
+            const y1Str = isFinite(y1) ? formatAxis(y1) : '—';
+            let text = `x: ${xStr}  |  f(x): ${y1Str}`;
+            if (expr2) {
+                const y2Str = isFinite(y2) ? formatAxis(y2) : '—';
+                text += `  |  g(x): ${y2Str}`;
+            }
+            badge.textContent = text;
+            badge.classList.remove('hidden');
+        }
+    };
+
+    const clearPointer = () => {
+        if (badge) badge.classList.add('hidden');
+        if (graphRenderState) drawGraphScene(graphRenderState, null);
+    };
+
+    canvas.addEventListener('mousemove', (e) => handlePointer(e.clientX, e.clientY));
+    canvas.addEventListener('mousedown', (e) => handlePointer(e.clientX, e.clientY));
+    canvas.addEventListener('mouseleave', clearPointer);
+    canvas.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches[0]) {
+            handlePointer(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+    canvas.addEventListener('touchend', clearPointer);
+}
+
+function evalGraphExpr(expr, x) {
+    try {
+        if (window.MathCore && typeof MathCore.evaluate === 'function') {
+            return MathCore.evaluate(expr, { x, angleMode: 'RAD' });
+        }
+        return NaN;
+    } catch { return NaN; }
+}
+
+function plotFunction(customExpr, skipHistory = false, options = {}) {
     const exprInput = document.getElementById('graphFunc');
+    const expr2Input = document.getElementById('graphFunc2');
     const expr = (typeof customExpr === 'string' && customExpr.trim()) ? customExpr.trim() : (exprInput ? exprInput.value.trim() : '');
+    const expr2 = options.skipSecondary ? '' : (expr2Input ? expr2Input.value.trim() : '');
     const xMinEl = document.getElementById('graphXMin');
     const xMaxEl = document.getElementById('graphXMax');
-    const xMin = xMinEl ? (parseFloat(xMinEl.value) || -10) : -10;
-    const xMax = xMaxEl ? (parseFloat(xMaxEl.value) || 10) : 10;
+    const xMin = (typeof options.xMin === 'number' && isFinite(options.xMin)) ? options.xMin : (xMinEl ? (parseFloat(xMinEl.value) || -10) : -10);
+    const xMax = (typeof options.xMax === 'number' && isFinite(options.xMax)) ? options.xMax : (xMaxEl ? (parseFloat(xMaxEl.value) || 10) : 10);
     const canvas = document.getElementById('graphCanvas');
 
-    if (!canvas || !expr) return;
+    if (!canvas || !expr || xMax <= xMin) return;
 
     const wrapper = canvas.parentElement;
-    const dpr = window.devicePixelRatio || 1;
     const w = (wrapper && wrapper.clientWidth > 50) ? wrapper.clientWidth : 400;
     const h = (wrapper && wrapper.clientHeight > 50) ? wrapper.clientHeight : Math.min(w * 0.65, 450);
+
+    // Sample primary and optional secondary functions to determine y range
+    const samples = [];
+    const step = (xMax - xMin) / w;
+    for (let px = 0; px <= w; px++) {
+        const x = xMin + px * step;
+        const y1 = evalGraphExpr(expr, x);
+        if (isFinite(y1) && Math.abs(y1) < 1e6) samples.push(y1);
+        if (expr2) {
+            const y2 = evalGraphExpr(expr2, x);
+            if (isFinite(y2) && Math.abs(y2) < 1e6) samples.push(y2);
+        }
+    }
+
+    if (options.limitMarker && isFinite(options.limitMarker.y)) {
+        samples.push(options.limitMarker.y);
+    }
+
+    if (samples.length === 0) return;
+
+    let yMin = Math.min(...samples);
+    let yMax = Math.max(...samples);
+    const yPad = (yMax - yMin) * 0.12 || 2;
+    yMin -= yPad;
+    yMax += yPad;
+
+    // Detect roots f(x) = 0 and intersections f(x) = g(x)
+    const roots = (window.MathCore && typeof MathCore.findRoots === 'function')
+        ? MathCore.findRoots(expr, xMin, xMax, 400)
+        : [];
+    const intersections = (expr2 && window.MathCore && typeof MathCore.findIntersections === 'function')
+        ? MathCore.findIntersections(expr, expr2, xMin, xMax, 400)
+        : [];
+
+    graphRenderState = {
+        expr,
+        expr2,
+        xMin,
+        xMax,
+        yMin,
+        yMax,
+        w,
+        h,
+        roots,
+        intersections,
+        limitMarker: options.limitMarker || null
+    };
+
+    drawGraphScene(graphRenderState, null);
+
+    // Update Graph 2.0 summary box when not in Limit preview mode
+    const summaryEl = document.getElementById('graphAnalysisSummary');
+    if (summaryEl && !options.limitMarker) {
+        const isEn = isEnglish();
+        const noneTxt = isEn ? 'None in visible range' : 'Görünən diapazonda tapılmadı';
+        const rootsTxt = roots.length > 0
+            ? roots.map(r => `(${formatNumber(r.x)}, 0)`).join(', ')
+            : noneTxt;
+        let sumHtml = `<div><span class="label">${isEn ? 'Roots (y = 0):' : 'Köklər (y = 0):'}</span> <span class="value">${escHtml(rootsTxt)}</span></div>`;
+        if (expr2) {
+            const interTxt = intersections.length > 0
+                ? intersections.map(p => `(${formatNumber(p.x)}, ${formatNumber(p.y)})`).join(', ')
+                : noneTxt;
+            sumHtml += `<div><span class="label">${isEn ? 'Intersections (f = g):' : 'Kəsişmə nöqtələri (f = g):'}</span> <span class="value">${escHtml(interTxt)}</span></div>`;
+        }
+        summaryEl.innerHTML = sumHtml;
+    }
+
+    if (!skipHistory) {
+        const histExpr = expr2 ? `f=${expr}, g=${expr2}` : `y = ${expr}`;
+        addToHistory(isEnglish() ? 'Calculus' : 'Analiz', histExpr, `[${xMin}, ${xMax}]`);
+    }
+}
+
+function drawGraphScene(state, crosshair) {
+    const canvas = document.getElementById('graphCanvas');
+    if (!canvas || !state) return;
+
+    const { expr, expr2, xMin, xMax, yMin, yMax, roots, intersections, limitMarker } = state;
+    const wrapper = canvas.parentElement;
+    const dpr = window.devicePixelRatio || 1;
+    const w = (wrapper && wrapper.clientWidth > 50) ? wrapper.clientWidth : state.w;
+    const h = (wrapper && wrapper.clientHeight > 50) ? wrapper.clientHeight : state.h;
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     canvas.style.width = w + 'px';
@@ -2501,37 +2758,15 @@ function plotFunction(customExpr, skipHistory = false) {
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    const f = x => {
-        try {
-            if (window.MathCore && typeof MathCore.evaluate === 'function') {
-                return MathCore.evaluate(expr, { x, angleMode: 'RAD' });
-            }
-            return NaN;
-        } catch { return NaN; }
-    };
-
-    // Sample the function across pixels to find y range
-    const samples = [];
-    const step = (xMax - xMin) / w;
-    for (let px = 0; px <= w; px++) {
-        const x = xMin + px * step;
-        const y = f(x);
-        if (isFinite(y)) samples.push(y);
-    }
-
-    if (samples.length === 0) return;
-
-    let yMin = Math.min(...samples);
-    let yMax = Math.max(...samples);
-    const yPad = (yMax - yMin) * 0.1 || 1;
-    yMin -= yPad;
-    yMax += yPad;
-
     const style = getComputedStyle(document.body);
     const bgColor = style.getPropertyValue('--bg-card').trim() || '#1a1a36';
     const gridColor = style.getPropertyValue('--graph-grid').trim() || '#2a2a4e';
     const axisColor = style.getPropertyValue('--graph-axis').trim() || '#64748b';
     const lineColor = style.getPropertyValue('--graph-line').trim() || '#6366f1';
+    const line2Color = '#10b981';
+    const rootColor = '#f59e0b';
+    const interColor = '#06b6d4';
+    const limitColor = '#f43f5e';
     const textColor = style.getPropertyValue('--text-sec').trim() || '#94a3b8';
 
     ctx.fillStyle = bgColor;
@@ -2539,6 +2774,7 @@ function plotFunction(customExpr, skipHistory = false) {
 
     const toCanvasX = x => ((x - xMin) / (xMax - xMin)) * w;
     const toCanvasY = y => h - ((y - yMin) / (yMax - yMin)) * h;
+    const step = (xMax - xMin) / w;
 
     // Grid lines
     ctx.strokeStyle = gridColor;
@@ -2572,32 +2808,165 @@ function plotFunction(customExpr, skipHistory = false) {
         ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
     }
 
-    // Curve
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    let started = false;
-
-    for (let px = 0; px <= w; px++) {
-        const x = xMin + px * step;
-        const y = f(x);
-        const cy = toCanvasY(y);
-
-        if (!isFinite(y) || cy < -h * 2 || cy > h * 3) {
-            started = false;
-            continue;
+    const drawCurve = (fnExpr, color) => {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        let started = false;
+        let prevCy = null;
+        for (let px = 0; px <= w; px++) {
+            const x = xMin + px * step;
+            const y = evalGraphExpr(fnExpr, x);
+            const cy = toCanvasY(y);
+            if (!isFinite(y) || cy < -h * 2 || cy > h * 3 || (prevCy !== null && Math.abs(cy - prevCy) > h * 1.2)) {
+                started = false;
+                prevCy = isFinite(y) ? cy : null;
+                continue;
+            }
+            if (!started) {
+                ctx.moveTo(px, cy);
+                started = true;
+            } else {
+                ctx.lineTo(px, cy);
+            }
+            prevCy = cy;
         }
-        if (!started) {
-            ctx.moveTo(px, cy);
-            started = true;
-        } else {
-            ctx.lineTo(px, cy);
+        ctx.stroke();
+    };
+
+    // Primary curve f(x) and optional secondary curve g(x)
+    drawCurve(expr, lineColor);
+    if (expr2) {
+        drawCurve(expr2, line2Color);
+    }
+
+    // Root markers (y = 0)
+    if (roots && roots.length > 0 && !limitMarker) {
+        for (const r of roots.slice(0, 12)) {
+            const rx = toCanvasX(r.x);
+            const ry = toCanvasY(0);
+            if (rx < 0 || rx > w || ry < 0 || ry > h) continue;
+            ctx.beginPath();
+            ctx.arc(rx, ry, 4.5, 0, Math.PI * 2);
+            ctx.fillStyle = rootColor;
+            ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = bgColor;
+            ctx.stroke();
         }
     }
-    ctx.stroke();
 
-    if (!skipHistory) {
-        addToHistory(isEnglish() ? 'Calculus' : 'Analiz', `y = ${expr}`, `[${xMin}, ${xMax}]`);
+    // Intersection markers (f = g)
+    if (intersections && intersections.length > 0 && !limitMarker) {
+        for (const p of intersections.slice(0, 12)) {
+            const ix = toCanvasX(p.x);
+            const iy = toCanvasY(p.y);
+            if (ix < 0 || ix > w || iy < 0 || iy > h) continue;
+            ctx.beginPath();
+            ctx.arc(ix, iy, 5.5, 0, Math.PI * 2);
+            ctx.fillStyle = interColor;
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+            ctx.fillStyle = interColor;
+            ctx.font = 'bold 11px JetBrains Mono, monospace';
+            ctx.fillText(`(${formatAxis(p.x)}, ${formatAxis(p.y)})`, Math.min(ix + 8, w - 85), Math.max(iy - 8, 14));
+        }
+    }
+
+    // Limit marker (a, L) or horizontal asymptote y = L
+    if (limitMarker && isFinite(limitMarker.y)) {
+        const ly = toCanvasY(limitMarker.y);
+        if (limitMarker.isInfiniteTarget) {
+            if (ly >= 0 && ly <= h) {
+                ctx.save();
+                ctx.setLineDash([6, 4]);
+                ctx.strokeStyle = limitColor;
+                ctx.lineWidth = 1.6;
+                ctx.beginPath(); ctx.moveTo(0, ly); ctx.lineTo(w, ly); ctx.stroke();
+                ctx.restore();
+                ctx.fillStyle = limitColor;
+                ctx.font = 'bold 11px JetBrains Mono, monospace';
+                ctx.fillText(`y = ${limitMarker.valueLabel}`, 10, Math.max(ly - 6, 14));
+            }
+        } else if (isFinite(limitMarker.x)) {
+            const lx = toCanvasX(limitMarker.x);
+            if (lx >= 0 && lx <= w && ly >= 0 && ly <= h) {
+                ctx.save();
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = limitColor;
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.moveTo(lx, ly); ctx.lineTo(lx, Math.max(0, Math.min(h, toCanvasY(0))));
+                ctx.moveTo(lx, ly); ctx.lineTo(Math.max(0, Math.min(w, toCanvasX(0))), ly);
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.beginPath();
+                ctx.arc(lx, ly, 6, 0, Math.PI * 2);
+                ctx.fillStyle = limitMarker.isOpen ? bgColor : limitColor;
+                ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = limitColor;
+                ctx.stroke();
+
+                ctx.fillStyle = limitColor;
+                ctx.font = 'bold 11px JetBrains Mono, monospace';
+                ctx.fillText(`(${limitMarker.targetLabel}, ${limitMarker.valueLabel})`, Math.min(lx + 10, w - 95), Math.max(ly - 10, 16));
+            }
+        }
+    }
+
+    // Legend when dual functions are plotted
+    if (expr2) {
+        ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.fillStyle = lineColor;
+        ctx.fillText('● f(x)', 10, 18);
+        ctx.fillStyle = line2Color;
+        ctx.fillText('● g(x)', 66, 18);
+    }
+
+    // Live crosshair overlay
+    if (crosshair) {
+        const { px, py, x, y1, y2 } = crosshair;
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(px, 0); ctx.lineTo(px, h);
+        const snapPy = isFinite(y1) ? toCanvasY(y1) : py;
+        if (snapPy >= 0 && snapPy <= h) {
+            ctx.moveTo(0, snapPy); ctx.lineTo(w, snapPy);
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        if (isFinite(y1)) {
+            const cy1 = toCanvasY(y1);
+            if (cy1 >= -10 && cy1 <= h + 10) {
+                ctx.beginPath();
+                ctx.arc(px, cy1, 4.5, 0, Math.PI * 2);
+                ctx.fillStyle = lineColor;
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+            }
+        }
+        if (expr2 && isFinite(y2)) {
+            const cy2 = toCanvasY(y2);
+            if (cy2 >= -10 && cy2 <= h + 10) {
+                ctx.beginPath();
+                ctx.arc(px, cy2, 4.5, 0, Math.PI * 2);
+                ctx.fillStyle = line2Color;
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+            }
+        }
     }
 }
 
