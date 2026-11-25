@@ -283,19 +283,19 @@ it('Translates historyEmpty correctly in AZ and EN', () => {
 });
 
 // -------------------------------------------------------------
-// 6. index.html & sw.js v3.0.0 Verification
+// 6. index.html & sw.js v3.0.1 Verification
 // -------------------------------------------------------------
 console.log('\n[6] HTML & Service Worker Verification Tests');
 
-it('index.html references all scripts with v3.0.0 query string', () => {
+it('index.html references all scripts with v3.0.1 query string', () => {
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(html.includes('style.css?v=3.0.0'), 'style.css should have v=3.0.0');
-    assert.ok(html.includes('js/math-core.js?v=3.0.0'), 'math-core.js should have v=3.0.0');
-    assert.ok(html.includes('js/math-editor.js?v=3.0.0'), 'math-editor.js should have v=3.0.0');
-    assert.ok(html.includes('js/visual-charts.js?v=3.0.0'), 'visual-charts.js should have v=3.0.0');
-    assert.ok(html.includes('js/i18n.js?v=3.0.0'), 'i18n.js should have v=3.0.0');
-    assert.ok(html.includes('js/step-solver.js?v=3.0.0'), 'step-solver.js should have v=3.0.0');
-    assert.ok(html.includes('app.js?v=3.0.0'), 'app.js should have v=3.0.0');
+    assert.ok(html.includes('style.css?v=3.0.1'), 'style.css should have v=3.0.1');
+    assert.ok(html.includes('js/math-core.js?v=3.0.1'), 'math-core.js should have v=3.0.1');
+    assert.ok(html.includes('js/math-editor.js?v=3.0.1'), 'math-editor.js should have v=3.0.1');
+    assert.ok(html.includes('js/visual-charts.js?v=3.0.1'), 'visual-charts.js should have v=3.0.1');
+    assert.ok(html.includes('js/i18n.js?v=3.0.1'), 'i18n.js should have v=3.0.1');
+    assert.ok(html.includes('js/step-solver.js?v=3.0.1'), 'step-solver.js should have v=3.0.1');
+    assert.ok(html.includes('app.js?v=3.0.1'), 'app.js should have v=3.0.1');
 });
 
 it('index.html has removed "F(X) • ENGINE" header badge', () => {
@@ -319,11 +319,76 @@ it('index.html isolates Parametrlər with sidebar separator', () => {
     assert.ok(html.includes('sidebar-nav-divider'), 'sidebar-nav-divider should exist before settings');
 });
 
-it('sw.js cache name is updated to math-engine-az-v3.0.0', () => {
+it('sw.js cache name is updated to math-engine-az-v3.0.1', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.0.0'"), 'CACHE_NAME should be math-engine-az-v3.0.0');
-    assert.ok(sw.includes('./js/math-editor.js?v=3.0.0'), 'sw.js should precache math-editor.js?v=3.0.0');
-    assert.ok(sw.includes('./js/visual-charts.js?v=3.0.0'), 'sw.js should precache visual-charts.js?v=3.0.0');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.0.1'"), 'CACHE_NAME should be math-engine-az-v3.0.1');
+    assert.ok(sw.includes('./js/math-editor.js?v=3.0.1'), 'sw.js should precache math-editor.js?v=3.0.1');
+    assert.ok(sw.includes('./js/visual-charts.js?v=3.0.1'), 'sw.js should precache visual-charts.js?v=3.0.1');
+});
+
+// -------------------------------------------------------------
+// 7. v3.0.1 100% Bilingual Completeness & Clean Step Formatting
+// -------------------------------------------------------------
+console.log('\n[7] v3.0.1 Localization & Clean Formatting Verification Tests');
+
+it('I18n AZ and EN dictionaries have 100% key parity', () => {
+    const azKeys = Object.keys(I18n.TRANSLATIONS.az).sort();
+    const enKeys = Object.keys(I18n.TRANSLATIONS.en).sort();
+    assert.deepStrictEqual(azKeys, enKeys, 'AZ and EN must have exact same keys');
+});
+
+it('Every data-i18n* attribute in index.html exists in both AZ and EN', () => {
+    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    const regex = /data-i18n(?:-(?:title|placeholder|label))?="([^"]+)"/g;
+    let match;
+    const missing = [];
+    while ((match = regex.exec(html)) !== null) {
+        const key = match[1];
+        if (!I18n.TRANSLATIONS.az[key]) missing.push(`az:${key}`);
+        if (!I18n.TRANSLATIONS.en[key]) missing.push(`en:${key}`);
+    }
+    assert.strictEqual(missing.length, 0, `Missing translation keys: ${missing.join(', ')}`);
+});
+
+it('Shortcuts list in index.html has no mixed AZ/EN strings', () => {
+    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    assert.ok(!html.includes('Rəqəmlər / Digits'), 'Mixed shortcut string should be removed');
+    assert.ok(!html.includes('Atomik silmə / Atomic DEL'), 'Mixed shortcut string should be removed');
+});
+
+it('VisualCharts Geometry captions render purely in active language (en vs az)', () => {
+    const sphereEn = VisualCharts.renderGeometry('sphere', 'r', { r: 3 }, 'en');
+    assert.ok(sphereEn.includes('Sphere: V = (4/3)πr³'), 'EN sphere caption expected');
+    assert.ok(!sphereEn.includes('Kürə'), 'AZ text should not appear in EN diagram');
+
+    const sphereAz = VisualCharts.renderGeometry('sphere', 'r', { r: 3 }, 'az');
+    assert.ok(sphereAz.includes('Kürə: V = (4/3)πr³'), 'AZ sphere caption expected');
+    assert.ok(!sphereAz.includes('Sphere'), 'EN text should not appear in AZ diagram');
+
+    const triEn = VisualCharts.renderGeometry('triangle', 'right', { a: 3, b: 4 }, 'en');
+    assert.ok(triEn.includes('Leg a = 3') && triEn.includes('Hypotenuse c = 5') && triEn.includes('Right Triangle'));
+    assert.ok(!triEn.includes('Katet') && !triEn.includes('Hipotenuz') && !triEn.includes('Düzbucaqlı'));
+});
+
+it('StepSolver produces clean Unicode/HTML without raw LaTeX commands across all patterns', () => {
+    const exprs = ['5 + 3', '1/2 + 1/3', '5/7 * 2', '100 + 20%', '(-3)^2', 'sin(30)', '5 * 5 1/2'];
+    const rawLatexRegex = /\\text|\\quad|\\frac|\\times|\\rightarrow|\\%|\\circ/;
+    for (const lang of ['az', 'en']) {
+        I18n.setLanguage(lang);
+        for (const ex of exprs) {
+            const sol = StepSolver.solve(ex, 'DEG');
+            const serialized = JSON.stringify(sol);
+            assert.ok(!rawLatexRegex.test(serialized), `Raw LaTeX leaked for "${ex}" (${lang}): ${serialized}`);
+        }
+    }
+    I18n.setLanguage('az');
+});
+
+it('StepSolver PEMDAS substep uses clean Unicode arrows', () => {
+    I18n.setLanguage('en');
+    const sol = StepSolver.solve('5 + 3', 'DEG');
+    assert.strictEqual(sol.steps[0].substeps[0].formula, 'PEMDAS: P → E → MD → AS');
+    I18n.setLanguage('az');
 });
 
 console.log(`\n========================================`);

@@ -1,8 +1,18 @@
 /* ============================================================
-   ELMI KALKULYATOR — APP.JS (v3.0.0 — "Structured Math Editor, Interactive Step-by-Step Solver, 2D Geometry & Statistical Charts")
+   ELMI KALKULYATOR — APP.JS (v3.0.1 — "100% Bilingual AZ/EN Localization & Label Cleanup")
    Bütün riyazi hesablamalar lokal olaraq MathCore mühərriki ilə icra olunur.
    Heç bir eval() və ya new Function() istifadə olunmur.
    ============================================================ */
+
+function getActiveLang() {
+    return (window.I18n && typeof I18n.getLanguage === 'function')
+        ? I18n.getLanguage()
+        : ((typeof localStorage !== 'undefined' && localStorage.getItem('math_engine_az_lang')) || 'az');
+}
+
+function isEnglish() {
+    return getActiveLang() === 'en';
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     initSettings();
@@ -19,6 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadHistory();
     initInputFocusTracking();
 
+    const activeTabBtn = document.querySelector('.tab-btn.active');
+    if (activeTabBtn) {
+        updateVisualCard(activeTabBtn.dataset.tab);
+    }
+
     const statInput = document.getElementById('statData');
     if (statInput) {
         statInput.addEventListener('input', () => {
@@ -29,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => {
         const canvasContainer = document.getElementById('canvas-container');
         if (canvasContainer && !canvasContainer.classList.contains('hidden')) {
-            plotFunction();
+            plotFunction(undefined, true);
         }
     });
 });
@@ -102,20 +117,7 @@ function initSettings() {
                 if (window.MathCore && typeof MathCore.setLanguage === 'function') {
                     MathCore.setLanguage(lang);
                 }
-                // Refresh calculator display & solver if active
-                if (calcState && calcState.expression) {
-                    try {
-                        const preview = evalMathExpr(calcState.expression);
-                        if (preview !== null && isFinite(preview)) {
-                            calcState.result = formatNumber(preview);
-                            updateCalcDisplay(false);
-                        }
-                    } catch (err) {
-                        calcState.result = err.message || (window.I18n ? I18n.t('errorGeneric', 'Error') : 'Error');
-                        updateCalcDisplay(true);
-                    }
-                    updateSolverOrGraph(calcState.expression);
-                }
+                refreshLocalizedUI();
                 triggerHaptic();
             });
         });
@@ -232,6 +234,70 @@ function initSubTabs() {
     });
 }
 
+function refreshLocalizedUI() {
+    // 1. Refresh calculator preview & solver
+    if (calcState && calcState.expression) {
+        try {
+            const preview = evalMathExpr(calcState.expression);
+            if (preview !== null && isFinite(preview)) {
+                calcState.result = formatNumber(preview);
+                updateCalcDisplay(false);
+            }
+        } catch (err) {
+            calcState.result = err.message || (window.I18n ? I18n.t('errorGeneric', 'Error') : 'Error');
+            updateCalcDisplay(true);
+        }
+        updateSolverOrGraph(calcState.expression);
+    }
+
+    // 2. Refresh history list & section badges
+    renderHistory();
+
+    // 3. Refresh Geometry dynamic inputs/modes while preserving entered values
+    if (currentShape && shapes[currentShape]) {
+        const prevVals = {};
+        document.querySelectorAll('#shapeInputs input').forEach(inp => {
+            prevVals[inp.id] = inp.value;
+        });
+        const modeSelect = document.getElementById('inputModeSelect');
+        const prevMode = modeSelect ? modeSelect.value : currentMode;
+        onShapeSelect(true);
+        if (prevMode && document.getElementById('inputModeSelect')) {
+            document.getElementById('inputModeSelect').value = prevMode;
+            currentMode = prevMode;
+            renderShapeInputs();
+        }
+        Object.keys(prevVals).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = prevVals[id];
+        });
+        const geoRes = document.getElementById('geoResults');
+        if (geoRes && geoRes.innerHTML.trim() !== '') {
+            calculateGeometry();
+        } else {
+            updateGeometryDiagram();
+        }
+    }
+
+    // 4. Refresh Percentage dynamic labels while preserving values
+    const pctVal = document.getElementById('pctVal')?.value;
+    const pctPct = document.getElementById('pctPct')?.value;
+    const pctPart = document.getElementById('pctPart')?.value;
+    const pctWhole = document.getElementById('pctWhole')?.value;
+    updatePctInputs();
+    if (pctVal !== undefined && document.getElementById('pctVal')) document.getElementById('pctVal').value = pctVal;
+    if (pctPct !== undefined && document.getElementById('pctPct')) document.getElementById('pctPct').value = pctPct;
+    if (pctPart !== undefined && document.getElementById('pctPart')) document.getElementById('pctPart').value = pctPart;
+    if (pctWhole !== undefined && document.getElementById('pctWhole')) document.getElementById('pctWhole').value = pctWhole;
+
+    // 5. Refresh Right Visualization Card header & content for the active tab
+    const activeTabBtn = document.querySelector('.tab-btn.active');
+    const activeTab = activeTabBtn ? activeTabBtn.dataset.tab : 'calculator';
+    const activeSec = document.getElementById('sec-' + activeTab);
+    const activeSub = activeSec?.querySelector('.sub-tab.active')?.dataset.subtab;
+    updateVisualCard(activeTab, activeSub);
+}
+
 function updateVisualCard(tabId, subtabId) {
     const visualTitle = document.getElementById('visual-title');
     const visualSubtitle = document.getElementById('visual-subtitle');
@@ -255,12 +321,12 @@ function updateVisualCard(tabId, subtabId) {
         return;
     }
 
-    if (tabId === 'analysis' && subtabId === 'graph') {
+    if (tabId === 'analysis') {
         visualTitle.textContent = window.I18n ? I18n.t('subTabGraph', 'Funksiya Qrafiki') : 'Funksiya Qrafiki';
         visualSubtitle.textContent = window.I18n ? I18n.t('visualGraphSubtitle', '2D İnteraktiv Qrafik Müstəvisi') : '2D İnteraktiv Qrafik Müstəvisi';
         if (canvasContainer) canvasContainer.classList.remove('hidden');
         if (zoomControls) zoomControls.style.display = 'flex';
-        plotFunction();
+        plotFunction(undefined, true);
     } else if (tabId === 'geometry') {
         visualTitle.textContent = window.I18n ? I18n.t('geoDiagramTitle', '2D Həndəsi Çertyoj') : '2D Həndəsi Çertyoj';
         visualSubtitle.textContent = window.I18n ? I18n.t('geoDiagramSubtitle', 'Dinamik ölçülər və bucaqlar') : 'Dinamik ölçülər və bucaqlar';
@@ -279,9 +345,9 @@ function updateVisualCard(tabId, subtabId) {
         if (settingsContainer) settingsContainer.classList.remove('hidden');
         if (zoomControls) zoomControls.style.display = 'none';
     } else {
-        // Fallback for algebra
-        visualTitle.textContent = window.I18n ? I18n.t('secAlgebraTitle', 'Cəbri Analiz və Köklər') : 'Cəbri Analiz və Köklər';
-        visualSubtitle.textContent = 'Funksiya və Tənliklər Müstəvisi';
+        // Algebra
+        visualTitle.textContent = window.I18n ? I18n.t('secAlgebraTitle', 'Cəbr və Tənliklər') : 'Cəbr və Tənliklər';
+        visualSubtitle.textContent = window.I18n ? I18n.t('visualAlgebraSubtitle', 'Funksiya və Tənliklər Müstəvisi') : 'Funksiya və Tənliklər Müstəvisi';
         if (gridContainer) gridContainer.classList.remove('hidden');
         if (zoomControls) zoomControls.style.display = 'none';
     }
@@ -294,8 +360,10 @@ function updateGeometryDiagram() {
     const geoContainer = document.getElementById('geometry-diagram-container');
     if (!geoContainer || !window.VisualCharts) return;
 
+    const lang = getActiveLang();
+    const isEn = lang === 'en';
+
     if (!currentShape) {
-        const isEn = window.I18n && I18n.getLanguage() === 'en';
         geoContainer.innerHTML = `<div class="text-text-muted text-xs p-4 text-center">${isEn ? 'Please select a shape to view 2D diagram' : '2D çertyoju görmək üçün fiqur seçin'}</div>`;
         return;
     }
@@ -318,7 +386,7 @@ function updateGeometryDiagram() {
         });
     }
 
-    geoContainer.innerHTML = VisualCharts.renderGeometry(currentShape, currentMode, vals);
+    geoContainer.innerHTML = VisualCharts.renderGeometry(currentShape, currentMode, vals, lang);
 }
 
 /**
@@ -328,18 +396,20 @@ function updateStatisticsChart(dataArray, statsObj) {
     const statsContainer = document.getElementById('stats-chart-container');
     if (!statsContainer || !window.VisualCharts) return;
 
+    const lang = getActiveLang();
+    const isEn = lang === 'en';
+
     if (!dataArray || dataArray.length === 0) {
         const raw = document.getElementById('statData') ? document.getElementById('statData').value.trim() : '';
         dataArray = raw ? raw.split(/[,;\s]+/).map(Number).filter(n => !isNaN(n)) : [];
     }
 
     if (dataArray.length === 0) {
-        const isEn = window.I18n && I18n.getLanguage() === 'en';
         statsContainer.innerHTML = `<div class="text-text-muted text-xs p-4 text-center">${isEn ? 'Enter numbers to view statistical distribution chart' : 'Statistik paylanma qrafikini görmək üçün ədədlər daxil edin'}</div>`;
         return;
     }
 
-    statsContainer.innerHTML = VisualCharts.renderStatistics(dataArray, statsObj || {});
+    statsContainer.innerHTML = VisualCharts.renderStatistics(dataArray, statsObj || {}, lang);
 }
 
 /**
@@ -375,9 +445,9 @@ function updateSolverOrGraph(expr) {
         if (zoomControls) zoomControls.style.display = 'flex';
 
         if (visualTitle) visualTitle.textContent = (window.I18n ? I18n.t('visualTitle') : 'Vizual Model və Qrafik');
-        if (visualSubtitle) visualSubtitle.textContent = (window.I18n ? I18n.t('visualGraphSubtitle') : 'f(x) qrafiki · 2D');
+        if (visualSubtitle) visualSubtitle.textContent = (window.I18n ? I18n.t('visualGraphSubtitle') : '2D İnteraktiv Qrafik Müstəvisi');
 
-        plotFunction(solveData.expression || expr);
+        plotFunction(solveData.expression || expr, true);
     } else {
         // Solver mode: Step-by-step breakdown & alternative representations
         if (canvasContainer) canvasContainer.classList.add('hidden');
@@ -531,6 +601,9 @@ window.resetSettingsDefaults = function() {
     if (window.I18n) {
         I18n.setLanguage('az');
     }
+    if (window.MathCore && typeof MathCore.setLanguage === 'function') {
+        MathCore.setLanguage('az');
+    }
 
     const themeSeg = document.getElementById('themeSegmented');
     if (themeSeg) {
@@ -545,6 +618,7 @@ window.resetSettingsDefaults = function() {
         hapticSeg.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.hapticVal === '1'));
     }
 
+    refreshLocalizedUI();
     alert(window.I18n ? I18n.t('resetSuccess', 'Ayarlar uğurla sıfırlandı!') : 'Ayarlar uğurla sıfırlandı!');
     triggerHaptic();
 };
@@ -726,21 +800,69 @@ function exportHistory() {
     }
 }
 
+const HISTORY_LABEL_MAP = [
+    ['Kalkulyator', 'Calculator'],
+    ['Həndəsə', 'Geometry'],
+    ['Cəbr', 'Algebra'],
+    ['Analiz', 'Calculus'],
+    ['Statistika', 'Statistics'],
+    ['Matris', 'Matrix'],
+    ['Tam səthi', 'Total Surface Area'],
+    ['Yan səthi', 'Lateral Surface Area'],
+    ['Üz diaqonalı', 'Face Diagonal'],
+    ['Fəza diaqonalı', 'Space Diagonal'],
+    ['Çəpər hündürlük', 'Slant Height'],
+    ['Yarımperimetr', 'Semiperimeter'],
+    ['Məchul katet', 'Unknown leg'],
+    ['Bucaq α', 'Angle α'],
+    ['Bucaq β', 'Angle β'],
+    ['Perimetr', 'Perimeter'],
+    ['Diaqonal', 'Diagonal'],
+    ['Hipotenuz', 'Hypotenuse'],
+    ['Sahə', 'Area'],
+    ['Çevrə', 'Circumference'],
+    ['Həcm', 'Volume'],
+    ['Səthi', 'Surface Area'],
+    ['2 məchullu sistem', '2-var system'],
+    ['3 məchullu sistem', '3-var system'],
+    ['toplama', 'addition'],
+    ['çıxma', 'subtraction'],
+    ['vurma', 'multiplication'],
+    ['nəticə', 'result'],
+    ['Ədədi', 'Arithmetic'],
+    ['Həndəsi', 'Geometric']
+];
+
+function translateHistoryField(str, isEn) {
+    let out = String(str || '');
+    for (const [az, en] of HISTORY_LABEL_MAP) {
+        const from = isEn ? az : en;
+        const to = isEn ? en : az;
+        if (out.includes(from)) {
+            out = out.split(from).join(to);
+        }
+    }
+    return out;
+}
+
 function renderHistory() {
     const list = document.getElementById('historyList');
     if (!list) return;
+    const isEn = isEnglish();
     if (historyData.length === 0) {
-        list.innerHTML = '<p class="history-empty-msg">Hələ hesablama yoxdur</p>';
+        const emptyText = window.I18n ? I18n.t('historyEmpty', isEn ? 'No calculations yet' : 'Hələ hesablama yoxdur') : (isEn ? 'No calculations yet' : 'Hələ hesablama yoxdur');
+        list.innerHTML = `<p class="history-empty-msg" data-i18n="historyEmpty">${escHtml(emptyText)}</p>`;
         return;
     }
+    const insertTitle = window.I18n ? I18n.t('historyInsertTitle', isEn ? 'Click to insert result' : 'Klikləyin: Nəticəni daxil edin') : (isEn ? 'Click to insert result' : 'Klikləyin: Nəticəni daxil edin');
     list.innerHTML = historyData.map((h, i) => `
-        <button class="history-item-btn" type="button" onclick="useHistoryItem(${i})" title="Klikləyin: Nəticəni daxil edin (${escHtml(String(h.result))})">
+        <button class="history-item-btn" type="button" onclick="useHistoryItem(${i})" title="${escHtml(insertTitle)} (${escHtml(String(h.result))})">
             <div class="h-top">
-                <span>${escHtml(h.type)}</span>
+                <span>${escHtml(translateHistoryField(h.type, isEn))}</span>
                 <span>${escHtml(h.time)}</span>
             </div>
-            <div class="h-expr">${escHtml(h.expression)}</div>
-            <div class="h-res">= ${escHtml(String(h.result))}</div>
+            <div class="h-expr">${escHtml(translateHistoryField(h.expression, isEn))}</div>
+            <div class="h-res">= ${escHtml(translateHistoryField(String(h.result), isEn))}</div>
         </button>
     `).join('');
 }
@@ -1367,62 +1489,69 @@ function formatExprDisplay(expr) {
 /* ==========================================================
    5. GEOMETRY
    ========================================================== */
+function locLabel(val) {
+    if (val && typeof val === 'object') {
+        return isEnglish() ? (val.en || val.az) : (val.az || val.en);
+    }
+    return String(val || '');
+}
+
 const shapes = {
     circle: {
-        name: 'Dairə',
+        name: { az: 'Dairə', en: 'Circle' },
         modes: [
-            { id: 'r', label: 'Radius verilir', inputs: [{id:'r', label:'Radius (r)'}] }
+            { id: 'r', label: { az: 'Radius verilir', en: 'Given radius' }, inputs: [{id:'r', label:{ az: 'Radius (r)', en: 'Radius (r)' }}] }
         ]
     },
     square: {
-        name: 'Kvadrat',
+        name: { az: 'Kvadrat', en: 'Square' },
         modes: [
-            { id: 'a', label: 'Tərəf verilir', inputs: [{id:'a', label:'Tərəf (a)'}] }
+            { id: 'a', label: { az: 'Tərəf verilir', en: 'Given side' }, inputs: [{id:'a', label:{ az: 'Tərəf (a)', en: 'Side (a)' }}] }
         ]
     },
     rectangle: {
-        name: 'Düzbucaqlı',
+        name: { az: 'Düzbucaqlı', en: 'Rectangle' },
         modes: [
-            { id: 'ab', label: 'Tərəflər verilir', inputs: [{id:'a', label:'Tərəf a'}, {id:'b', label:'Tərəf b'}] }
+            { id: 'ab', label: { az: 'Tərəflər verilir', en: 'Given sides' }, inputs: [{id:'a', label:{ az: 'Tərəf a', en: 'Side a' }}, {id:'b', label:{ az: 'Tərəf b', en: 'Side b' }}] }
         ]
     },
     triangle: {
-        name: 'Üçbucaq',
+        name: { az: 'Üçbucaq', en: 'Triangle' },
         modes: [
-            { id: 'bh', label: 'Əsas və hündürlük', inputs: [{id:'base', label:'Əsas (a)'}, {id:'h', label:'Hündürlük (h)'}] },
-            { id: 'heron', label: '3 tərəf (Heron)', inputs: [{id:'a', label:'Tərəf a'}, {id:'b', label:'Tərəf b'}, {id:'c', label:'Tərəf c'}] },
-            { id: 'right', label: 'Düzbucaqlı: 2 katet', inputs: [{id:'a', label:'Katet a'}, {id:'b', label:'Katet b'}] },
-            { id: 'right_hyp', label: 'Düzbucaqlı: Katet və hipotenuz', inputs: [{id:'a', label:'Katet (a)'}, {id:'c', label:'Hipotenuz (c)'}] }
+            { id: 'bh', label: { az: 'Əsas və hündürlük', en: 'Base & height' }, inputs: [{id:'base', label:{ az: 'Əsas (a)', en: 'Base (a)' }}, {id:'h', label:{ az: 'Hündürlük (h)', en: 'Height (h)' }}] },
+            { id: 'heron', label: { az: '3 tərəf (Heron)', en: '3 sides (Heron)' }, inputs: [{id:'a', label:{ az: 'Tərəf a', en: 'Side a' }}, {id:'b', label:{ az: 'Tərəf b', en: 'Side b' }}, {id:'c', label:{ az: 'Tərəf c', en: 'Side c' }}] },
+            { id: 'right', label: { az: 'Düzbucaqlı: 2 katet', en: 'Right: 2 legs' }, inputs: [{id:'a', label:{ az: 'Katet a', en: 'Leg a' }}, {id:'b', label:{ az: 'Katet b', en: 'Leg b' }}] },
+            { id: 'right_hyp', label: { az: 'Düzbucaqlı: Katet və hipotenuz', en: 'Right: Leg & hypotenuse' }, inputs: [{id:'a', label:{ az: 'Katet (a)', en: 'Leg (a)' }}, {id:'c', label:{ az: 'Hipotenuz (c)', en: 'Hypotenuse (c)' }}] }
         ]
     },
     trapezoid: {
-        name: 'Trapesiya',
+        name: { az: 'Trapesiya', en: 'Trapezoid' },
         modes: [
-            { id: 'abh', label: 'Əsaslar və hündürlük', inputs: [{id:'a', label:'Üst əsas (a)'}, {id:'b', label:'Alt əsas (b)'}, {id:'h', label:'Hündürlük (h)'}] }
+            { id: 'abh', label: { az: 'Əsaslar və hündürlük', en: 'Bases & height' }, inputs: [{id:'a', label:{ az: 'Üst əsas (a)', en: 'Top base (a)' }}, {id:'b', label:{ az: 'Alt əsas (b)', en: 'Bottom base (b)' }}, {id:'h', label:{ az: 'Hündürlük (h)', en: 'Height (h)' }}] }
         ]
     },
     cube: {
-        name: 'Kub',
+        name: { az: 'Kub', en: 'Cube' },
         modes: [
-            { id: 'a', label: 'Tərəf verilir', inputs: [{id:'a', label:'Tərəf (a)'}] }
+            { id: 'a', label: { az: 'Tərəf verilir', en: 'Given side' }, inputs: [{id:'a', label:{ az: 'Tərəf (a)', en: 'Side (a)' }}] }
         ]
     },
     cylinder: {
-        name: 'Silindr',
+        name: { az: 'Silindr', en: 'Cylinder' },
         modes: [
-            { id: 'rh', label: 'Radius və hündürlük', inputs: [{id:'r', label:'Radius (r)'}, {id:'h', label:'Hündürlük (h)'}] }
+            { id: 'rh', label: { az: 'Radius və hündürlük', en: 'Radius & height' }, inputs: [{id:'r', label:{ az: 'Radius (r)', en: 'Radius (r)' }}, {id:'h', label:{ az: 'Hündürlük (h)', en: 'Height (h)' }}] }
         ]
     },
     sphere: {
-        name: 'Kürə',
+        name: { az: 'Kürə', en: 'Sphere' },
         modes: [
-            { id: 'r', label: 'Radius verilir', inputs: [{id:'r', label:'Radius (r)'}] }
+            { id: 'r', label: { az: 'Radius verilir', en: 'Given radius' }, inputs: [{id:'r', label:{ az: 'Radius (r)', en: 'Radius (r)' }}] }
         ]
     },
     cone: {
-        name: 'Konus',
+        name: { az: 'Konus', en: 'Cone' },
         modes: [
-            { id: 'rh', label: 'Radius və hündürlük', inputs: [{id:'r', label:'Radius (r)'}, {id:'h', label:'Hündürlük (h)'}] }
+            { id: 'rh', label: { az: 'Radius və hündürlük', en: 'Radius & height' }, inputs: [{id:'r', label:{ az: 'Radius (r)', en: 'Radius (r)' }}, {id:'h', label:{ az: 'Hündürlük (h)', en: 'Height (h)' }}] }
         ]
     }
 };
@@ -1431,17 +1560,19 @@ let currentShape = null;
 let currentMode = null;
 
 function initGeometry() {
-    document.getElementById('shapeSelect').addEventListener('change', onShapeSelect);
+    document.getElementById('shapeSelect').addEventListener('change', () => onShapeSelect(false));
 }
 
-function onShapeSelect() {
+function onShapeSelect(preserveResults = false) {
     const val = document.getElementById('shapeSelect').value;
     const modeDiv = document.getElementById('shapeInputMode');
     const inputsDiv = document.getElementById('shapeInputs');
     const calcBtn = document.getElementById('geoCalcBtn');
     const resultsDiv = document.getElementById('geoResults');
 
-    resultsDiv.innerHTML = '';
+    if (!preserveResults) {
+        resultsDiv.innerHTML = '';
+    }
 
     if (!val || !shapes[val]) {
         modeDiv.style.display = 'none';
@@ -1456,10 +1587,11 @@ function onShapeSelect() {
     const shape = shapes[val];
 
     if (shape.modes.length > 1) {
+        const modeLabel = window.I18n ? I18n.t('geoModeLabel', 'Hesablama üsulu:') : 'Hesablama üsulu:';
         modeDiv.style.display = 'block';
-        modeDiv.innerHTML = `<label>Hesablama üsulu:</label>
+        modeDiv.innerHTML = `<label data-i18n="geoModeLabel">${escHtml(modeLabel)}</label>
             <select id="inputModeSelect" onchange="onInputModeChange()">
-                ${shape.modes.map(m => `<option value="${m.id}">${m.label}</option>`).join('')}
+                ${shape.modes.map(m => `<option value="${m.id}">${escHtml(locLabel(m.label))}</option>`).join('')}
             </select>`;
         currentMode = shape.modes[0].id;
     } else {
@@ -1484,10 +1616,12 @@ function renderShapeInputs() {
     const mode = shape.modes.find(m => m.id === currentMode);
     if (!mode) return;
 
+    const ph = window.I18n ? I18n.t('geoInputPlaceholder', isEnglish() ? 'Ex: 3, √3, 2√5, π/2' : 'Məs: 3, √3, 2√5, π/2') : 'Məs: 3, √3, 2√5, π/2';
+
     document.getElementById('shapeInputs').innerHTML = mode.inputs.map(inp =>
         `<div class="input-group">
-            <label>${inp.label}</label>
-            <input type="text" inputmode="text" autocomplete="off" id="geo_${inp.id}" placeholder="Məs: 3, √3, 2√5, π/2">
+            <label>${escHtml(locLabel(inp.label))}</label>
+            <input type="text" inputmode="text" autocomplete="off" id="geo_${inp.id}" placeholder="${escHtml(ph)}">
         </div>`
     ).join('');
 
@@ -1528,14 +1662,13 @@ function calculateGeometry() {
     let valid = true;
     let errorMsg = '';
 
-    const lang = (window.I18n && typeof I18n.getLanguage === 'function')
-        ? I18n.getLanguage()
-        : ((typeof localStorage !== 'undefined' && localStorage.getItem('math_engine_az_lang')) || 'az');
+    const lang = getActiveLang();
     const isEn = lang === 'en';
 
     mode.inputs.forEach(inp => {
         const el = document.getElementById('geo_' + inp.id);
         const rawVal = el ? el.value.trim() : '';
+        const lbl = locLabel(inp.label);
         if (!rawVal) {
             valid = false;
             errorMsg = isEn ? 'Please fill in all fields.' : 'Zəhmət olmasa bütün xanaları doldurun.';
@@ -1548,12 +1681,12 @@ function calculateGeometry() {
                 : parseFloat(rawVal);
         } catch (e) {
             valid = false;
-            errorMsg = (isEn ? 'Error' : 'Xəta') + ' (' + inp.label + '): ' + (e.message || (isEn ? 'Please enter a valid mathematical expression' : 'Düzgün riyazi ifadə daxil edin'));
+            errorMsg = (isEn ? 'Error' : 'Xəta') + ' (' + lbl + '): ' + (e.message || (isEn ? 'Please enter a valid mathematical expression' : 'Düzgün riyazi ifadə daxil edin'));
             return;
         }
         if (isNaN(v) || !isFinite(v) || v <= 0) {
             valid = false;
-            errorMsg = inp.label + (isEn ? ' must be a positive number or valid expression (> 0).' : ' müsbət ədəd və ya düzgün riyazi ifadə olmalıdır (> 0).');
+            errorMsg = lbl + (isEn ? ' must be a positive number or valid expression (> 0).' : ' müsbət ədəd və ya düzgün riyazi ifadə olmalıdır (> 0).');
             return;
         }
         vals[inp.id] = v;
@@ -1571,45 +1704,45 @@ function calculateGeometry() {
     switch (currentShape) {
         case 'circle': {
             const r = vals.r;
-            results.push({ label: 'Sahə', formula: 'S = π · r²', value: clean(π * r * r) });
-            results.push({ label: 'Çevrə', formula: 'C = 2 · π · r', value: clean(2 * π * r) });
+            results.push({ label: isEn ? 'Area' : 'Sahə', formula: 'S = π · r²', value: clean(π * r * r) });
+            results.push({ label: isEn ? 'Circumference' : 'Çevrə', formula: 'C = 2 · π · r', value: clean(2 * π * r) });
             break;
         }
         case 'square': {
             const a = vals.a;
-            results.push({ label: 'Sahə', formula: 'S = a²', value: clean(a * a) });
-            results.push({ label: 'Perimetr', formula: 'P = 4 · a', value: clean(4 * a) });
-            results.push({ label: 'Diaqonal', formula: 'd = a · √2', value: clean(a * Math.sqrt(2)) });
+            results.push({ label: isEn ? 'Area' : 'Sahə', formula: 'S = a²', value: clean(a * a) });
+            results.push({ label: isEn ? 'Perimeter' : 'Perimetr', formula: 'P = 4 · a', value: clean(4 * a) });
+            results.push({ label: isEn ? 'Diagonal' : 'Diaqonal', formula: 'd = a · √2', value: clean(a * Math.sqrt(2)) });
             break;
         }
         case 'rectangle': {
             const a = vals.a, b = vals.b;
-            results.push({ label: 'Sahə', formula: 'S = a · b', value: clean(a * b) });
-            results.push({ label: 'Perimetr', formula: 'P = 2 · (a + b)', value: clean(2 * (a + b)) });
-            results.push({ label: 'Diaqonal', formula: 'd = √(a² + b²)', value: clean(Math.sqrt(a*a + b*b)) });
+            results.push({ label: isEn ? 'Area' : 'Sahə', formula: 'S = a · b', value: clean(a * b) });
+            results.push({ label: isEn ? 'Perimeter' : 'Perimetr', formula: 'P = 2 · (a + b)', value: clean(2 * (a + b)) });
+            results.push({ label: isEn ? 'Diagonal' : 'Diaqonal', formula: 'd = √(a² + b²)', value: clean(Math.sqrt(a*a + b*b)) });
             break;
         }
         case 'triangle': {
             if (currentMode === 'bh') {
                 const base = vals.base, h = vals.h;
-                results.push({ label: 'Sahə', formula: 'S = (a · h) / 2', value: clean((base * h) / 2) });
+                results.push({ label: isEn ? 'Area' : 'Sahə', formula: 'S = (a · h) / 2', value: clean((base * h) / 2) });
             } else if (currentMode === 'heron') {
                 const a = vals.a, b = vals.b, c = vals.c;
                 if (a + b <= c || a + c <= b || b + c <= a) {
-                    showGeoResult('<span class="error">Bu tərəflərlə üçbucaq qurmaq mümkün deyil (üçbucaq bərabərsizliyi ödənmir).</span>');
+                    showGeoResult('<span class="error">' + (isEn ? 'Cannot form a triangle with these sides (triangle inequality not satisfied).' : 'Bu tərəflərlə üçbucaq qurmaq mümkün deyil (üçbucaq bərabərsizliyi ödənmir).') + '</span>');
                     return;
                 }
                 const s = (a + b + c) / 2;
                 const area = Math.sqrt(s * (s-a) * (s-b) * (s-c));
-                results.push({ label: 'Yarımperimetr', formula: 's = (a + b + c) / 2', value: clean(s) });
-                results.push({ label: 'Sahə', formula: 'S = √(s·(s−a)·(s−b)·(s−c))', value: clean(area) });
-                results.push({ label: 'Perimetr', formula: 'P = a + b + c', value: clean(a + b + c) });
+                results.push({ label: isEn ? 'Semiperimeter' : 'Yarımperimetr', formula: 's = (a + b + c) / 2', value: clean(s) });
+                results.push({ label: isEn ? 'Area' : 'Sahə', formula: 'S = √(s·(s−a)·(s−b)·(s−c))', value: clean(area) });
+                results.push({ label: isEn ? 'Perimeter' : 'Perimetr', formula: 'P = a + b + c', value: clean(a + b + c) });
             } else if (currentMode === 'right') {
                 const a = vals.a, b = vals.b;
                 const hyp = Math.sqrt(a*a + b*b);
-                results.push({ label: 'Sahə', formula: 'S = (a · b) / 2', value: clean((a * b) / 2) });
-                results.push({ label: 'Hipotenuz', formula: 'c = √(a² + b²)', value: clean(hyp) });
-                results.push({ label: 'Perimetr', formula: 'P = a + b + c', value: clean(a + b + hyp) });
+                results.push({ label: isEn ? 'Area' : 'Sahə', formula: 'S = (a · b) / 2', value: clean((a * b) / 2) });
+                results.push({ label: isEn ? 'Hypotenuse' : 'Hipotenuz', formula: 'c = √(a² + b²)', value: clean(hyp) });
+                results.push({ label: isEn ? 'Perimeter' : 'Perimetr', formula: 'P = a + b + c', value: clean(a + b + hyp) });
             } else if (currentMode === 'right_hyp') {
                 const a = vals.a, c = vals.c;
                 if (a >= c) {
@@ -1622,59 +1755,59 @@ function calculateGeometry() {
                 const alpha = clean(Math.asin(a / c) * 180 / Math.PI);
                 const beta = clean(90 - alpha);
 
-                results.push({ label: 'Məchul katet (b)', formula: 'b = √(c² − a²)', value: b });
-                results.push({ label: 'Perimetr', formula: 'P = a + b + c', value: p });
-                results.push({ label: 'Sahə', formula: 'S = (a · b) / 2', value: area });
-                results.push({ label: 'Bucaq α (katet a qarşısı)', formula: 'α = arcsin(a / c)', value: alpha, unit: '°' });
-                results.push({ label: 'Bucaq β (katet b qarşısı)', formula: 'β = 90° − α', value: beta, unit: '°' });
+                results.push({ label: isEn ? 'Unknown leg (b)' : 'Məchul katet (b)', formula: 'b = √(c² − a²)', value: b });
+                results.push({ label: isEn ? 'Perimeter' : 'Perimetr', formula: 'P = a + b + c', value: p });
+                results.push({ label: isEn ? 'Area' : 'Sahə', formula: 'S = (a · b) / 2', value: area });
+                results.push({ label: isEn ? 'Angle α (opposite a)' : 'Bucaq α (katet a qarşısı)', formula: 'α = arcsin(a / c)', value: alpha, unit: '°' });
+                results.push({ label: isEn ? 'Angle β (opposite b)' : 'Bucaq β (katet b qarşısı)', formula: 'β = 90° − α', value: beta, unit: '°' });
             }
             break;
         }
         case 'trapezoid': {
             const a = vals.a, b = vals.b, h = vals.h;
-            results.push({ label: 'Sahə', formula: 'S = ((a + b) · h) / 2', value: clean(((a + b) * h) / 2) });
+            results.push({ label: isEn ? 'Area' : 'Sahə', formula: 'S = ((a + b) · h) / 2', value: clean(((a + b) * h) / 2) });
             break;
         }
         case 'cube': {
             const a = vals.a;
-            results.push({ label: 'Həcm', formula: 'V = a³', value: clean(a * a * a) });
-            results.push({ label: 'Tam səthi', formula: 'S = 6 · a²', value: clean(6 * a * a) });
-            results.push({ label: 'Üz diaqonalı', formula: 'd_üz = a · √2', value: clean(a * Math.sqrt(2)) });
-            results.push({ label: 'Fəza diaqonalı', formula: 'd = a · √3', value: clean(a * Math.sqrt(3)) });
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = a³', value: clean(a * a * a) });
+            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S = 6 · a²', value: clean(6 * a * a) });
+            results.push({ label: isEn ? 'Face Diagonal' : 'Üz diaqonalı', formula: 'd_f = a · √2', value: clean(a * Math.sqrt(2)) });
+            results.push({ label: isEn ? 'Space Diagonal' : 'Fəza diaqonalı', formula: 'd = a · √3', value: clean(a * Math.sqrt(3)) });
             break;
         }
         case 'cylinder': {
             const r = vals.r, h = vals.h;
-            results.push({ label: 'Həcm', formula: 'V = π · r² · h', value: clean(π * r * r * h) });
-            results.push({ label: 'Yan səthi', formula: 'S_yan = 2 · π · r · h', value: clean(2 * π * r * h) });
-            results.push({ label: 'Tam səthi', formula: 'S = 2 · π · r · (r + h)', value: clean(2 * π * r * (r + h)) });
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = π · r² · h', value: clean(π * r * r * h) });
+            results.push({ label: isEn ? 'Lateral Surface Area' : 'Yan səthi', formula: 'S_lat = 2 · π · r · h', value: clean(2 * π * r * h) });
+            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S = 2 · π · r · (r + h)', value: clean(2 * π * r * (r + h)) });
             break;
         }
         case 'sphere': {
             const r = vals.r;
-            results.push({ label: 'Həcm', formula: 'V = (4/3) · π · r³', value: clean((4/3) * π * r * r * r) });
-            results.push({ label: 'Səthi', formula: 'S = 4 · π · r²', value: clean(4 * π * r * r) });
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = (4/3) · π · r³', value: clean((4/3) * π * r * r * r) });
+            results.push({ label: isEn ? 'Surface Area' : 'Səthi', formula: 'S = 4 · π · r²', value: clean(4 * π * r * r) });
             break;
         }
         case 'cone': {
             const r = vals.r, h = vals.h;
             const l = Math.sqrt(r*r + h*h);
-            results.push({ label: 'Həcm', formula: 'V = (1/3) · π · r² · h', value: clean((1/3) * π * r * r * h) });
-            results.push({ label: 'Çəpər hündürlük', formula: 'l = √(r² + h²)', value: clean(l) });
-            results.push({ label: 'Yan səthi', formula: 'S_yan = π · r · l', value: clean(π * r * l) });
-            results.push({ label: 'Tam səthi', formula: 'S = π · r · (r + l)', value: clean(π * r * (r + l)) });
+            results.push({ label: isEn ? 'Volume' : 'Həcm', formula: 'V = (1/3) · π · r² · h', value: clean((1/3) * π * r * r * h) });
+            results.push({ label: isEn ? 'Slant Height' : 'Çəpər hündürlük', formula: 'l = √(r² + h²)', value: clean(l) });
+            results.push({ label: isEn ? 'Lateral Surface Area' : 'Yan səthi', formula: 'S_lat = π · r · l', value: clean(π * r * l) });
+            results.push({ label: isEn ? 'Total Surface Area' : 'Tam səthi', formula: 'S = π · r · (r + l)', value: clean(π * r * (r + l)) });
             break;
         }
     }
 
     const html = results.map(r =>
-        `<div><span class="label">${r.label}:</span> <span class="value">${formatNumber(r.value)}</span></div>
+        `<div><span class="label">${r.label}:</span> <span class="value">${formatNumber(r.value)}${r.unit || ''}</span></div>
          <span class="formula">${r.formula}</span>`
     ).join('');
 
     showGeoResult(html);
     updateGeometryDiagram();
-    addToHistory('Həndəsə', `${shape.name} (${mode.label})`, results.map(r => `${r.label} = ${formatNumber(r.value)}`).join(', '));
+    addToHistory(isEn ? 'Geometry' : 'Həndəsə', `${locLabel(shape.name)} (${locLabel(mode.label)})`, results.map(r => `${r.label} = ${formatNumber(r.value)}`).join(', '));
 }
 
 function showGeoResult(html) {
@@ -1689,39 +1822,41 @@ function solveQuadratic() {
     const b = parseFloat(document.getElementById('qb').value);
     const c = parseFloat(document.getElementById('qc').value);
     const out = document.getElementById('quadraticResult');
+    const isEn = isEnglish();
 
     if (isNaN(a) || isNaN(b) || isNaN(c)) {
-        out.innerHTML = '<span class="error">Zəhmət olmasa a, b, c qiymətlərini daxil edin.</span>';
+        out.innerHTML = `<span class="error">${isEn ? 'Please enter values for a, b, and c.' : 'Zəhmət olmasa a, b, c qiymətlərini daxil edin.'}</span>`;
         return;
     }
     if (a === 0) {
-        out.innerHTML = '<span class="error">a ≠ 0 olmalıdır (əks halda bu xətti tənlikdir).</span>';
+        out.innerHTML = `<span class="error">${isEn ? 'a ≠ 0 is required (otherwise this is a linear equation).' : 'a ≠ 0 olmalıdır (əks halda bu xətti tənlikdir).'}</span>`;
         return;
     }
 
     const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
     const D = clean(b * b - 4 * a * c);
     let html = `<span class="formula">D = b² − 4ac = ${b}² − 4·${a}·${c} = ${formatNumber(D)}</span>`;
+    const histBadge = isEn ? 'Algebra' : 'Cəbr';
 
     if (D > 0) {
         const x1 = clean((-b + Math.sqrt(D)) / (2 * a));
         const x2 = clean((-b - Math.sqrt(D)) / (2 * a));
-        html += `<div>D &gt; 0 → iki fərqli həqiqi kök var:</div>`;
+        html += `<div>${isEn ? 'D &gt; 0 → two distinct real roots:' : 'D &gt; 0 → iki fərqli həqiqi kök var:'}</div>`;
         html += `<span class="formula">x₁ = (−b + √D) / 2a = ${formatNumber(x1)}</span>`;
         html += `<span class="formula">x₂ = (−b − √D) / 2a = ${formatNumber(x2)}</span>`;
-        addToHistory('Cəbr', `${a}x²+${b}x+${c}=0`, `x₁=${formatNumber(x1)}, x₂=${formatNumber(x2)}`);
+        addToHistory(histBadge, `${a}x²+${b}x+${c}=0`, `x₁=${formatNumber(x1)}, x₂=${formatNumber(x2)}`);
     } else if (D === 0) {
         const x = clean(-b / (2 * a));
-        html += `<div>D = 0 → bir kök (qoşa kök):</div>`;
+        html += `<div>${isEn ? 'D = 0 → one repeated root:' : 'D = 0 → bir kök (qoşa kök):'}</div>`;
         html += `<span class="formula">x = −b / 2a = ${formatNumber(x)}</span>`;
-        addToHistory('Cəbr', `${a}x²+${b}x+${c}=0`, `x=${formatNumber(x)}`);
+        addToHistory(histBadge, `${a}x²+${b}x+${c}=0`, `x=${formatNumber(x)}`);
     } else {
         const real = clean(-b / (2 * a));
         const imag = clean(Math.sqrt(-D) / (2 * a));
-        html += `<div>D &lt; 0 → kompleks köklər:</div>`;
+        html += `<div>${isEn ? 'D &lt; 0 → complex roots:' : 'D &lt; 0 → kompleks köklər:'}</div>`;
         html += `<span class="formula">x₁ = ${formatNumber(real)} + ${formatNumber(imag)}i</span>`;
         html += `<span class="formula">x₂ = ${formatNumber(real)} − ${formatNumber(imag)}i</span>`;
-        addToHistory('Cəbr', `${a}x²+${b}x+${c}=0`, `${formatNumber(real)}±${formatNumber(imag)}i`);
+        addToHistory(histBadge, `${a}x²+${b}x+${c}=0`, `${formatNumber(real)}±${formatNumber(imag)}i`);
     }
 
     out.innerHTML = html;
@@ -1736,9 +1871,10 @@ function solveLinear2() {
     const b2 = parseFloat(document.getElementById('l2b2').value);
     const c2 = parseFloat(document.getElementById('l2c2').value);
     const out = document.getElementById('linear2Result');
+    const isEn = isEnglish();
 
     if ([a1,b1,c1,a2,b2,c2].some(isNaN)) {
-        out.innerHTML = '<span class="error">Bütün əmsalları daxil edin.</span>';
+        out.innerHTML = `<span class="error">${isEn ? 'Please enter all coefficients.' : 'Bütün əmsalları daxil edin.'}</span>`;
         return;
     }
 
@@ -1750,7 +1886,7 @@ function solveLinear2() {
     let html = `<span class="formula">D = a₁·b₂ − a₂·b₁ = ${formatNumber(D)}</span>`;
 
     if (Math.abs(D) < 1e-12) {
-        html += `<div class="error">D = 0: Sistemin yeganə həlli yoxdur (sonsuz sayda həll və ya həll yoxdur).</div>`;
+        html += `<div class="error">${isEn ? 'D = 0: The system has no unique solution (infinitely many or none).' : 'D = 0: Sistemin yeganə həlli yoxdur (sonsuz sayda həll və ya həll yoxdur).'}</div>`;
     } else {
         const x = clean(Dx / D);
         const y = clean(Dy / D);
@@ -1758,7 +1894,7 @@ function solveLinear2() {
         html += `<span class="formula">Dy = a₁·c₂ − a₂·c₁ = ${formatNumber(Dy)}</span>`;
         html += `<div><span class="label">x = </span><span class="value">${formatNumber(x)}</span></div>`;
         html += `<div><span class="label">y = </span><span class="value">${formatNumber(y)}</span></div>`;
-        addToHistory('Cəbr', '2 məchullu sistem', `x=${formatNumber(x)}, y=${formatNumber(y)}`);
+        addToHistory(isEn ? 'Algebra' : 'Cəbr', isEn ? '2-var system' : '2 məchullu sistem', `x=${formatNumber(x)}, y=${formatNumber(y)}`);
     }
     out.innerHTML = html;
 }
@@ -1780,9 +1916,10 @@ function solveLinear3() {
                [g('l3a3'),g('l3b3'),g('l3c3')]];
     const d = [g('l3d1'), g('l3d2'), g('l3d3')];
     const out = document.getElementById('linear3Result');
+    const isEn = isEnglish();
 
     if ([...a.flat(), ...d].some(isNaN)) {
-        out.innerHTML = '<span class="error">Bütün əmsalları daxil edin.</span>';
+        out.innerHTML = `<span class="error">${isEn ? 'Please enter all coefficients.' : 'Bütün əmsalları daxil edin.'}</span>`;
         return;
     }
 
@@ -1791,7 +1928,7 @@ function solveLinear3() {
     let html = `<span class="formula">D = ${formatNumber(D)}</span>`;
 
     if (Math.abs(D) < 1e-12) {
-        html += `<div class="error">D = 0: Sistemin yeganə həlli yoxdur.</div>`;
+        html += `<div class="error">${isEn ? 'D = 0: The system has no unique solution.' : 'D = 0: Sistemin yeganə həlli yoxdur.'}</div>`;
     } else {
         const Dx = det3([[d[0],a[0][1],a[0][2]],[d[1],a[1][1],a[1][2]],[d[2],a[2][1],a[2][2]]]);
         const Dy = det3([[a[0][0],d[0],a[0][2]],[a[1][0],d[1],a[1][2]],[a[2][0],d[2],a[2][2]]]);
@@ -1802,7 +1939,7 @@ function solveLinear3() {
         html += `<div><span class="label">x = </span><span class="value">${formatNumber(x)}</span></div>`;
         html += `<div><span class="label">y = </span><span class="value">${formatNumber(y)}</span></div>`;
         html += `<div><span class="label">z = </span><span class="value">${formatNumber(z)}</span></div>`;
-        addToHistory('Cəbr', '3 məchullu sistem', `x=${formatNumber(x)}, y=${formatNumber(y)}, z=${formatNumber(z)}`);
+        addToHistory(isEn ? 'Algebra' : 'Cəbr', isEn ? '3-var system' : '3 məchullu sistem', `x=${formatNumber(x)}, y=${formatNumber(y)}, z=${formatNumber(z)}`);
     }
     out.innerHTML = html;
 }
@@ -1813,16 +1950,19 @@ function initPercentage() {
 }
 
 function updatePctInputs() {
-    const type = document.getElementById('pctType').value;
+    const typeEl = document.getElementById('pctType');
     const div = document.getElementById('pctInputs');
+    if (!typeEl || !div) return;
+    const type = typeEl.value;
     document.getElementById('percentResult').innerHTML = '';
+    const isEn = isEnglish();
 
     const configs = {
-        findPercent:  [{id:'pctVal', label:'Ədəd'}, {id:'pctPct', label:'Faiz (%)'}],
-        whatPercent:  [{id:'pctPart', label:'Hissə'}, {id:'pctWhole', label:'Tam'}],
-        findWhole:    [{id:'pctPart', label:'Hissə (X)'}, {id:'pctPct', label:'Faiz (%)'}],
-        increase:     [{id:'pctVal', label:'Ədəd'}, {id:'pctPct', label:'Faiz (%)'}],
-        decrease:     [{id:'pctVal', label:'Ədəd'}, {id:'pctPct', label:'Faiz (%)'}]
+        findPercent:  [{id:'pctVal', label: isEn ? 'Number' : 'Ədəd'}, {id:'pctPct', label: isEn ? 'Percent (%)' : 'Faiz (%)'}],
+        whatPercent:  [{id:'pctPart', label: isEn ? 'Part' : 'Hissə'}, {id:'pctWhole', label: isEn ? 'Whole' : 'Tam'}],
+        findWhole:    [{id:'pctPart', label: isEn ? 'Part (X)' : 'Hissə (X)'}, {id:'pctPct', label: isEn ? 'Percent (%)' : 'Faiz (%)'}],
+        increase:     [{id:'pctVal', label: isEn ? 'Number' : 'Ədəd'}, {id:'pctPct', label: isEn ? 'Percent (%)' : 'Faiz (%)'}],
+        decrease:     [{id:'pctVal', label: isEn ? 'Number' : 'Ədəd'}, {id:'pctPct', label: isEn ? 'Percent (%)' : 'Faiz (%)'}]
     };
 
     const inputs = configs[type] || [];
@@ -1836,55 +1976,56 @@ function calcPercentage() {
     const out = document.getElementById('percentResult');
     const g = id => { const el = document.getElementById(id); return el ? parseFloat(el.value) : NaN; };
     const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
+    const isEn = isEnglish();
 
     let result, formula, label;
 
     switch(type) {
         case 'findPercent': {
             const val = g('pctVal'), pct = g('pctPct');
-            if (isNaN(val) || isNaN(pct)) { out.innerHTML = '<span class="error">Qiymətləri daxil edin.</span>'; return; }
+            if (isNaN(val) || isNaN(pct)) { out.innerHTML = `<span class="error">${isEn ? 'Please enter values.' : 'Qiymətləri daxil edin.'}</span>`; return; }
             result = clean(val * pct / 100);
             formula = `${val} × ${pct}% = ${val} × ${pct}/100`;
-            label = `${val}-in ${pct}%-i`;
+            label = isEn ? `${pct}% of ${val}` : `${val}-in ${pct}%-i`;
             break;
         }
         case 'whatPercent': {
             const part = g('pctPart'), whole = g('pctWhole');
-            if (isNaN(part) || isNaN(whole) || whole === 0) { out.innerHTML = '<span class="error">Qiymətləri daxil edin (tam ≠ 0).</span>'; return; }
+            if (isNaN(part) || isNaN(whole) || whole === 0) { out.innerHTML = `<span class="error">${isEn ? 'Please enter values (whole ≠ 0).' : 'Qiymətləri daxil edin (tam ≠ 0).'}</span>`; return; }
             result = clean((part / whole) * 100);
             formula = `(${part} / ${whole}) × 100`;
-            label = `Faiz nisbəti`;
+            label = isEn ? 'Percentage ratio' : 'Faiz nisbəti';
             break;
         }
         case 'findWhole': {
             const part = g('pctPart'), pct = g('pctPct');
-            if (isNaN(part) || isNaN(pct) || pct === 0) { out.innerHTML = '<span class="error">Qiymətləri daxil edin (faiz ≠ 0).</span>'; return; }
+            if (isNaN(part) || isNaN(pct) || pct === 0) { out.innerHTML = `<span class="error">${isEn ? 'Please enter values (percent ≠ 0).' : 'Qiymətləri daxil edin (faiz ≠ 0).'}</span>`; return; }
             result = clean(part * 100 / pct);
             formula = `${part} × 100 / ${pct}`;
-            label = `Tam ədəd`;
+            label = isEn ? 'Whole number' : 'Tam ədəd';
             break;
         }
         case 'increase': {
             const val = g('pctVal'), pct = g('pctPct');
-            if (isNaN(val) || isNaN(pct)) { out.innerHTML = '<span class="error">Qiymətləri daxil edin.</span>'; return; }
+            if (isNaN(val) || isNaN(pct)) { out.innerHTML = `<span class="error">${isEn ? 'Please enter values.' : 'Qiymətləri daxil edin.'}</span>`; return; }
             result = clean(val * (1 + pct / 100));
             formula = `${val} × (1 + ${pct}/100)`;
-            label = `${pct}% artımla`;
+            label = isEn ? `Increased by ${pct}%` : `${pct}% artımla`;
             break;
         }
         case 'decrease': {
             const val = g('pctVal'), pct = g('pctPct');
-            if (isNaN(val) || isNaN(pct)) { out.innerHTML = '<span class="error">Qiymətləri daxil edin.</span>'; return; }
+            if (isNaN(val) || isNaN(pct)) { out.innerHTML = `<span class="error">${isEn ? 'Please enter values.' : 'Qiymətləri daxil edin.'}</span>`; return; }
             result = clean(val * (1 - pct / 100));
             formula = `${val} × (1 − ${pct}/100)`;
-            label = `${pct}% azalma ilə`;
+            label = isEn ? `Decreased by ${pct}%` : `${pct}% azalma ilə`;
             break;
         }
     }
 
     out.innerHTML = `<div><span class="label">${label}:</span> <span class="value">${formatNumber(result)}</span></div>
                      <span class="formula">${formula} = ${formatNumber(result)}</span>`;
-    addToHistory('Cəbr', label, formatNumber(result));
+    addToHistory(isEn ? 'Algebra' : 'Cəbr', label, formatNumber(result));
 }
 
 /* ---------- Sequence ---------- */
@@ -1900,13 +2041,16 @@ function calcSequence() {
     const n = parseInt(document.getElementById('seqN').value);
     const out = document.getElementById('sequenceResult');
     const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
+    const isEn = isEnglish();
 
     if (isNaN(a1) || isNaN(d) || isNaN(n) || n < 1) {
-        out.innerHTML = '<span class="error">Zəhmət olmasa düzgün qiymətlər daxil edin (n ≥ 1).</span>';
+        out.innerHTML = `<span class="error">${isEn ? 'Please enter valid values (n ≥ 1).' : 'Zəhmət olmasa düzgün qiymətlər daxil edin (n ≥ 1).'}</span>`;
         return;
     }
 
     let html = '';
+    const seqPrefix = isEn ? 'Sequence:' : 'Silsilə:';
+    const histBadge = isEn ? 'Algebra' : 'Cəbr';
     if (type === 'arithmetic') {
         const an = clean(a1 + (n - 1) * d);
         const Sn = clean(n * (a1 + an) / 2);
@@ -1918,10 +2062,10 @@ function calcSequence() {
         const terms = [];
         for (let i = 0; i < Math.min(n, 8); i++) terms.push(formatNumber(clean(a1 + i * d)));
         if (n > 8) terms.push('...');
-        html += `<div style="margin-top:.5rem;color:var(--text-sec)">Silsilə: ${terms.join(', ')}</div>`;
-        addToHistory('Cəbr', `Ədədi: a₁=${a1}, d=${d}, n=${n}`, `aₙ=${formatNumber(an)}, Sₙ=${formatNumber(Sn)}`);
+        html += `<div style="margin-top:.5rem;color:var(--text-sec)">${seqPrefix} ${terms.join(', ')}</div>`;
+        addToHistory(histBadge, `${isEn ? 'Arithmetic' : 'Ədədi'}: a₁=${a1}, d=${d}, n=${n}`, `aₙ=${formatNumber(an)}, Sₙ=${formatNumber(Sn)}`);
     } else {
-        if (d === 0) { out.innerHTML = '<span class="error">q ≠ 0 olmalıdır.</span>'; return; }
+        if (d === 0) { out.innerHTML = `<span class="error">${isEn ? 'q ≠ 0 is required.' : 'q ≠ 0 olmalıdır.'}</span>`; return; }
         const an = clean(a1 * Math.pow(d, n - 1));
         const Sn = clean(d === 1 ? a1 * n : a1 * (Math.pow(d, n) - 1) / (d - 1));
         html += `<span class="formula">aₙ = a₁ · qⁿ⁻¹ = ${a1} · ${d}^${n-1} = ${formatNumber(an)}</span>`;
@@ -1932,8 +2076,8 @@ function calcSequence() {
         const terms = [];
         for (let i = 0; i < Math.min(n, 8); i++) terms.push(formatNumber(clean(a1 * Math.pow(d, i))));
         if (n > 8) terms.push('...');
-        html += `<div style="margin-top:.5rem;color:var(--text-sec)">Silsilə: ${terms.join(', ')}</div>`;
-        addToHistory('Cəbr', `Həndəsi: a₁=${a1}, q=${d}, n=${n}`, `aₙ=${formatNumber(an)}, Sₙ=${formatNumber(Sn)}`);
+        html += `<div style="margin-top:.5rem;color:var(--text-sec)">${seqPrefix} ${terms.join(', ')}</div>`;
+        addToHistory(histBadge, `${isEn ? 'Geometric' : 'Həndəsi'}: a₁=${a1}, q=${d}, n=${n}`, `aₙ=${formatNumber(an)}, Sₙ=${formatNumber(Sn)}`);
     }
     out.innerHTML = html;
 }
@@ -1944,8 +2088,9 @@ function calcSequence() {
 function calcDerivative() {
     const expr = document.getElementById('derivFunc').value.trim();
     const out = document.getElementById('derivativeResult');
+    const isEn = isEnglish();
 
-    if (!expr) { out.innerHTML = '<span class="error">Funksiya daxil edin.</span>'; return; }
+    if (!expr) { out.innerHTML = `<span class="error">${isEn ? 'Please enter a function.' : 'Funksiya daxil edin.'}</span>`; return; }
 
     try {
         let simplified;
@@ -1954,15 +2099,14 @@ function calcDerivative() {
         } else if (typeof math !== 'undefined' && math.derivative) {
             simplified = math.derivative(expr, 'x').toString();
         } else {
-            throw new Error('Törəmə mühərriki tapılmadı');
+            throw new Error(isEn ? 'Derivative engine not found' : 'Törəmə mühərriki tapılmadı');
         }
 
         out.innerHTML = `<div><span class="label">f(x) = </span>${escHtml(expr)}</div>
                          <div><span class="label">f′(x) = </span><span class="value">${escHtml(simplified)}</span></div>
                          <span class="formula">d/dx [${expr}] = ${escHtml(simplified)}</span>`;
-        addToHistory('Analiz', `d/dx [${expr}]`, simplified);
+        addToHistory(isEn ? 'Calculus' : 'Analiz', `d/dx [${expr}]`, simplified);
     } catch (err) {
-        const isEn = (window.I18n && typeof I18n.getLanguage === 'function') ? I18n.getLanguage() === 'en' : false;
         out.innerHTML = `<span class="error">${isEn ? 'Error' : 'Xəta'}: ${escHtml(err.message)}</span>`;
     }
 }
@@ -1973,30 +2117,30 @@ function calcIntegral() {
     const a = parseFloat(document.getElementById('intA').value);
     const b = parseFloat(document.getElementById('intB').value);
     const out = document.getElementById('integralResult');
+    const isEn = isEnglish();
 
-    if (!expr) { out.innerHTML = '<span class="error">Funksiya daxil edin.</span>'; return; }
-    if (isNaN(a) || isNaN(b)) { out.innerHTML = '<span class="error">Hədləri daxil edin.</span>'; return; }
+    if (!expr) { out.innerHTML = `<span class="error">${isEn ? 'Please enter a function.' : 'Funksiya daxil edin.'}</span>`; return; }
+    if (isNaN(a) || isNaN(b)) { out.innerHTML = `<span class="error">${isEn ? 'Please enter integration limits.' : 'Hədləri daxil edin.'}</span>`; return; }
 
     try {
         let result;
         if (window.MathCore && typeof MathCore.definiteIntegral === 'function') {
             result = MathCore.definiteIntegral(expr, a, b, 1000);
         } else {
-            throw new Error('İnteqral mühərriki tapılmadı');
+            throw new Error(isEn ? 'Integral engine not found' : 'İnteqral mühərriki tapılmadı');
         }
 
         out.innerHTML = `<div><span class="label">∫ f(x) dx = </span><span class="value">${formatNumber(result)}</span></div>
                          <span class="formula">∫[${a}, ${b}] (${expr}) dx ≈ ${formatNumber(result)}</span>
-                         <div style="color:var(--text-muted);font-size:.82rem;margin-top:.4rem">Simpson qaydası ilə (n=1000)</div>`;
-        addToHistory('Analiz', `∫[${a},${b}] ${expr} dx`, formatNumber(result));
+                         <div style="color:var(--text-muted);font-size:.82rem;margin-top:.4rem">${isEn ? "Via Simpson's rule (n=1000)" : 'Simpson qaydası ilə (n=1000)'}</div>`;
+        addToHistory(isEn ? 'Calculus' : 'Analiz', `∫[${a},${b}] ${expr} dx`, formatNumber(result));
     } catch (err) {
-        const isEn = (window.I18n && typeof I18n.getLanguage === 'function') ? I18n.getLanguage() === 'en' : false;
         out.innerHTML = `<span class="error">${isEn ? 'Error' : 'Xəta'}: ${escHtml(err.message)}</span>`;
     }
 }
 
 /* ---------- Graph ---------- */
-function plotFunction(customExpr) {
+function plotFunction(customExpr, skipHistory = false) {
     const exprInput = document.getElementById('graphFunc');
     const expr = (typeof customExpr === 'string' && customExpr.trim()) ? customExpr.trim() : (exprInput ? exprInput.value.trim() : '');
     const xMinEl = document.getElementById('graphXMin');
@@ -2114,7 +2258,9 @@ function plotFunction(customExpr) {
     }
     ctx.stroke();
 
-    addToHistory('Analiz', `y = ${expr}`, `[${xMin}, ${xMax}]`);
+    if (!skipHistory) {
+        addToHistory(isEnglish() ? 'Calculus' : 'Analiz', `y = ${expr}`, `[${xMin}, ${xMax}]`);
+    }
 }
 
 function niceStep(range, maxTicks) {
@@ -2142,11 +2288,12 @@ function calcStatistics() {
     const raw = document.getElementById('statData').value.trim();
     const out = document.getElementById('statsResult');
     const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : n => n;
+    const isEn = isEnglish();
 
-    if (!raw) { out.innerHTML = '<span class="error">Ədədlər daxil edin.</span>'; return; }
+    if (!raw) { out.innerHTML = `<span class="error">${isEn ? 'Please enter numbers.' : 'Ədədlər daxil edin.'}</span>`; return; }
 
     const data = raw.split(/[,;\s]+/).map(Number).filter(n => !isNaN(n));
-    if (data.length === 0) { out.innerHTML = '<span class="error">Düzgün ədədlər tapılmadı.</span>'; return; }
+    if (data.length === 0) { out.innerHTML = `<span class="error">${isEn ? 'No valid numbers found.' : 'Düzgün ədədlər tapılmadı.'}</span>`; return; }
 
     const n = data.length;
     const sum = clean(data.reduce((a, b) => a + b, 0));
@@ -2161,7 +2308,9 @@ function calcStatistics() {
     data.forEach(v => freq[v] = (freq[v] || 0) + 1);
     const maxFreq = Math.max(...Object.values(freq));
     const modes = Object.keys(freq).filter(k => freq[k] === maxFreq).map(Number);
-    const modeStr = maxFreq === 1 ? 'yoxdur (bütün ədədlər fərqlidir)' : modes.join(', ');
+    const modeStr = maxFreq === 1
+        ? (isEn ? 'none (all values are unique)' : 'yoxdur (bütün ədədlər fərqlidir)')
+        : modes.join(', ');
 
     // Variance & Std deviation
     const variance = clean(data.reduce((s, v) => s + (v - mean) ** 2, 0) / n);
@@ -2169,20 +2318,20 @@ function calcStatistics() {
     const range = clean(sorted[n-1] - sorted[0]);
 
     let html = `
-        <div><span class="label">Ədəd sayı (n):</span> <span class="value">${n}</span></div>
-        <div><span class="label">Cəmi:</span> <span class="value">${formatNumber(sum)}</span></div>
-        <div><span class="label">Ədədi orta (x̄):</span> <span class="value">${formatNumber(mean)}</span></div>
+        <div><span class="label">${isEn ? 'Count (n):' : 'Ədəd sayı (n):'}</span> <span class="value">${n}</span></div>
+        <div><span class="label">${isEn ? 'Sum:' : 'Cəmi:'}</span> <span class="value">${formatNumber(sum)}</span></div>
+        <div><span class="label">${isEn ? 'Mean (x̄):' : 'Ədədi orta (x̄):'}</span> <span class="value">${formatNumber(mean)}</span></div>
         <span class="formula">x̄ = Σxᵢ / n = ${formatNumber(sum)} / ${n} = ${formatNumber(mean)}</span>
-        <div><span class="label">Median:</span> <span class="value">${formatNumber(median)}</span></div>
-        <div><span class="label">Moda:</span> <span class="value">${modeStr}</span></div>
-        <div><span class="label">Yayılma (Range):</span> <span class="value">${formatNumber(range)}</span></div>
-        <div><span class="label">Dispersiya (σ²):</span> <span class="value">${formatNumber(variance)}</span></div>
-        <div><span class="label">Standart kənarlaşma (σ):</span> <span class="value">${formatNumber(stdDev)}</span></div>
+        <div><span class="label">${isEn ? 'Median:' : 'Median:'}</span> <span class="value">${formatNumber(median)}</span></div>
+        <div><span class="label">${isEn ? 'Mode:' : 'Moda:'}</span> <span class="value">${modeStr}</span></div>
+        <div><span class="label">${isEn ? 'Range:' : 'Yayılma (Range):'}</span> <span class="value">${formatNumber(range)}</span></div>
+        <div><span class="label">${isEn ? 'Variance (σ²):' : 'Dispersiya (σ²):'}</span> <span class="value">${formatNumber(variance)}</span></div>
+        <div><span class="label">${isEn ? 'Standard Deviation (σ):' : 'Standart kənarlaşma (σ):'}</span> <span class="value">${formatNumber(stdDev)}</span></div>
         <span class="formula">σ = √(Σ(xᵢ − x̄)² / n) = ${formatNumber(stdDev)}</span>
     `;
     out.innerHTML = html;
     updateStatisticsChart(data, { n, sum, mean, median, modes, variance, stdDev, range });
-    addToHistory('Statistika', `n=${n}`, `x̄=${formatNumber(mean)}, σ=${formatNumber(stdDev)}`);
+    addToHistory(isEn ? 'Statistics' : 'Statistika', `n=${n}`, `x̄=${formatNumber(mean)}, σ=${formatNumber(stdDev)}`);
 }
 
 /* ---------- Permutation & Combination ---------- */
@@ -2199,18 +2348,19 @@ function calcPermutation() {
     const r = parseInt(document.getElementById('probR').value);
     const out = document.getElementById('probResult');
     const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
+    const isEn = isEnglish();
 
     if (isNaN(n) || isNaN(r) || n < 0 || r < 0) {
-        out.innerHTML = '<span class="error">n və r müsbət tam ədəd olmalıdır.</span>'; return;
+        out.innerHTML = `<span class="error">${isEn ? 'n and r must be non-negative integers.' : 'n və r müsbət tam ədəd olmalıdır.'}</span>`; return;
     }
     if (r > n) {
-        out.innerHTML = '<span class="error">r ≤ n olmalıdır.</span>'; return;
+        out.innerHTML = `<span class="error">${isEn ? 'r ≤ n is required.' : 'r ≤ n olmalıdır.'}</span>`; return;
     }
 
     const result = clean(factorial(n) / factorial(n - r));
     out.innerHTML = `<div><span class="label">P(${n}, ${r}) = </span><span class="value">${formatNumber(result)}</span></div>
                      <span class="formula">P(n, r) = n! / (n−r)! = ${n}! / ${n-r}! = ${formatNumber(result)}</span>`;
-    addToHistory('Statistika', `P(${n},${r})`, formatNumber(result));
+    addToHistory(isEn ? 'Statistics' : 'Statistika', `P(${n},${r})`, formatNumber(result));
 }
 
 function calcCombination() {
@@ -2218,18 +2368,19 @@ function calcCombination() {
     const r = parseInt(document.getElementById('probR').value);
     const out = document.getElementById('probResult');
     const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
+    const isEn = isEnglish();
 
     if (isNaN(n) || isNaN(r) || n < 0 || r < 0) {
-        out.innerHTML = '<span class="error">n və r müsbət tam ədəd olmalıdır.</span>'; return;
+        out.innerHTML = `<span class="error">${isEn ? 'n and r must be non-negative integers.' : 'n və r müsbət tam ədəd olmalıdır.'}</span>`; return;
     }
     if (r > n) {
-        out.innerHTML = '<span class="error">r ≤ n olmalıdır.</span>'; return;
+        out.innerHTML = `<span class="error">${isEn ? 'r ≤ n is required.' : 'r ≤ n olmalıdır.'}</span>`; return;
     }
 
     const result = clean(factorial(n) / (factorial(r) * factorial(n - r)));
     out.innerHTML = `<div><span class="label">C(${n}, ${r}) = </span><span class="value">${formatNumber(result)}</span></div>
                      <span class="formula">C(n, r) = n! / (r! · (n−r)!) = ${n}! / (${r}! · ${n-r}!) = ${formatNumber(result)}</span>`;
-    addToHistory('Statistika', `C(${n},${r})`, formatNumber(result));
+    addToHistory(isEn ? 'Statistics' : 'Statistika', `C(${n},${r})`, formatNumber(result));
 }
 
 /* ==========================================================
@@ -2290,6 +2441,9 @@ function calcMatrix() {
     const A = getMatrix('matrixA', size);
     const out = document.getElementById('matrixResult');
     const clean = (window.MathCore && MathCore.cleanPrecision) ? MathCore.cleanPrecision : val => val;
+    const isEn = isEnglish();
+    const histBadge = isEn ? 'Matrix' : 'Matris';
+    const resWord = isEn ? 'result' : 'nəticə';
 
     let html = '';
 
@@ -2299,7 +2453,7 @@ function calcMatrix() {
         if (size === 2) {
             html += `<span class="formula">|A| = a₁₁·a₂₂ − a₁₂·a₂₁ = ${A[0][0]}·${A[1][1]} − ${A[0][1]}·${A[1][0]}</span>`;
         }
-        addToHistory('Matris', `det ${size}×${size}`, formatNumber(d));
+        addToHistory(histBadge, `det ${size}×${size}`, formatNumber(d));
     } else {
         const B = getMatrix('matrixB', size);
         let result;
@@ -2307,15 +2461,15 @@ function calcMatrix() {
         if (op === 'add') {
             result = matAdd(A, B, size);
             html = `<div><span class="label">A + B =</span></div><pre style="color:var(--text);margin:.4rem 0">${matToStr(result)}</pre>`;
-            addToHistory('Matris', `${size}×${size} toplama`, 'nəticə');
+            addToHistory(histBadge, `${size}×${size} ${isEn ? 'addition' : 'toplama'}`, resWord);
         } else if (op === 'subtract') {
             result = matSubtract(A, B, size);
             html = `<div><span class="label">A − B =</span></div><pre style="color:var(--text);margin:.4rem 0">${matToStr(result)}</pre>`;
-            addToHistory('Matris', `${size}×${size} çıxma`, 'nəticə');
+            addToHistory(histBadge, `${size}×${size} ${isEn ? 'subtraction' : 'çıxma'}`, resWord);
         } else if (op === 'multiply') {
             result = matMultiply(A, B, size);
             html = `<div><span class="label">A × B =</span></div><pre style="color:var(--text);margin:.4rem 0">${matToStr(result)}</pre>`;
-            addToHistory('Matris', `${size}×${size} vurma`, 'nəticə');
+            addToHistory(histBadge, `${size}×${size} ${isEn ? 'multiplication' : 'vurma'}`, resWord);
         }
     }
 

@@ -5,6 +5,24 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [3.0.1] - 2026-11-25 — "100% Bilingual AZ/EN Localization & Label Cleanup"
+
+### 🌐 Tam İkidilli Lokalizasiya və Etiket Təmizliyi (`AZ` / `EN`)
+- **Tarixçə və Yan Panel**:
+  - Boş tarixçə mətni (`"Hələ hesablama yoxdur"` / `"No calculations yet"`) və tarixçədəki bölmə bəcləri/nəticə etiketləri (`Kalkulyator`/`Calculator`, `Həndəsə`/`Geometry`, `Sahə`/`Area`, `Perimetr`/`Perimeter`, `Həcm`/`Volume`, `Səthi`/`Surface Area`) dil seçiminə uyğun olaraq dinamik tərcümə edilir.
+- **Həndəsə Bölməsi**:
+  - Bütün fiqur adları, hesablama üsulları, simvol paneli, nəticə etiketləri, səhv bildirişləri və 2D SVG çertyoj başlıqları tam lokallaşdırıldı (məs: `Sphere: V = (4/3)πr³` və ya `Kürə: V = (4/3)πr³`).
+- **Cəbr, Analiz və Statistika**:
+  - Bütün alt-vərəqlər, xana yer tutucuları (placeholder), düymələr, nəticələr və xətalar tam tərcümə edildi.
+  - `Analiz` (`Calculus`) bölməsində sağ kart başlığı düzgün olaraq `"Funksiya Qrafiki"` / `"Function Graph"` göstərəcək şəkildə düzəldildi.
+- **Parametrlər Sağ Kartı və Qısayollar**:
+  - `Parametrlər` bölməsində sağ kart başlığı `"Sistem Məlumatı"` / `"System Information"` olaraq sabitləndi; qarışıq `AZ / EN` klaviatura qısayol mətnləri tək dildə təmiz göstərilir.
+- **Həll Addımlarında Raw LaTeX Təmizliyi (`js/step-solver.js`)**:
+  - Akkordeon alt-addımlarındakı `\text{...}`, `\quad`, `\frac{...}`, `\%` kimi render olunmayan xam LaTeX ifadələri oxunaqlı Unicode və HTML formatına (`PEMDAS: P → E → MD → AS`, `<sup>`, kəsr komponentləri) çevrildi.
+- **PWA Keş Yenilənməsi**: `sw.js` keş adı `'math-engine-az-v3.0.1'` olaraq yeniləndi.
+
+---
+
 ## [3.0.0] - 2026-11-24 — "Structured Math Editor, Interactive Step-by-Step Solver, 2D Geometry & Statistical Charts"
 
 ### 📐 Strukturlaşdırılmış Vizual Riyazi Redaktor (Structured WYSIWYG Math Editor)

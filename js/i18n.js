@@ -1,5 +1,5 @@
 /**
- * i18n Translation Engine for Math Engine AZ (v3.0.0)
+ * i18n Translation Engine for Math Engine AZ (v3.0.1)
  * Zero-dependency bilingual support: Azerbaijani ('az') & English ('en')
  */
 
@@ -20,6 +20,7 @@
         az: {
             // Brand & Navigation
             brandTitle: "Math Engine AZ",
+            menuTitle: "Menyu",
             tabCalculator: "Kalkulyator",
             tabGeometry: "Həndəsə",
             tabAlgebra: "Cəbr",
@@ -40,6 +41,7 @@
             engineTag: "F(X) · ENGINE",
             angleDegree: "DEG",
             angleRadian: "RAD",
+            angleModeTitle: "Bucaq vahidi: DEG / RAD",
             copyResult: "Nəticəni kopyala",
             copiedToast: "Kopyalandı!",
 
@@ -50,13 +52,15 @@
             btnMixedFrac: "Qarışıq kəsr (□ □/□)",
             btnPower: "Qüvvət (xⁿ)",
             btnSqrt: "Kök (√)",
+            btnParens: "Mötərizə ( )",
 
             // Solution Steps & Visual Card
             solverTitle: "Həll Addımları",
             solverSubtitle: "Addım-addım riyazi izahat",
             visualTitle: "Vizual Model və Qrafik",
             visualSubtitle: "Koordinat müstəvisi · 2D",
-            visualGraphSubtitle: "f(x) qrafiki · 2D",
+            visualGraphSubtitle: "2D İnteraktiv Qrafik Müstəvisi",
+            visualAlgebraSubtitle: "Funksiya və Tənliklər Müstəvisi",
             solverEmptyTitle: "Riyazi ifadə daxil edin",
             solverEmptyDesc: "Kalkulyatorda ədəd və ya əməliyyat daxil etdikdə, burada ətraflı addım-addım həll və alternativ formlar göstəriləcək.",
             showSubSteps: "Ətraflı addımları göstər",
@@ -105,18 +109,26 @@
             hapticEnabled: "Aktiv",
             hapticDisabled: "Deaktiv",
             hapticNote: "Vibrasiya dəstəklənən mobil brauzerlərdə (Android Chrome, Samsung Internet) işləyir, masaüstü və iOS Safari cihazlarında nəzərə alınmır.",
-            versionInfo: "Versiya 3.0.0 · Structured Math & Interactive Visualizations",
+            versionInfo: "Versiya 3.0.1 · Structured Math & Interactive Visualizations",
 
             // Settings Right Info Card
             sysInfoTitle: "Sistem Məlumatı",
             sysInfoSubtitle: "PWA mühərriki və cihaz konfiqurasiyası",
             appVersionLabel: "Tətbiq Versiyası",
             appVersion: "Tətbiq Versiyası",
-            appVersionVal: "v3.0.0 (Structured Math Editor)",
+            appVersionVal: "v3.0.1 (Structured Math Editor)",
             pwaCacheLabel: "Oflayn Keş Statusu",
             pwaCacheStatus: "Oflayn Keş Statusu",
-            pwaCacheActive: "Aktiv (math-engine-az-v3.0.0)",
-            shortcutsTitle: "Qısayol Düymələri (Keyboard)",
+            pwaCacheActive: "Aktiv (math-engine-az-v3.0.1)",
+            shortcutsTitle: "Qısayol Düymələri",
+            shortcutDigits: "Rəqəmlər",
+            shortcutOps: "Əsas əməllər",
+            shortcutExp: "Qüvvət (xⁿ)",
+            shortcutParens: "Mötərizələr",
+            shortcutEval: "Hesabla",
+            shortcutClear: "Təmizlə",
+            shortcutDel: "Atomik silmə",
+            shortcutNav: "Yuva naviqasiyası",
             resetDefaults: "Ayarları sıfırla",
             resetDefaultsBtn: "Ayarları sıfırla",
             resetDefaultsDesc: "Bütün görünüş, dil və vibrasiya parametrlərini ilkin vəziyyətinə qaytarın",
@@ -132,6 +144,8 @@
             // Geometry
             secGeoTitle: "Həndəsi Hesablamalar",
             geoHeading: "📐 Həndəsi Hesablamalar",
+            geoSelectLabel: "Fiquru seçin:",
+            geoModeLabel: "Hesablama üsulu:",
             geoSelectPrompt: "— Fiqur seçin —",
             geoPlaneShapes: "Müstəvi Fiqurlar",
             geoSolidShapes: "Fəza Fiqurları",
@@ -145,6 +159,7 @@
             geoSphere: "Kürə",
             geoCone: "Konus",
             geoSymbols: "Simvollar:",
+            geoInputPlaceholder: "Məs: 3, √3, 2√5, π/2",
             btnCalculate: "Hesabla",
 
             // Algebra
@@ -155,6 +170,17 @@
             subTabLinear3: "3 məchullu",
             subTabPercentage: "Faiz",
             subTabSequence: "Silsilə",
+            algLinear2Title: "Xətti tənliklər sistemi (2 məchullu)",
+            algLinear3Title: "Xətti tənliklər sistemi (3 məchullu)",
+            algPctTitle: "Faiz Hesablamaları",
+            pctFindPercent: "Ədədin faizini tap",
+            pctWhatPercent: "Bir ədəd digərinin neçə faizidir?",
+            pctFindWhole: "X ədədin Y%-dirsə, ədədi tap",
+            pctIncrease: "Faizlə artır",
+            pctDecrease: "Faizlə azalt",
+            algSeqTitle: "Ədədi Silsilələr",
+            seqArithmetic: "Ədədi silsilə",
+            seqGeometric: "Həndəsi silsilə",
             btnSolve: "Həll et",
 
             // Calculus / Analysis
@@ -163,6 +189,15 @@
             subTabDerivative: "Törəmə",
             subTabIntegral: "İnteqral",
             subTabGraph: "Qrafik",
+            calcDerivTitle: "Simvolik Törəmə Hesablama",
+            calcDerivPlaceholder: "Məsələn: x^2 + 3*x + 1",
+            calcIntTitle: "Müəyyən İnteqral (Simpson Qaydası)",
+            calcIntPlaceholder: "Məsələn: x^2",
+            calcIntLower: "a (alt hədd) =",
+            calcIntUpper: "b (üst hədd) =",
+            calcGraphTitle: "Funksiya Qrafiki Parametrləri",
+            calcGraphPlaceholder: "Məsələn: x^2 - 4",
+            calcGraphNote: "Qrafik sağ paneldə interaktiv olaraq nümayiş etdirilir.",
             btnFindDeriv: "Törəməni tap",
             btnCalcInt: "İnteqralı hesabla",
             btnPlot: "Qrafiki çək",
@@ -172,11 +207,25 @@
             statsHeading: "🎲 Ehtimal, Statistika və Matrislər",
             subTabStats: "Statistika",
             subTabProbability: "Ehtimal",
-            subTabMatrix: "Matrislər"
+            subTabMatrix: "Matrislər",
+            statsSubTitle: "Statistik Göstəricilər",
+            statsDataLabel: "Ədədləri vergüllə ayırın:",
+            statsDataPlaceholder: "Məsələn: 5, 10, 15, 20, 25",
+            probTitle: "Permutasiya və Kombinasiya",
+            matrixTitle: "Matris Əməliyyatları",
+            matrixSizeLabel: "Ölçü:",
+            matrixOpLabel: "Əməliyyat:",
+            matrixOpAdd: "Toplama (A + B)",
+            matrixOpSub: "Çıxma (A − B)",
+            matrixOpMul: "Vurma (A × B)",
+            matrixOpDet: "Determinant |A|",
+            matrixALabel: "Matris A",
+            matrixBLabel: "Matris B"
         },
         en: {
             // Brand & Navigation
             brandTitle: "Math Engine AZ",
+            menuTitle: "Menu",
             tabCalculator: "Calculator",
             tabGeometry: "Geometry",
             tabAlgebra: "Algebra",
@@ -197,6 +246,7 @@
             engineTag: "F(X) · ENGINE",
             angleDegree: "DEG",
             angleRadian: "RAD",
+            angleModeTitle: "Angle unit: DEG / RAD",
             copyResult: "Copy result",
             copiedToast: "Copied!",
 
@@ -207,13 +257,15 @@
             btnMixedFrac: "Mixed fraction (□ □/□)",
             btnPower: "Exponent (xⁿ)",
             btnSqrt: "Square root (√)",
+            btnParens: "Parentheses ( )",
 
             // Solution Steps & Visual Card
             solverTitle: "Solution Steps",
             solverSubtitle: "Step-by-step mathematical explanation",
             visualTitle: "Visual Model & Graph",
             visualSubtitle: "Coordinate plane · 2D",
-            visualGraphSubtitle: "f(x) plot · 2D",
+            visualGraphSubtitle: "2D Interactive Coordinate Plane",
+            visualAlgebraSubtitle: "Functions & Equations Plane",
             solverEmptyTitle: "Enter an expression",
             solverEmptyDesc: "Enter numbers or operations in the calculator to see detailed step-by-step solutions and alternative representations.",
             showSubSteps: "Show detailed steps",
@@ -262,18 +314,26 @@
             hapticEnabled: "Enabled",
             hapticDisabled: "Disabled",
             hapticNote: "Haptic feedback works on supported mobile browsers (Android Chrome, Samsung Internet) and is safely ignored on desktop and iOS Safari.",
-            versionInfo: "Version 3.0.0 · Structured Math & Interactive Visualizations",
+            versionInfo: "Version 3.0.1 · Structured Math & Interactive Visualizations",
 
             // Settings Right Info Card
             sysInfoTitle: "System Information",
             sysInfoSubtitle: "PWA runtime and device configuration",
             appVersionLabel: "Application Version",
             appVersion: "Application Version",
-            appVersionVal: "v3.0.0 (Structured Math Editor)",
+            appVersionVal: "v3.0.1 (Structured Math Editor)",
             pwaCacheLabel: "Offline Cache Status",
             pwaCacheStatus: "Offline Cache Status",
-            pwaCacheActive: "Active (math-engine-az-v3.0.0)",
+            pwaCacheActive: "Active (math-engine-az-v3.0.1)",
             shortcutsTitle: "Keyboard Shortcuts",
+            shortcutDigits: "Digits",
+            shortcutOps: "Basic Operators",
+            shortcutExp: "Exponent (xⁿ)",
+            shortcutParens: "Parentheses",
+            shortcutEval: "Evaluate",
+            shortcutClear: "All Clear",
+            shortcutDel: "Atomic Delete",
+            shortcutNav: "Slot Navigation",
             resetDefaults: "Reset Defaults",
             resetDefaultsBtn: "Reset Defaults",
             resetDefaultsDesc: "Restore all appearance, language, and haptic preferences to defaults",
@@ -289,6 +349,8 @@
             // Geometry
             secGeoTitle: "Geometric Calculations",
             geoHeading: "📐 Geometric Calculations",
+            geoSelectLabel: "Select shape:",
+            geoModeLabel: "Calculation mode:",
             geoSelectPrompt: "— Select shape —",
             geoPlaneShapes: "2D Plane Shapes",
             geoSolidShapes: "3D Solid Shapes",
@@ -302,6 +364,7 @@
             geoSphere: "Sphere",
             geoCone: "Cone",
             geoSymbols: "Symbols:",
+            geoInputPlaceholder: "Ex: 3, √3, 2√5, π/2",
             btnCalculate: "Calculate",
 
             // Algebra
@@ -312,6 +375,17 @@
             subTabLinear3: "3 variables",
             subTabPercentage: "Percentage",
             subTabSequence: "Sequences",
+            algLinear2Title: "System of Linear Equations (2 variables)",
+            algLinear3Title: "System of Linear Equations (3 variables)",
+            algPctTitle: "Percentage Calculations",
+            pctFindPercent: "Find percentage of a number",
+            pctWhatPercent: "What percent is X of Y?",
+            pctFindWhole: "Find whole if X is Y%",
+            pctIncrease: "Increase by percentage",
+            pctDecrease: "Decrease by percentage",
+            algSeqTitle: "Number Sequences",
+            seqArithmetic: "Arithmetic sequence",
+            seqGeometric: "Geometric sequence",
             btnSolve: "Solve",
 
             // Calculus / Analysis
@@ -320,6 +394,15 @@
             subTabDerivative: "Derivative",
             subTabIntegral: "Integral",
             subTabGraph: "Graph",
+            calcDerivTitle: "Symbolic Derivative",
+            calcDerivPlaceholder: "Example: x^2 + 3*x + 1",
+            calcIntTitle: "Definite Integral (Simpson's Rule)",
+            calcIntPlaceholder: "Example: x^2",
+            calcIntLower: "a (lower limit) =",
+            calcIntUpper: "b (upper limit) =",
+            calcGraphTitle: "Function Graph Parameters",
+            calcGraphPlaceholder: "Example: x^2 - 4",
+            calcGraphNote: "The graph is displayed interactively in the right-hand panel.",
             btnFindDeriv: "Find derivative",
             btnCalcInt: "Calculate integral",
             btnPlot: "Plot graph",
@@ -329,7 +412,20 @@
             statsHeading: "🎲 Probability, Statistics & Matrices",
             subTabStats: "Statistics",
             subTabProbability: "Probability",
-            subTabMatrix: "Matrices"
+            subTabMatrix: "Matrices",
+            statsSubTitle: "Statistical Metrics",
+            statsDataLabel: "Separate numbers with commas:",
+            statsDataPlaceholder: "Example: 5, 10, 15, 20, 25",
+            probTitle: "Permutations & Combinations",
+            matrixTitle: "Matrix Operations",
+            matrixSizeLabel: "Size:",
+            matrixOpLabel: "Operation:",
+            matrixOpAdd: "Addition (A + B)",
+            matrixOpSub: "Subtraction (A − B)",
+            matrixOpMul: "Multiplication (A × B)",
+            matrixOpDet: "Determinant |A|",
+            matrixALabel: "Matrix A",
+            matrixBLabel: "Matrix B"
         }
     };
 
@@ -406,6 +502,14 @@
             const key = el.getAttribute('data-i18n-placeholder');
             if (dict[key]) {
                 el.placeholder = dict[key];
+            }
+        });
+
+        // Update optgroup / elements with data-i18n-label attribute
+        document.querySelectorAll('[data-i18n-label]').forEach(el => {
+            const key = el.getAttribute('data-i18n-label');
+            if (dict[key]) {
+                el.label = dict[key];
             }
         });
     }

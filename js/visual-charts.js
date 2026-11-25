@@ -23,11 +23,26 @@
         return parseFloat(n.toFixed(2)).toString();
     }
 
+    function getActiveLang(explicitLang) {
+        if (explicitLang === 'en' || explicitLang === 'az') return explicitLang;
+        if (typeof window !== 'undefined' && window.I18n && typeof window.I18n.getLanguage === 'function') {
+            return window.I18n.getLanguage();
+        }
+        if (typeof localStorage !== 'undefined') {
+            try {
+                const s = localStorage.getItem('math_engine_az_lang');
+                if (s === 'en' || s === 'az') return s;
+            } catch (e) {}
+        }
+        return 'az';
+    }
+
     /**
      * Render dynamic 2D Geometric Diagram SVG
      */
-    function renderGeometry(shapeKey, modeId, vals = {}) {
+    function renderGeometry(shapeKey, modeId, vals = {}, lang) {
         if (!shapeKey) return '';
+        const isEn = getActiveLang(lang) === 'en';
 
         const w = 400;
         const h = 280;
@@ -52,7 +67,7 @@
                     <circle cx="285" cy="140" r="3" fill="${guideCol}" />
                     <!-- Label -->
                     <text x="242" y="132" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">r = ${rVal}</text>
-                    <text x="200" y="248" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Dairə (Circle) · O(0,0)</text>
+                    <text x="200" y="248" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Circle' : 'Dairə'} · O(0,0)</text>
                 `;
                 break;
             }
@@ -72,7 +87,7 @@
                     <!-- Diagonal Dashed Line -->
                     <line x1="130" y1="205" x2="270" y2="65" stroke="${guideCol}" stroke-width="1.8" stroke-dasharray="4 3" />
                     <text x="215" y="125" fill="${guideCol}" font-family="${fontMono}" font-size="11" font-weight="600">d = a√2</text>
-                    <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Kvadrat (Square)</text>
+                    <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Square' : 'Kvadrat'}</text>
                 `;
                 break;
             }
@@ -92,7 +107,7 @@
                     <!-- Diagonal Line -->
                     <line x1="110" y1="190" x2="290" y2="80" stroke="${guideCol}" stroke-width="1.8" stroke-dasharray="4 3" />
                     <text x="215" y="130" fill="${guideCol}" font-family="${fontMono}" font-size="11" font-weight="600">d = √(a²+b²)</text>
-                    <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Düzbucaqlı (Rectangle)</text>
+                    <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Rectangle' : 'Düzbucaqlı'}</text>
                 `;
                 break;
             }
@@ -116,15 +131,15 @@
                         <!-- Right Angle Marker -->
                         <rect x="110" y="185" width="15" height="15" fill="none" stroke="${accent}" stroke-width="1.5" />
                         <!-- Leg a (Bottom) -->
-                        <text x="200" y="220" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">Katet a = ${aVal}</text>
+                        <text x="200" y="220" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">${isEn ? 'Leg a' : 'Katet a'} = ${aVal}</text>
                         <!-- Leg b (Left) -->
-                        <text x="95" y="140" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">Katet b = ${bVal}</text>
+                        <text x="95" y="140" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">${isEn ? 'Leg b' : 'Katet b'} = ${bVal}</text>
                         <!-- Hypotenuse c -->
-                        <text x="215" y="125" fill="${guideCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">Hipotenuz c = ${cVal}</text>
+                        <text x="215" y="125" fill="${guideCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">${isEn ? 'Hypotenuse c' : 'Hipotenuz c'} = ${cVal}</text>
                         <!-- Alpha arc -->
                         <path d="M 260 200 A 30 30 0 0 0 270 185" fill="none" stroke="${guideCol}" stroke-width="1.5" />
                         <text x="250" y="195" fill="${guideCol}" font-size="11" font-weight="bold">α</text>
-                        <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Düzbucaqlı Üçbucaq (Right Triangle)</text>
+                        <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Right Triangle' : 'Düzbucaqlı Üçbucaq'}</text>
                     `;
                 } else if (modeId === 'bh') {
                     const baseVal = formatVal(vals.base) || 'a';
@@ -138,8 +153,8 @@
                         <path d="M 200 188 L 212 188 L 212 200" fill="none" stroke="${guideCol}" stroke-width="1.3" />
                         <!-- Labels -->
                         <text x="215" y="140" fill="${guideCol}" font-family="${fontMono}" font-size="13" font-weight="600">h = ${hVal}</text>
-                        <text x="200" y="222" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">Əsas a = ${baseVal}</text>
-                        <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Üçbucaq: S = (a · h) / 2</text>
+                        <text x="200" y="222" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">${isEn ? 'Base a' : 'Əsas a'} = ${baseVal}</text>
+                        <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Triangle' : 'Üçbucaq'}: S = (a · h) / 2</text>
                     `;
                 } else {
                     // Heron 3 sides
@@ -151,7 +166,7 @@
                         <text x="200" y="222" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">a = ${aVal}</text>
                         <text x="280" y="130" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600">b = ${bVal}</text>
                         <text x="135" y="130" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600">c = ${cVal}</text>
-                        <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Üçbucaq (3 tərəf - Heron)</text>
+                        <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Triangle (3 sides - Heron)' : 'Üçbucaq (3 tərəf - Heron)'}</text>
                     `;
                 }
                 break;
@@ -165,14 +180,14 @@
                     <!-- Trapezoid -->
                     <polygon points="145,80 255,80 320,200 80,200" fill="${accentFill}" stroke="${accent}" stroke-width="2.5" stroke-linejoin="round" />
                     <!-- Top base a -->
-                    <text x="200" y="70" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">Üst əsas a = ${aVal}</text>
+                    <text x="200" y="70" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">${isEn ? 'Top base a' : 'Üst əsas a'} = ${aVal}</text>
                     <!-- Bottom base b -->
-                    <text x="200" y="222" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">Alt əsas b = ${bVal}</text>
+                    <text x="200" y="222" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">${isEn ? 'Bottom base b' : 'Alt əsas b'} = ${bVal}</text>
                     <!-- Height h (dashed) -->
                     <line x1="145" y1="80" x2="145" y2="200" stroke="${guideCol}" stroke-width="2" stroke-dasharray="4 3" />
                     <path d="M 145 188 L 157 188 L 157 200" fill="none" stroke="${guideCol}" stroke-width="1.3" />
                     <text x="160" y="145" fill="${guideCol}" font-family="${fontMono}" font-size="13" font-weight="600">h = ${hVal}</text>
-                    <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Trapesiya (Trapezoid)</text>
+                    <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Trapezoid' : 'Trapesiya'}</text>
                 `;
                 break;
             }
@@ -188,7 +203,7 @@
                     <polygon points="230,100 270,60 270,160 230,200" fill="rgba(79, 70, 229, 0.16)" stroke="${accent}" stroke-width="2" />
                     <!-- Side Label -->
                     <text x="180" y="222" fill="${textCol}" font-family="${fontMono}" font-size="13" font-weight="600" text-anchor="middle">a = ${aVal}</text>
-                    <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Kub: V = a³ · S = 6a²</text>
+                    <text x="200" y="255" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Cube' : 'Kub'}: V = a³ · S = 6a²</text>
                 `;
                 break;
             }
@@ -209,7 +224,7 @@
                     <!-- Height -->
                     <line x1="125" y1="80" x2="125" y2="190" stroke="${guideCol}" stroke-width="1.8" stroke-dasharray="3 3" />
                     <text x="110" y="140" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600">h = ${hVal}</text>
-                    <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Silindr (Cylinder)</text>
+                    <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Cylinder' : 'Silindr'}: V = πr²h</text>
                 `;
                 break;
             }
@@ -222,7 +237,7 @@
                     <circle cx="200" cy="135" r="4" fill="${accent}" />
                     <line x1="200" y1="135" x2="275" y2="135" stroke="${guideCol}" stroke-width="2" />
                     <text x="238" y="127" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600">r = ${rVal}</text>
-                    <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Kürə (Sphere): V = (4/3)πr³</text>
+                    <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Sphere' : 'Kürə'}: V = (4/3)πr³</text>
                 `;
                 break;
             }
@@ -241,13 +256,13 @@
                     <!-- Radius -->
                     <line x1="200" y1="190" x2="265" y2="190" stroke="${guideCol}" stroke-width="2" />
                     <text x="235" y="206" fill="${guideCol}" font-family="${fontMono}" font-size="12" font-weight="600">r = ${rVal}</text>
-                    <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">Konus (Cone)</text>
+                    <text x="200" y="250" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Cone' : 'Konus'}: V = (1/3)πr²h</text>
                 `;
                 break;
             }
 
             default:
-                content = `<text x="200" y="140" fill="${textSec}" font-family="${fontMono}" font-size="13" text-anchor="middle">Fiqur seçilməyib</text>`;
+                content = `<text x="200" y="140" fill="${textSec}" font-family="${fontMono}" font-size="13" text-anchor="middle">${isEn ? 'No shape selected' : 'Fiqur seçilməyib'}</text>`;
         }
 
         return `
@@ -260,11 +275,12 @@
     /**
      * Render interactive Statistical Distribution / Bar Chart SVG with Mean Line Indicator
      */
-    function renderStatistics(dataArray, statsObj = {}) {
+    function renderStatistics(dataArray, statsObj = {}, lang) {
+        const isEn = getActiveLang(lang) === 'en';
         if (!Array.isArray(dataArray) || dataArray.length === 0) {
             return `
                 <div class="flex items-center justify-center h-full text-text-muted text-xs">
-                    Statistik göstəricilər üçün ədəd daxil edin
+                    ${isEn ? 'Enter numbers to view statistical distribution chart' : 'Statistik göstəricilər üçün ədəd daxil edin'}
                 </div>
             `;
         }

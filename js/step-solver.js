@@ -283,11 +283,11 @@
                     explanation: isEn ? "Multiply top numbers together and bottom numbers together." : "Sürətlər öz aralarında, məxrəclər isə öz aralarında vurulur.",
                     substeps: [
                         {
-                            formula: `\\text{Numerator:} \\quad ${n1} × ${n2} = ${rawNum}`,
+                            formula: `${isEn ? 'Numerator' : 'Sürət'}: ${n1} × ${n2} = ${rawNum}`,
                             explanation: isEn ? "Multiply numerators." : "Sürətlərin hasili hesablanır."
                         },
                         {
-                            formula: `\\text{Denominator:} \\quad ${d1} × ${d2} = ${rawDen}`,
+                            formula: `${isEn ? 'Denominator' : 'Məxrəc'}: ${d1} × ${d2} = ${rawDen}`,
                             explanation: isEn ? "Multiply denominators." : "Məxrəclərin hasili hesablanır."
                         },
                         {
@@ -304,11 +304,11 @@
                         explanation: isEn ? `Divide numerator and denominator by gcd(${rawNum}, ${rawDen}) = ${g}.` : `Sürət və məxrəci ƏBOB(${rawNum}, ${rawDen}) = ${g} ədədinə bölün.`,
                         substeps: [
                             {
-                                formula: `\\text{GCD}(${rawNum}, ${rawDen}) = ${g}`,
+                                formula: `${isEn ? 'GCD' : 'ƏBOB'}(${rawNum}, ${rawDen}) = ${g}`,
                                 explanation: isEn ? `Greatest common divisor is ${g}.` : `Ən böyük ortaq bölən ${g}-dir.`
                             },
                             {
-                                formula: `${rawNum} ÷ ${g} = ${simpNum}, \\quad ${rawDen} ÷ ${g} = ${simpD}`,
+                                formula: `${rawNum} ÷ ${g} = ${simpNum}, &nbsp; ${rawDen} ÷ ${g} = ${simpDen}`,
                                 explanation: isEn ? "Divide both parts." : "Hər iki hissə ixtisar olunur."
                             }
                         ]
@@ -350,15 +350,15 @@
 
                 steps.push({
                     title: isEn ? "1. Find Common Denominator (LCM)" : "1. Ortaq Məxrəc Tapın (ƏKOB)",
-                    formula: `\\text{LCM}(${d1}, ${d2}) = ${commonDen}`,
+                    formula: `${isEn ? 'LCM' : 'ƏKOB'}(${d1}, ${d2}) = ${commonDen}`,
                     explanation: isEn ? `Find least common multiple of denominators ${d1} and ${d2}.` : `${d1} və ${d2} məxrəclərinin Ən Kiçik Ortaq Bölünənini (ƏKOB) tapın.`,
                     substeps: [
                         {
-                            formula: `\\text{Factor 1:} \\quad ${commonDen} ÷ ${d1} = ${mult1}`,
+                            formula: `${isEn ? 'Factor 1' : 'Vuruq 1'}: ${commonDen} ÷ ${d1} = ${mult1}`,
                             explanation: isEn ? `Multiplier for fraction 1 is ${mult1}.` : `Birinci kəsr üçün tamamlayıcı vuruq ${mult1}-dir.`
                         },
                         {
-                            formula: `\\text{Factor 2:} \\quad ${commonDen} ÷ ${d2} = ${mult2}`,
+                            formula: `${isEn ? 'Factor 2' : 'Vuruq 2'}: ${commonDen} ÷ ${d2} = ${mult2}`,
                             explanation: isEn ? `Multiplier for fraction 2 is ${mult2}.` : `İkinci kəsr üçün tamamlayıcı vuruq ${mult2}-dir.`
                         }
                     ]
@@ -404,7 +404,7 @@
                         explanation: isEn ? `Divide top and bottom by ${g}.` : `Sürət və məxrəci ${g} ədədinə bölün.`,
                         substeps: [
                             {
-                                formula: `\\text{GCD}(${resN}, ${commonDen}) = ${g}`,
+                                formula: `${isEn ? 'GCD' : 'ƏBOB'}(${resN}, ${commonDen}) = ${g}`,
                                 explanation: isEn ? `Divide both by ${g}.` : `Hər iki ədədi ${g}-yə bölün.`
                             }
                         ]
@@ -438,11 +438,11 @@
 
             steps.push({
                 title: isEn ? "1. Calculate percentage value" : "1. Faiz miqdarını hesablayın",
-                formula: `${pct}\\% \\text{ of } ${base} = ${base} × \\frac{${pct}}{100} = ${pctVal}`,
+                formula: `${isEn ? `${pct}% of ${base}` : `${base}-in ${pct}%-i`} = ${base} × ${renderFracHtml(pct, 100)} = ${pctVal}`,
                 explanation: isEn ? `Multiply base ${base} by ${pct} over 100.` : `${base} əsas qiymətini ${pct}/100 nisbətinə vurun.`,
                 substeps: [
                     {
-                        formula: `\\frac{${pct}}{100} = ${pct / 100}`,
+                        formula: `${renderFracHtml(pct, 100)} = ${pct / 100}`,
                         explanation: isEn ? "Convert percentage to decimal." : "Faizi onluq kəsrə çevirin."
                     },
                     {
@@ -485,11 +485,11 @@
                 const innerNum = parseFloat(baseStr.replace(/[()]/g, ''));
                 steps.push({
                     title: isEn ? "1. Base is negative inside parentheses" : "1. Əsas mötərizə daxilində mənfidir",
-                    formula: `(${innerNum})^{${expVal}} = ${Array(Math.min(expVal, 5)).fill(`(${innerNum})`).join(' × ')}`,
+                    formula: `(${innerNum})<sup>${expVal}</sup> = ${Array(Math.min(expVal, 5)).fill(`(${innerNum})`).join(' × ')}`,
                     explanation: isEn ? `Even powers of a negative base result in a positive number.` : `Mənfi ədədin cüt dərəcədən qüvvəti müsbət nəticə verir.`,
                     substeps: [
                         {
-                            formula: `(${innerNum}) \\times (${innerNum}) = ${innerNum * innerNum}`,
+                            formula: `(${innerNum}) × (${innerNum}) = ${innerNum * innerNum}`,
                             explanation: isEn ? "Multiply negative numbers (negative × negative = positive)." : "Mənfi ədədlərin vurulması (mənfi × mənfi = müsbət)."
                         }
                     ]
@@ -498,11 +498,11 @@
                 const innerNum = parseFloat(baseStr.replace('-', ''));
                 steps.push({
                     title: isEn ? "1. Order of precedence: Exponentiation before Negation" : "1. Əməllər sırası: Qüvvətə yüksəltmə mənfi işarədən əvvəl icra olunur",
-                    formula: `-${innerNum}^{${expVal}} = -(${innerNum}^{${expVal}}) = -(${Math.pow(innerNum, expVal)}) = ${finalVal}`,
+                    formula: `-${innerNum}<sup>${expVal}</sup> = -(${innerNum}<sup>${expVal}</sup>) = -(${Math.pow(innerNum, expVal)}) = ${finalVal}`,
                     explanation: isEn ? `Only the base ${innerNum} is raised to power ${expVal}, then negated.` : `Yalnız ${innerNum} əsası qüvvətə yüksəlir, sonra mənfi işarəsi tətbiq olunur.`,
                     substeps: [
                         {
-                            formula: `${innerNum}^{${expVal}} = ${Math.pow(innerNum, expVal)}`,
+                            formula: `${innerNum}<sup>${expVal}</sup> = ${Math.pow(innerNum, expVal)}`,
                             explanation: isEn ? "Raise base to exponent." : "Əsası qüvvətə yüksəldin."
                         },
                         {
@@ -536,11 +536,13 @@
             const arg = trigMatch[2];
             steps.push({
                 title: isEn ? `1. Trigonometric function: ${fn}` : `1. Triqonometrik funksiya: ${fn}`,
-                formula: `${fn}(${arg}${angleMode === 'DEG' && !arg.includes('pi') ? '^\\circ' : ''}) = ${finalVal}`,
+                formula: `${fn}(${arg}${angleMode === 'DEG' && !arg.includes('pi') ? '°' : ''}) = ${finalVal}`,
                 explanation: isEn ? `Evaluated respecting ${angleMode} angle mode.` : `${angleMode} bucaq rejiminə uyğun olaraq hesablandı.`,
                 substeps: [
                     {
-                        formula: `${angleMode === 'DEG' ? `\\text{Angle mode: Degree (°)}` : `\\text{Angle mode: Radian (rad)}`}`,
+                        formula: angleMode === 'DEG'
+                            ? (isEn ? 'Angle mode: Degree (°)' : 'Bucaq rejimi: Dərəcə (°)')
+                            : (isEn ? 'Angle mode: Radian (rad)' : 'Bucaq rejimi: Radian (rad)'),
                         explanation: isEn ? `Angle evaluation mode is ${angleMode}.` : `Bucaq vahidi ${angleMode} olaraq təyin olunub.`
                     }
                 ]
@@ -571,7 +573,7 @@
                 : "Standart riyazi əməliyyat ardıcıllığı (mötərizələr, qüvvətlər, vurma/bölmə, toplama/çıxma) ilə icra olunur.",
             substeps: [
                 {
-                    formula: `\\text{PEMDAS:} \\quad \\text{P} \\rightarrow \\text{E} \\rightarrow \\text{MD} \\rightarrow \\text{AS}`,
+                    formula: 'PEMDAS: P → E → MD → AS',
                     explanation: isEn ? "Parentheses → Exponents → Multiplication/Division → Addition/Subtraction." : "Mötərizələr → Qüvvətlər → Vurma/Bölmə → Toplama/Çıxma."
                 }
             ]
