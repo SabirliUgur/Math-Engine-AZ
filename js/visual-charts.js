@@ -586,8 +586,169 @@
         `;
     }
 
+    /**
+     * Render Complex Argand Plane (Re vs Im) with z1 and z2 vectors (v3.4.0)
+     */
+    function renderComplexArgand(a, b, c, d, lang) {
+        const isEn = getActiveLang(lang) === 'en';
+        const w = 400;
+        const h = 280;
+        const ox = 200;
+        const oy = 140;
+        const accent = 'var(--accent, #4F46E5)';
+        const guideCol = '#10B981';
+        const textCol = 'var(--text, #0F172A)';
+        const textSec = 'var(--text-sec, #475569)';
+        const fontMono = "'JetBrains Mono', monospace";
+
+        const maxAbs = Math.max(Math.abs(a), Math.abs(b), Math.abs(c), Math.abs(d), 2) * 1.3;
+        const scale = 90 / maxAbs;
+        const x1 = +(ox + a * scale).toFixed(1);
+        const y1 = +(oy - b * scale).toFixed(1);
+        const x2 = +(ox + c * scale).toFixed(1);
+        const y2 = +(oy - d * scale).toFixed(1);
+
+        return `
+            <svg class="w-full h-full" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <marker id="argArrow1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L0,6 L7,3 z" fill="${accent}" />
+                    </marker>
+                    <marker id="argArrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L0,6 L7,3 z" fill="${guideCol}" />
+                    </marker>
+                </defs>
+                <line x1="55" y1="${oy}" x2="345" y2="${oy}" stroke="${textSec}" stroke-width="1.2" opacity="0.55" />
+                <line x1="${ox}" y1="26" x2="${ox}" y2="238" stroke="${textSec}" stroke-width="1.2" opacity="0.55" />
+                <text x="348" y="${oy + 4}" fill="${textSec}" font-family="${fontMono}" font-size="11" font-weight="600">Re</text>
+                <text x="${ox + 6}" y="30" fill="${textSec}" font-family="${fontMono}" font-size="11" font-weight="600">Im</text>
+                <circle cx="${ox}" cy="${oy}" r="3" fill="${textSec}" />
+                <line x1="${ox}" y1="${oy}" x2="${x1}" y2="${y1}" stroke="${accent}" stroke-width="2.5" marker-end="url(#argArrow1)" />
+                <text x="${x1 + 6}" y="${y1 - 6}" fill="${accent}" font-family="${fontMono}" font-size="11" font-weight="600">z₁(${formatVal(a)},${formatVal(b)})</text>
+                <line x1="${ox}" y1="${oy}" x2="${x2}" y2="${y2}" stroke="${guideCol}" stroke-width="2.5" marker-end="url(#argArrow2)" />
+                <text x="${x2 + 6}" y="${y2 + 12}" fill="${guideCol}" font-family="${fontMono}" font-size="11" font-weight="600">z₂(${formatVal(c)},${formatVal(d)})</text>
+                <text x="200" y="264" fill="${textSec}" font-family="${fontMono}" font-size="12" text-anchor="middle">${isEn ? 'Complex Argand Plane (Re / Im)' : 'Kompleks Arqan Müstəvisi (Re / Im)'}</text>
+            </svg>
+        `;
+    }
+
+    /**
+     * Render Quadratic/Linear Inequality parabola/line & highlighted x-axis solution intervals (v3.4.0)
+     */
+    function renderInequalityGraph(sol, lang) {
+        const isEn = getActiveLang(lang) === 'en';
+        const w = 400;
+        const h = 280;
+        const ox = 200;
+        const oy = 148;
+        const accent = 'var(--accent, #4F46E5)';
+        const guideCol = '#10B981';
+        const textSec = 'var(--text-sec, #475569)';
+        const fontMono = "'JetBrains Mono', monospace";
+
+        if (!sol) return '';
+        const { a, b, c, roots = [], intervals = [], intervalStr } = sol;
+        const maxRoot = roots.length ? Math.max(...roots.map(Math.abs), 2) : 4;
+        const xSpan = Math.max(maxRoot * 1.8, 5);
+        const scaleX = 145 / xSpan;
+
+        // Sample y values to determine vertical scale
+        const samples = [];
+        for (let i = -40; i <= 40; i++) {
+            const x = (i / 40) * xSpan;
+            const y = a * x * x + b * x + c;
+            samples.push({ x, y });
+        }
+        const maxAbsY = Math.max(...samples.map(s => Math.abs(s.y)), 4);
+        const scaleY = 85 / maxAbsY;
+
+        const pathPts = samples.map((s, idx) => {
+            const sx = +(ox + s.x * scaleX).toFixed(1);
+            const sy = +(oy - s.y * scaleY).toFixed(1);
+            return `${idx === 0 ? 'M' : 'L'} ${sx} ${Math.max(24, Math.min(242, sy))}`;
+        }).join(' ');
+
+        // Highlight solution intervals along x-axis
+        const intervalSvg = intervals.map(iv => {
+            const sx1 = iv.from === -Infinity ? 40 : Math.max(40, Math.min(360, ox + iv.from * scaleX));
+            const sx2 = iv.to === Infinity ? 360 : Math.max(40, Math.min(360, ox + iv.to * scaleX));
+            let marks = `<line x1="${sx1}" y1="${oy}" x2="${sx2}" y2="${oy}" stroke="${guideCol}" stroke-width="5" opacity="0.85" />`;
+            if (isFinite(iv.from)) {
+                marks += `<circle cx="${sx1}" cy="${oy}" r="4.5" fill="${iv.leftClosed ? guideCol : '#FFFFFF'}" stroke="${guideCol}" stroke-width="2" />`;
+            }
+            if (isFinite(iv.to)) {
+                marks += `<circle cx="${sx2}" cy="${oy}" r="4.5" fill="${iv.rightClosed ? guideCol : '#FFFFFF'}" stroke="${guideCol}" stroke-width="2" />`;
+            }
+            return marks;
+        }).join('');
+
+        return `
+            <svg class="w-full h-full" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                <line x1="40" y1="${oy}" x2="360" y2="${oy}" stroke="${textSec}" stroke-width="1.2" opacity="0.55" />
+                <line x1="${ox}" y1="24" x2="${ox}" y2="242" stroke="${textSec}" stroke-width="1.2" opacity="0.55" />
+                <path d="${pathPts}" fill="none" stroke="${accent}" stroke-width="2.2" />
+                ${intervalSvg}
+                <text x="200" y="264" fill="${textSec}" font-family="${fontMono}" font-size="11.5" text-anchor="middle">${isEn ? 'Solution' : 'Həll'}: ${intervalStr}</text>
+            </svg>
+        `;
+    }
+
+    /**
+     * Render Geometric Progression discrete terms (k, b_k) up to min(n, 12) (v3.4.0)
+     */
+    function renderGeometricProgression(gp, lang) {
+        const isEn = getActiveLang(lang) === 'en';
+        if (!gp || !Array.isArray(gp.terms) || gp.terms.length === 0) return '';
+        const statsObj = {
+            mean: gp.terms.reduce((acc, t) => acc + t.value, 0) / gp.terms.length
+        };
+        const w = 400;
+        const h = 280;
+        const padX = 48;
+        const padY = 40;
+        const chartW = w - padX * 2;
+        const chartH = h - padY * 2;
+        const accent = 'var(--accent, #4F46E5)';
+        const textCol = 'var(--text, #0F172A)';
+        const textSec = 'var(--text-sec, #475569)';
+        const fontMono = "'JetBrains Mono', monospace";
+
+        const vals = gp.terms.map(t => t.value);
+        const yMin = Math.min(0, ...vals);
+        const yMax = Math.max(0, ...vals, 1);
+        const yRange = (yMax - yMin) || 1;
+        const getY = v => h - padY - ((v - yMin) / yRange) * chartH;
+        const zeroY = getY(0);
+        const stepW = chartW / gp.terms.length;
+        const barW = Math.max(8, Math.min(28, stepW * 0.6));
+
+        const bars = gp.terms.map((t, i) => {
+            const cx = padX + i * stepW + stepW / 2;
+            const yVal = getY(t.value);
+            const topY = Math.min(yVal, zeroY);
+            const barH = Math.max(2, Math.abs(zeroY - yVal));
+            return `
+                <rect x="${(cx - barW / 2).toFixed(1)}" y="${topY.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="3" fill="${accent}" opacity="0.82" />
+                <circle cx="${cx.toFixed(1)}" cy="${yVal.toFixed(1)}" r="3.2" fill="#10B981" />
+                <text x="${cx.toFixed(1)}" y="${h - padY + 14}" fill="${textSec}" font-family="${fontMono}" font-size="9.5" text-anchor="middle">${t.k}</text>
+            `;
+        }).join('');
+
+        return `
+            <svg class="w-full h-full" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                <line x1="${padX}" y1="${zeroY.toFixed(1)}" x2="${w - padX}" y2="${zeroY.toFixed(1)}" stroke="${textSec}" stroke-width="1.2" opacity="0.65" />
+                ${bars}
+                <text x="200" y="26" fill="${textCol}" font-family="${fontMono}" font-size="11.5" font-weight="600" text-anchor="middle">${isEn ? `Geometric Progression (b₁=${formatVal(gp.b1)}, q=${formatVal(gp.q)})` : `Həndəsi Silsilə (b₁=${formatVal(gp.b1)}, q=${formatVal(gp.q)})`}</text>
+                <text x="200" y="266" fill="${textSec}" font-family="${fontMono}" font-size="11" text-anchor="middle">${isEn ? `Showing first ${gp.terms.length} terms (bₖ)` : `İlk ${gp.terms.length} hədd (bₖ)`}</text>
+            </svg>
+        `;
+    }
+
     return {
         renderGeometry,
-        renderStatistics
+        renderStatistics,
+        renderComplexArgand,
+        renderInequalityGraph,
+        renderGeometricProgression
     };
 }));

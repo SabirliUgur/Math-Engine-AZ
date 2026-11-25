@@ -1,5 +1,5 @@
 /**
- * i18n Translation Engine for Math Engine AZ (v3.3.0)
+ * i18n Translation Engine for Math Engine AZ (v3.4.0)
  * Zero-dependency bilingual support: Azerbaijani ('az') & English ('en')
  */
 
@@ -109,17 +109,17 @@
             hapticEnabled: "Aktiv",
             hapticDisabled: "Deaktiv",
             hapticNote: "Vibrasiya dəstəklənən mobil brauzerlərdə (Android Chrome, Samsung Internet) işləyir, masaüstü və iOS Safari cihazlarında nəzərə alınmır.",
-            versionInfo: "Versiya 3.3.0 · 3D Solid Geometry & Wireframe Diagrams",
+            versionInfo: "Versiya 3.4.0 · Complex Numbers, Inequalities & Geometric Progression",
 
             // Settings Right Info Card
             sysInfoTitle: "Sistem Məlumatı",
             sysInfoSubtitle: "PWA mühərriki və cihaz konfiqurasiyası",
             appVersionLabel: "Tətbiq Versiyası",
             appVersion: "Tətbiq Versiyası",
-            appVersionVal: "v3.3.0 (3D Solid Geometry)",
+            appVersionVal: "v3.4.0 (Algebra Expansion)",
             pwaCacheLabel: "Oflayn Keş Statusu",
             pwaCacheStatus: "Oflayn Keş Statusu",
-            pwaCacheActive: "Aktiv (math-engine-az-v3.3.0)",
+            pwaCacheActive: "Aktiv (math-engine-az-v3.4.0)",
             shortcutsTitle: "Qısayol Düymələri",
             shortcutDigits: "Rəqəmlər",
             shortcutOps: "Əsas əməllər",
@@ -176,6 +176,13 @@
             subTabLinear3: "3 məchullu",
             subTabPercentage: "Faiz",
             subTabSequence: "Silsilə",
+            subTabComplex: "Kompleks Ədədlər",
+            subTabInequality: "Bərabərsizliklər",
+            subTabGP: "Həndəsi Silsilə",
+            algComplexTitle: "Kompleks Ədədlər: z₁ = a + bi, z₂ = c + di",
+            algIneqTitle: "Kvadrat və Xətti Bərabərsizliklər",
+            algIneqOpLabel: "İşarə:",
+            algGPTitle: "Həndəsi Silsilə (bₙ, Sₙ, S)",
             algLinear2Title: "Xətti tənliklər sistemi (2 məchullu)",
             algLinear3Title: "Xətti tənliklər sistemi (3 məchullu)",
             algPctTitle: "Faiz Hesablamaları",
@@ -336,17 +343,17 @@
             hapticEnabled: "Enabled",
             hapticDisabled: "Disabled",
             hapticNote: "Haptic feedback works on supported mobile browsers (Android Chrome, Samsung Internet) and is safely ignored on desktop and iOS Safari.",
-            versionInfo: "Version 3.3.0 · 3D Solid Geometry & Wireframe Diagrams",
+            versionInfo: "Version 3.4.0 · Complex Numbers, Inequalities & Geometric Progression",
 
             // Settings Right Info Card
             sysInfoTitle: "System Information",
             sysInfoSubtitle: "PWA runtime and device configuration",
             appVersionLabel: "Application Version",
             appVersion: "Application Version",
-            appVersionVal: "v3.3.0 (3D Solid Geometry)",
+            appVersionVal: "v3.4.0 (Algebra Expansion)",
             pwaCacheLabel: "Offline Cache Status",
             pwaCacheStatus: "Offline Cache Status",
-            pwaCacheActive: "Active (math-engine-az-v3.3.0)",
+            pwaCacheActive: "Active (math-engine-az-v3.4.0)",
             shortcutsTitle: "Keyboard Shortcuts",
             shortcutDigits: "Digits",
             shortcutOps: "Basic Operators",
@@ -403,6 +410,13 @@
             subTabLinear3: "3 variables",
             subTabPercentage: "Percentage",
             subTabSequence: "Sequences",
+            subTabComplex: "Complex Numbers",
+            subTabInequality: "Inequalities",
+            subTabGP: "Geometric Progression",
+            algComplexTitle: "Complex Numbers: z₁ = a + bi, z₂ = c + di",
+            algIneqTitle: "Quadratic & Linear Inequalities",
+            algIneqOpLabel: "Sign:",
+            algGPTitle: "Geometric Progression (bₙ, Sₙ, S)",
             algLinear2Title: "System of Linear Equations (2 variables)",
             algLinear3Title: "System of Linear Equations (3 variables)",
             algPctTitle: "Percentage Calculations",

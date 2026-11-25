@@ -1,29 +1,29 @@
 /**
- * Service Worker for Math-Engine-AZ v3.3.0 ("3D Solid Geometry: Polyhedra & Solids of Revolution")
+ * Service Worker for Math-Engine-AZ v3.4.0 ("Algebra Expansion: Complex Numbers, Inequalities, Geometric Progression & Interval Graphs")
  * Network-First with Cache Fallback strategy for robust offline capability.
  */
 
-const CACHE_NAME = 'math-engine-az-v3.3.0';
+const CACHE_NAME = 'math-engine-az-v3.4.0';
 
 const PRECACHE_ASSETS = [
     './',
     './index.html',
-    './index.html?v=3.3.0',
+    './index.html?v=3.4.0',
     './manifest.json',
     './style.css',
-    './style.css?v=3.3.0',
+    './style.css?v=3.4.0',
     './app.js',
-    './app.js?v=3.3.0',
+    './app.js?v=3.4.0',
     './js/math-core.js',
-    './js/math-core.js?v=3.3.0',
+    './js/math-core.js?v=3.4.0',
     './js/math-editor.js',
-    './js/math-editor.js?v=3.3.0',
+    './js/math-editor.js?v=3.4.0',
     './js/visual-charts.js',
-    './js/visual-charts.js?v=3.3.0',
+    './js/visual-charts.js?v=3.4.0',
     './js/i18n.js',
-    './js/i18n.js?v=3.3.0',
+    './js/i18n.js?v=3.4.0',
     './js/step-solver.js',
-    './js/step-solver.js?v=3.3.0',
+    './js/step-solver.js?v=3.4.0',
     './icon-192.png',
     './icon-512.png',
     'https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.5/math.min.js'

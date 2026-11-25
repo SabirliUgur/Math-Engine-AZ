@@ -5,6 +5,22 @@ Format [Keep a Changelog](https://keepachangelog.com/az/1.0.0/) standartına və
 
 ---
 
+## [3.4.0] - 2026-11-25 — "Algebra Expansion: Complex Numbers, Inequalities, Geometric Progression & Interval Graphs"
+
+### ✖️ Cəbr Modulları və Vizual Qrafiklər (`Cəbr`)
+- **Kompleks Ədədlər (`Complex Numbers` / `MathCore.complexOps`)**:
+  - $z_1 = a + bi$ və $z_2 = c + di$ (`√3` kimi ifadə dəstəyi ilə) üçün cəm, fərq, hasil, nisbət ($z_2 = 0$ qorunması ilə), modullar $|z_1|, |z_2|$, qoşmalar $\bar{z}_1, \bar{z}_2$ və arqumentlər $\arg(z_1), \arg(z_2)$.
+  - Sağ paneldə **Kompleks Arqan Müstəvisi** ($\text{Re}$ / $\text{Im}$) vektor diaqramı.
+- **Kvadrat və Xətti Bərabərsizliklər (`Inequalities` / `MathCore.solveInequality`)**:
+  - $ax^2 + bx + c \ [>, <, \ge, \le] \ 0$ (eləcə də $a = 0$ xətti halı) üçün diskriminant $D$, köklər və dəqiq **interval həlli** ($\emptyset$, $\mathbb{R}$, birləşmə intervalları).
+  - Sağ paneldə parabola/xətt qrafiki və $x$-oxu üzərində işıqlandırılmış həll intervalları.
+- **Həndəsi Silsilə (`Geometric Progression` / `MathCore.geometricProgression`)**:
+  - $b_n = b_1 q^{n-1}$, $S_n = \frac{b_1(q^n-1)}{q-1}$ ($q=1 \rightarrow nb_1$) və $|q| < 1$ olduqda sonsuz azalan cəm $S = \frac{b_1}{1-q}$.
+  - Sağ paneldə ilk $\min(n, 12)$ həddin diskret sütun/nöqtə qrafiki.
+- **PWA Keş**: `sw.js` keş adı `'math-engine-az-v3.4.0'` olaraq yeniləndi.
+
+---
+
 ## [3.3.0] - 2026-11-25 — "3D Solid Geometry: Polyhedra & Solids of Revolution"
 
 ### 🧊 3D Fəza Fiqurları və İzometrik Wireframe Diaqramları (`Həndəsə`)

@@ -1410,6 +1410,177 @@
         };
     }
 
+    // =========================================================
+    // 7E. ALGEBRA EXPANSION: COMPLEX, INEQUALITIES & GP (v3.4.0)
+    // =========================================================
+
+    /** Complex arithmetic for z1 = a + bi and z2 = c + di */
+    function complexOps(a, b, c, d) {
+        if (![a, b, c, d].every(v => typeof v === 'number' && isFinite(v))) return null;
+        const sum = { re: cleanPrecision(a + c), im: cleanPrecision(b + d) };
+        const diff = { re: cleanPrecision(a - c), im: cleanPrecision(b - d) };
+        const prod = {
+            re: cleanPrecision(a * c - b * d),
+            im: cleanPrecision(a * d + b * c)
+        };
+        const denom = c * c + d * d;
+        const quot = denom < 1e-18 ? null : {
+            re: cleanPrecision((a * c + b * d) / denom),
+            im: cleanPrecision((b * c - a * d) / denom)
+        };
+        const mod1 = cleanPrecision(Math.hypot(a, b));
+        const mod2 = cleanPrecision(Math.hypot(c, d));
+        const conj1 = { re: cleanPrecision(a), im: cleanPrecision(-b) };
+        const conj2 = { re: cleanPrecision(c), im: cleanPrecision(-d) };
+        const arg1Rad = mod1 < 1e-15 ? null : cleanPrecision(Math.atan2(b, a));
+        const arg1Deg = arg1Rad === null ? null : cleanPrecision((arg1Rad * 180) / Math.PI);
+        const arg2Rad = mod2 < 1e-15 ? null : cleanPrecision(Math.atan2(d, c));
+        const arg2Deg = arg2Rad === null ? null : cleanPrecision((arg2Rad * 180) / Math.PI);
+        return { sum, diff, prod, quot, mod1, mod2, conj1, conj2, arg1Rad, arg1Deg, arg2Rad, arg2Deg };
+    }
+
+    /** Solve quadratic or linear inequality: ax^2 + bx + c [op] 0 */
+    function solveInequality(a, b, c, op) {
+        if (![a, b, c].every(v => typeof v === 'number' && isFinite(v))) return null;
+        const validOps = ['>', '<', '>=', '<='];
+        if (!validOps.includes(op)) return null;
+
+        const flipOp = { '>': '<', '<': '>', '>=': '<=', '<=': '>=' };
+        const evalOp = (val, targetOp) => {
+            if (targetOp === '>') return val > 0;
+            if (targetOp === '<') return val < 0;
+            if (targetOp === '>=') return val >= 0;
+            return val <= 0;
+        };
+
+        // Linear case: a == 0
+        if (Math.abs(a) < 1e-12) {
+            if (Math.abs(b) < 1e-12) {
+                const holds = evalOp(c, op);
+                return {
+                    isLinear: true, a: 0, b: 0, c, op,
+                    discriminant: null, roots: [],
+                    intervalType: holds ? 'allReal' : 'empty',
+                    intervalStr: holds ? 'ℝ (-∞, +∞)' : '∅',
+                    intervals: holds ? [{ from: -Infinity, to: Infinity, leftClosed: false, rightClosed: false }] : []
+                };
+            }
+            const effOp = b < 0 ? flipOp[op] : op;
+            const x0 = cleanPrecision(-c / b);
+            const isGt = effOp === '>' || effOp === '>=';
+            const closed = effOp === '>=' || effOp === '<=';
+            const intervalStr = isGt
+                ? `${closed ? '[' : '('}${x0}, +∞)`
+                : `(-∞, ${x0}${closed ? ']' : ')'}`;
+            const intervals = isGt
+                ? [{ from: x0, to: Infinity, leftClosed: closed, rightClosed: false }]
+                : [{ from: -Infinity, to: x0, leftClosed: false, rightClosed: closed }];
+            return {
+                isLinear: true, a: 0, b, c, op,
+                discriminant: null, roots: [x0],
+                intervalType: 'single',
+                intervalStr,
+                intervals
+            };
+        }
+
+        // Quadratic case
+        const D = cleanPrecision(b * b - 4 * a * c);
+        const effOp = a < 0 ? flipOp[op] : op;
+        const closed = effOp === '>=' || effOp === '<=';
+        const isOutside = effOp === '>' || effOp === '>=';
+
+        if (D > 1e-12) {
+            const sqrtD = Math.sqrt(D);
+            const rA = cleanPrecision((-b - sqrtD) / (2 * a));
+            const rB = cleanPrecision((-b + sqrtD) / (2 * a));
+            const r1 = Math.min(rA, rB);
+            const r2 = Math.max(rA, rB);
+
+            if (isOutside) {
+                const brL = closed ? ']' : ')';
+                const brR = closed ? '[' : '(';
+                return {
+                    isLinear: false, a, b, c, op, discriminant: D, roots: [r1, r2],
+                    intervalType: 'union',
+                    intervalStr: `(-∞, ${r1}${brL} ∪ ${brR}${r2}, +∞)`,
+                    intervals: [
+                        { from: -Infinity, to: r1, leftClosed: false, rightClosed: closed },
+                        { from: r2, to: Infinity, leftClosed: closed, rightClosed: false }
+                    ]
+                };
+            }
+            const br1 = closed ? '[' : '(';
+            const br2 = closed ? ']' : ')';
+            return {
+                isLinear: false, a, b, c, op, discriminant: D, roots: [r1, r2],
+                intervalType: 'bounded',
+                intervalStr: `${br1}${r1}, ${r2}${br2}`,
+                intervals: [{ from: r1, to: r2, leftClosed: closed, rightClosed: closed }]
+            };
+        }
+
+        if (Math.abs(D) <= 1e-12) {
+            const r0 = cleanPrecision(-b / (2 * a));
+            if (effOp === '>=') {
+                return {
+                    isLinear: false, a, b, c, op, discriminant: 0, roots: [r0],
+                    intervalType: 'allReal',
+                    intervalStr: 'ℝ (-∞, +∞)',
+                    intervals: [{ from: -Infinity, to: Infinity, leftClosed: false, rightClosed: false }]
+                };
+            }
+            if (effOp === '>') {
+                return {
+                    isLinear: false, a, b, c, op, discriminant: 0, roots: [r0],
+                    intervalType: 'punctured',
+                    intervalStr: `(-∞, ${r0}) ∪ (${r0}, +∞)`,
+                    intervals: [
+                        { from: -Infinity, to: r0, leftClosed: false, rightClosed: false },
+                        { from: r0, to: Infinity, leftClosed: false, rightClosed: false }
+                    ]
+                };
+            }
+            if (effOp === '<=') {
+                return {
+                    isLinear: false, a, b, c, op, discriminant: 0, roots: [r0],
+                    intervalType: 'point',
+                    intervalStr: `{${r0}}`,
+                    intervals: [{ from: r0, to: r0, leftClosed: true, rightClosed: true }]
+                };
+            }
+            return {
+                isLinear: false, a, b, c, op, discriminant: 0, roots: [r0],
+                intervalType: 'empty',
+                intervalStr: '∅',
+                intervals: []
+            };
+        }
+
+        // D < 0 (parabola never crosses x-axis, with normalized a' > 0)
+        return {
+            isLinear: false, a, b, c, op, discriminant: D, roots: [],
+            intervalType: isOutside ? 'allReal' : 'empty',
+            intervalStr: isOutside ? 'ℝ (-∞, +∞)' : '∅',
+            intervals: isOutside ? [{ from: -Infinity, to: Infinity, leftClosed: false, rightClosed: false }] : []
+        };
+    }
+
+    /** Geometric progression: b_n, S_n, infinite sum (|q| < 1), and first min(n,12) terms */
+    function geometricProgression(b1, q, n) {
+        if (!isFinite(b1) || !isFinite(q) || !Number.isInteger(n) || n < 1) return null;
+        const bn = cleanPrecision(b1 * Math.pow(q, n - 1));
+        const Sn = cleanPrecision(Math.abs(q - 1) < 1e-12 ? n * b1 : (b1 * (Math.pow(q, n) - 1)) / (q - 1));
+        const converges = Math.abs(q) < 1;
+        const infSum = converges ? cleanPrecision(b1 / (1 - q)) : null;
+        const count = Math.min(n, 12);
+        const terms = [];
+        for (let i = 0; i < count; i++) {
+            terms.push({ k: i + 1, value: cleanPrecision(b1 * Math.pow(q, i)) });
+        }
+        return { b1, q, n, bn, Sn, converges, infSum, terms };
+    }
+
     // Auto-init ans from existing storage if available
     HistoryStore.initAns();
 
@@ -1441,6 +1612,9 @@
         solidCone,
         solidPyramid,
         solidFrustum,
+        complexOps,
+        solveInequality,
+        geometricProgression,
         HistoryStore,
         ERRORS,
         CONSTANTS,

@@ -306,13 +306,14 @@ function updateVisualCard(tabId, subtabId) {
     const solverContainer = document.getElementById('solver-container');
     const geoContainer = document.getElementById('geometry-diagram-container');
     const statsContainer = document.getElementById('stats-chart-container');
+    const algebraContainer = document.getElementById('algebra-chart-container');
     const settingsContainer = document.getElementById('settings-info-container');
     const zoomControls = document.getElementById('graphZoomControls');
 
     if (!visualTitle) return;
 
     // Hide all subpanels by default
-    [gridContainer, canvasContainer, solverContainer, geoContainer, statsContainer, settingsContainer].forEach(el => {
+    [gridContainer, canvasContainer, solverContainer, geoContainer, statsContainer, algebraContainer, settingsContainer].forEach(el => {
         if (el) el.classList.add('hidden');
     });
 
@@ -346,10 +347,23 @@ function updateVisualCard(tabId, subtabId) {
         if (zoomControls) zoomControls.style.display = 'none';
     } else {
         // Algebra
-        visualTitle.textContent = window.I18n ? I18n.t('secAlgebraTitle', 'Cəbr və Tənliklər') : 'Cəbr və Tənliklər';
-        visualSubtitle.textContent = window.I18n ? I18n.t('visualAlgebraSubtitle', 'Funksiya və Tənliklər Müstəvisi') : 'Funksiya və Tənliklər Müstəvisi';
-        if (gridContainer) gridContainer.classList.remove('hidden');
         if (zoomControls) zoomControls.style.display = 'none';
+        if (subtabId === 'complex' || subtabId === 'inequality' || subtabId === 'gp') {
+            const titleKey = subtabId === 'complex' ? 'subTabComplex' : (subtabId === 'inequality' ? 'subTabInequality' : 'subTabGP');
+            visualTitle.textContent = window.I18n ? I18n.t(titleKey, 'Cəbr') : 'Cəbr';
+            visualSubtitle.textContent = window.I18n ? I18n.t('visualAlgebraSubtitle', 'Funksiya və Tənliklər Müstəvisi') : 'Funksiya və Tənliklər Müstəvisi';
+            if (algebraContainer) {
+                algebraContainer.classList.remove('hidden');
+                if (!algebraContainer.innerHTML.trim()) {
+                    const isEn = isEnglish();
+                    algebraContainer.innerHTML = `<div class="text-text-muted text-xs p-4 text-center">${isEn ? 'Calculate to view interactive diagram' : 'İnteraktiv diaqramı görmək üçün hesablayın'}</div>`;
+                }
+            }
+        } else {
+            visualTitle.textContent = window.I18n ? I18n.t('secAlgebraTitle', 'Cəbr və Tənliklər') : 'Cəbr və Tənliklər';
+            visualSubtitle.textContent = window.I18n ? I18n.t('visualAlgebraSubtitle', 'Funksiya və Tənliklər Müstəvisi') : 'Funksiya və Tənliklər Müstəvisi';
+            if (gridContainer) gridContainer.classList.remove('hidden');
+        }
     }
 }
 
@@ -427,10 +441,11 @@ function updateSolverOrGraph(expr) {
     const solverContainer = document.getElementById('solver-container');
     const geoContainer = document.getElementById('geometry-diagram-container');
     const statsContainer = document.getElementById('stats-chart-container');
+    const algebraContainer = document.getElementById('algebra-chart-container');
     const settingsContainer = document.getElementById('settings-info-container');
     const zoomControls = document.getElementById('graphZoomControls');
 
-    [gridContainer, geoContainer, statsContainer, settingsContainer].forEach(el => {
+    [gridContainer, geoContainer, statsContainer, algebraContainer, settingsContainer].forEach(el => {
         if (el) el.classList.add('hidden');
     });
 
@@ -846,7 +861,11 @@ const HISTORY_LABEL_MAP = [
     ['Bucaq əmsalı (k)', 'Slope (k)'],
     ['Düz xətt tənliyi', 'Line equation'],
     ['Skalyar hasil (u·v)', 'Dot product (u·v)'],
-    ['Bucaq θ', 'Angle θ']
+    ['Bucaq θ', 'Angle θ'],
+    ['Kompleks', 'Complex'],
+    ['Bərabərsizlik', 'Inequality'],
+    ['Həndəsi silsilə', 'Geometric prog.'],
+    ['Mövcud deyil', 'Does not converge']
 ];
 
 function translateHistoryField(str, isEn) {
@@ -2264,6 +2283,141 @@ function calcSequence() {
         addToHistory(histBadge, `${isEn ? 'Geometric' : 'Həndəsi'}: a₁=${a1}, q=${d}, n=${n}`, `aₙ=${formatNumber(an)}, Sₙ=${formatNumber(Sn)}`);
     }
     out.innerHTML = html;
+}
+
+/* ---------- Complex Numbers (v3.4.0) ---------- */
+function formatComplexNum(re, im) {
+    const rStr = formatNumber(re);
+    if (Math.abs(im) < 1e-12) return rStr;
+    const absIm = formatNumber(Math.abs(im));
+    const imPart = absIm === '1' ? 'i' : `${absIm}i`;
+    if (Math.abs(re) < 1e-12) return im < 0 ? `-${imPart}` : imPart;
+    return `${rStr} ${im < 0 ? '−' : '+'} ${imPart}`;
+}
+
+function showAlgebraChart(svgHtml) {
+    const container = document.getElementById('algebra-chart-container');
+    const grid = document.getElementById('visual-grid-container');
+    if (grid) grid.classList.add('hidden');
+    if (container) {
+        container.classList.remove('hidden');
+        container.innerHTML = svgHtml;
+    }
+}
+
+function calcComplex() {
+    const out = document.getElementById('complexResult');
+    const lang = getActiveLang();
+    const isEn = lang === 'en';
+    const evalInput = id => {
+        const raw = document.getElementById(id).value.trim();
+        if (!raw) return NaN;
+        return (window.MathCore && MathCore.evaluate) ? MathCore.evaluate(raw, { angleMode: 'DEG', lang }) : parseFloat(raw);
+    };
+
+    let a, b, c, d;
+    try {
+        a = evalInput('compA');
+        b = evalInput('compB');
+        c = evalInput('compC');
+        d = evalInput('compD');
+    } catch (e) {
+        out.innerHTML = `<span class="error">${escHtml(e.message || (isEn ? 'Invalid expression' : 'Yanlış ifadə'))}</span>`;
+        return;
+    }
+
+    const res = MathCore.complexOps(a, b, c, d);
+    if (!res) {
+        out.innerHTML = `<span class="error">${isEn ? 'Please enter valid numbers or expressions for a, b, c, d.' : 'Zəhmət olmasa a, b, c, d üçün düzgün ədəd və ya ifadələr daxil edin.'}</span>`;
+        return;
+    }
+
+    const z1Str = formatComplexNum(a, b);
+    const z2Str = formatComplexNum(c, d);
+    const quotStr = res.quot ? formatComplexNum(res.quot.re, res.quot.im) : (isEn ? 'Undefined (z₂ = 0)' : 'Təyin olunmayıb (z₂ = 0)');
+    const arg1Str = res.arg1Deg !== null ? `${formatNumber(res.arg1Deg)}° (${formatNumber(res.arg1Rad)} rad)` : '—';
+    const arg2Str = res.arg2Deg !== null ? `${formatNumber(res.arg2Deg)}° (${formatNumber(res.arg2Rad)} rad)` : '—';
+
+    out.innerHTML = `
+        <div><span class="label">z₁ + z₂ = </span><span class="value">${escHtml(formatComplexNum(res.sum.re, res.sum.im))}</span></div>
+        <div><span class="label">z₁ − z₂ = </span><span class="value">${escHtml(formatComplexNum(res.diff.re, res.diff.im))}</span></div>
+        <div><span class="label">z₁ · z₂ = </span><span class="value">${escHtml(formatComplexNum(res.prod.re, res.prod.im))}</span></div>
+        <div><span class="label">z₁ / z₂ = </span><span class="value">${escHtml(quotStr)}</span></div>
+        <div><span class="label">|z₁|, |z₂| = </span><span class="value">${formatNumber(res.mod1)}, ${formatNumber(res.mod2)}</span></div>
+        <div><span class="label">${isEn ? 'Conjugates' : 'Qoşmalar'} (z̄₁, z̄₂) = </span><span class="value">${escHtml(formatComplexNum(res.conj1.re, res.conj1.im))}, ${escHtml(formatComplexNum(res.conj2.re, res.conj2.im))}</span></div>
+        <div><span class="label">arg(z₁), arg(z₂) = </span><span class="value">${arg1Str}; ${arg2Str}</span></div>
+    `;
+
+    if (window.VisualCharts && VisualCharts.renderComplexArgand) {
+        showAlgebraChart(VisualCharts.renderComplexArgand(a, b, c, d, lang));
+    }
+    addToHistory(isEn ? 'Algebra' : 'Cəbr', `${isEn ? 'Complex' : 'Kompleks'}: (${z1Str}), (${z2Str})`, `z₁·z₂=${formatComplexNum(res.prod.re, res.prod.im)}`);
+}
+
+/* ---------- Quadratic & Linear Inequalities (v3.4.0) ---------- */
+function solveInequalityUI() {
+    const a = parseFloat(document.getElementById('ineqA').value);
+    const b = parseFloat(document.getElementById('ineqB').value);
+    const c = parseFloat(document.getElementById('ineqC').value);
+    const op = document.getElementById('ineqOp').value;
+    const out = document.getElementById('inequalityResult');
+    const lang = getActiveLang();
+    const isEn = lang === 'en';
+
+    const sol = MathCore.solveInequality(a, b, c, op);
+    if (!sol) {
+        out.innerHTML = `<span class="error">${isEn ? 'Please enter valid numeric coefficients a, b, c.' : 'Zəhmət olmasa a, b, c üçün düzgün əmsallar daxil edin.'}</span>`;
+        return;
+    }
+
+    let html = '';
+    if (!sol.isLinear) {
+        html += `<div><span class="label">${isEn ? 'Discriminant' : 'Diskriminant'} (D) = </span><span class="value">${formatNumber(sol.discriminant)}</span></div>`;
+    }
+    if (sol.roots.length > 0) {
+        const rootStr = sol.roots.map((r, i) => `x${sol.roots.length > 1 ? (i === 0 ? '₁' : '₂') : '₀'} = ${formatNumber(r)}`).join(', ');
+        html += `<div><span class="label">${isEn ? 'Roots' : 'Köklər'}: </span><span class="value">${rootStr}</span></div>`;
+    }
+    html += `<div><span class="label">${isEn ? 'Solution interval' : 'Həll aralığı'}: </span><span class="value">${escHtml(sol.intervalStr)}</span></div>`;
+    out.innerHTML = html;
+
+    if (window.VisualCharts && VisualCharts.renderInequalityGraph) {
+        showAlgebraChart(VisualCharts.renderInequalityGraph(sol, lang));
+    }
+    addToHistory(isEn ? 'Algebra' : 'Cəbr', `${isEn ? 'Inequality' : 'Bərabərsizlik'}: ${a}x²+${b}x+${c} ${op} 0`, sol.intervalStr);
+}
+
+/* ---------- Geometric Progression (v3.4.0) ---------- */
+function calcGeometricProg() {
+    const b1 = parseFloat(document.getElementById('gpB1').value);
+    const q = parseFloat(document.getElementById('gpQ').value);
+    const n = parseInt(document.getElementById('gpN').value, 10);
+    const out = document.getElementById('gpResult');
+    const lang = getActiveLang();
+    const isEn = lang === 'en';
+
+    const gp = MathCore.geometricProgression(b1, q, n);
+    if (!gp) {
+        out.innerHTML = `<span class="error">${isEn ? 'Please enter valid b₁, q and integer n ≥ 1.' : 'Zəhmət olmasa düzgün b₁, q və tam n ≥ 1 daxil edin.'}</span>`;
+        return;
+    }
+
+    const infText = gp.converges
+        ? formatNumber(gp.infSum)
+        : (isEn ? 'Does not converge (|q| ≥ 1)' : 'Mövcud deyil (|q| ≥ 1)');
+
+    out.innerHTML = `
+        <span class="formula">bₙ = b₁ · qⁿ⁻¹ = ${b1} · ${q}^${n - 1}</span>
+        <div><span class="label">bₙ = </span><span class="value">${formatNumber(gp.bn)}</span></div>
+        <span class="formula">Sₙ = ${Math.abs(q - 1) < 1e-12 ? 'n · b₁' : 'b₁ · (qⁿ − 1) / (q − 1)'}</span>
+        <div><span class="label">Sₙ = </span><span class="value">${formatNumber(gp.Sn)}</span></div>
+        <div><span class="label">${isEn ? 'Infinite sum (S)' : 'Sonsuz azalan cəm (S)'}: </span><span class="value">${escHtml(infText)}</span></div>
+    `;
+
+    if (window.VisualCharts && VisualCharts.renderGeometricProgression) {
+        showAlgebraChart(VisualCharts.renderGeometricProgression(gp, lang));
+    }
+    addToHistory(isEn ? 'Algebra' : 'Cəbr', `${isEn ? 'Geometric prog.' : 'Həndəsi silsilə'}: b₁=${b1}, q=${q}, n=${n}`, `bₙ=${formatNumber(gp.bn)}, Sₙ=${formatNumber(gp.Sn)}`);
 }
 
 /* ==========================================================

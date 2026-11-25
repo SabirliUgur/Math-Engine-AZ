@@ -283,19 +283,19 @@ it('Translates historyEmpty correctly in AZ and EN', () => {
 });
 
 // -------------------------------------------------------------
-// 6. index.html & sw.js v3.3.0 Verification
+// 6. index.html & sw.js v3.4.0 Verification
 // -------------------------------------------------------------
 console.log('\n[6] HTML & Service Worker Verification Tests');
 
-it('index.html references all scripts with v3.3.0 query string', () => {
+it('index.html references all scripts with v3.4.0 query string', () => {
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(html.includes('style.css?v=3.3.0'), 'style.css should have v=3.3.0');
-    assert.ok(html.includes('js/math-core.js?v=3.3.0'), 'math-core.js should have v=3.3.0');
-    assert.ok(html.includes('js/math-editor.js?v=3.3.0'), 'math-editor.js should have v=3.3.0');
-    assert.ok(html.includes('js/visual-charts.js?v=3.3.0'), 'visual-charts.js should have v=3.3.0');
-    assert.ok(html.includes('js/i18n.js?v=3.3.0'), 'i18n.js should have v=3.3.0');
-    assert.ok(html.includes('js/step-solver.js?v=3.3.0'), 'step-solver.js should have v=3.3.0');
-    assert.ok(html.includes('app.js?v=3.3.0'), 'app.js should have v=3.3.0');
+    assert.ok(html.includes('style.css?v=3.4.0'), 'style.css should have v=3.4.0');
+    assert.ok(html.includes('js/math-core.js?v=3.4.0'), 'math-core.js should have v=3.4.0');
+    assert.ok(html.includes('js/math-editor.js?v=3.4.0'), 'math-editor.js should have v=3.4.0');
+    assert.ok(html.includes('js/visual-charts.js?v=3.4.0'), 'visual-charts.js should have v=3.4.0');
+    assert.ok(html.includes('js/i18n.js?v=3.4.0'), 'i18n.js should have v=3.4.0');
+    assert.ok(html.includes('js/step-solver.js?v=3.4.0'), 'step-solver.js should have v=3.4.0');
+    assert.ok(html.includes('app.js?v=3.4.0'), 'app.js should have v=3.4.0');
 });
 
 it('index.html has removed "F(X) • ENGINE" header badge', () => {
@@ -319,11 +319,11 @@ it('index.html isolates Parametrlər with sidebar separator', () => {
     assert.ok(html.includes('sidebar-nav-divider'), 'sidebar-nav-divider should exist before settings');
 });
 
-it('sw.js cache name is updated to math-engine-az-v3.3.0', () => {
+it('sw.js cache name is updated to math-engine-az-v3.4.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.3.0'"), 'CACHE_NAME should be math-engine-az-v3.3.0');
-    assert.ok(sw.includes('./js/math-editor.js?v=3.3.0'), 'sw.js should precache math-editor.js?v=3.3.0');
-    assert.ok(sw.includes('./js/visual-charts.js?v=3.3.0'), 'sw.js should precache visual-charts.js?v=3.3.0');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.4.0'"), 'CACHE_NAME should be math-engine-az-v3.4.0');
+    assert.ok(sw.includes('./js/math-editor.js?v=3.4.0'), 'sw.js should precache math-editor.js?v=3.4.0');
+    assert.ok(sw.includes('./js/visual-charts.js?v=3.4.0'), 'sw.js should precache visual-charts.js?v=3.4.0');
 });
 
 // -------------------------------------------------------------
@@ -434,12 +434,12 @@ it('StepSolver preserves all factors in compound expressions (√5 × 3 2/3 & 2 
     I18n.setLanguage('az');
 });
 
-it('Service Worker & index.html cache versions are bumped to v3.3.0', () => {
+it('Service Worker & index.html cache versions are bumped to v3.4.0', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.3.0';"), 'sw.js CACHE_NAME should be v3.3.0');
-    assert.ok(html.includes('app.js?v=3.3.0'), 'index.html should reference ?v=3.3.0');
-    assert.ok(!html.includes('?v=3.2.0'), 'index.html should not have stale ?v=3.2.0 queries');
+    assert.ok(sw.includes("const CACHE_NAME = 'math-engine-az-v3.4.0';"), 'sw.js CACHE_NAME should be v3.4.0');
+    assert.ok(html.includes('app.js?v=3.4.0'), 'index.html should reference ?v=3.4.0');
+    assert.ok(!html.includes('?v=3.3.0'), 'index.html should not have stale ?v=3.3.0 queries');
 });
 
 // -------------------------------------------------------------
@@ -555,6 +555,63 @@ it('VisualCharts renders wireframe SVG diagrams for cuboid, pyramid & frustum in
     assert.ok(pyrAz.includes('Düzgün Dördbucaqlı Piramida') && pyrAz.includes('stroke-dasharray'));
     const fruEn = VisualCharts.renderGeometry('frustum', 'Rrh', { R: 5, r: 2, h: 4 }, 'en');
     assert.ok(fruEn.includes('Conical Frustum') && fruEn.includes('R = 5') && fruEn.includes('r = 2'));
+});
+
+// -------------------------------------------------------------
+// 11. v3.4.0 Complex Numbers, Inequalities & Geometric Progression
+// -------------------------------------------------------------
+console.log('\n[11] v3.4.0 Complex Numbers, Inequalities & Geometric Progression');
+
+it('MathCore.complexOps computes arithmetic, moduli, conjugates & arguments accurately', () => {
+    const res = MathCore.complexOps(3, 4, 1, -2);
+    assert.deepStrictEqual(res.sum, { re: 4, im: 2 });
+    assert.deepStrictEqual(res.diff, { re: 2, im: 6 });
+    assert.deepStrictEqual(res.prod, { re: 11, im: -2 });
+    assert.deepStrictEqual(res.quot, { re: -1, im: 2 });
+    assert.strictEqual(res.mod1, 5);
+    assert.deepStrictEqual(res.conj1, { re: 3, im: -4 });
+    assert.strictEqual(MathCore.complexOps(1, 1, 0, 0).quot, null, 'Division by z2=0 returns null');
+});
+
+it('MathCore.solveInequality solves quadratic & linear inequalities with exact intervals', () => {
+    const q1 = MathCore.solveInequality(1, -4, 3, '>');
+    assert.strictEqual(q1.discriminant, 4);
+    assert.deepStrictEqual(q1.roots, [1, 3]);
+    assert.strictEqual(q1.intervalStr, '(-∞, 1) ∪ (3, +∞)');
+
+    const q2 = MathCore.solveInequality(1, -4, 3, '<=');
+    assert.strictEqual(q2.intervalStr, '[1, 3]');
+
+    const qEmpty = MathCore.solveInequality(1, 0, 4, '<');
+    assert.strictEqual(qEmpty.intervalStr, '∅');
+
+    const lin = MathCore.solveInequality(0, -2, 6, '>');
+    assert.strictEqual(lin.isLinear, true);
+    assert.strictEqual(lin.intervalStr, '(-∞, 3)');
+});
+
+it('MathCore.geometricProgression computes b_n, S_n, infinite sum & terms', () => {
+    const gp = MathCore.geometricProgression(2, 0.5, 4);
+    assert.strictEqual(gp.bn, 0.25);
+    assert.strictEqual(gp.Sn, 3.75);
+    assert.strictEqual(gp.converges, true);
+    assert.strictEqual(gp.infSum, 4);
+    assert.strictEqual(gp.terms.length, 4);
+
+    const gpDiv = MathCore.geometricProgression(2, 2, 5);
+    assert.strictEqual(gpDiv.bn, 32);
+    assert.strictEqual(gpDiv.Sn, 62);
+    assert.strictEqual(gpDiv.converges, false);
+    assert.strictEqual(gpDiv.infSum, null);
+});
+
+it('VisualCharts renders Argand, Inequality & Geometric Progression SVGs in AZ and EN', () => {
+    const argEn = VisualCharts.renderComplexArgand(3, 4, 1, -2, 'en');
+    assert.ok(argEn.includes('Complex Argand Plane') && argEn.includes('z₁(3,4)'));
+    const ineqAz = VisualCharts.renderInequalityGraph(MathCore.solveInequality(1, -4, 3, '>'), 'az');
+    assert.ok(ineqAz.includes('Həll') && ineqAz.includes('(-∞, 1) ∪ (3, +∞)'));
+    const gpEn = VisualCharts.renderGeometricProgression(MathCore.geometricProgression(2, 0.5, 4), 'en');
+    assert.ok(gpEn.includes('Geometric Progression') && gpEn.includes('<rect'));
 });
 
 console.log(`\n========================================`);
